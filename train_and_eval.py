@@ -283,7 +283,7 @@ def run_transductive(
                     model, feats_test, labels_test, criterion, batch_size, evaluator
                 )
             else:
-                out, loss_train, score_train,  h_list, dist, codebook = evaluate(
+                out, loss_train, score_train,  h_list, dist, codebook, loss_list = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_train
                 )
                 loss_val = criterion(out[idx_val], labels[idx_val]).item()
