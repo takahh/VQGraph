@@ -261,6 +261,7 @@ def run_transductive(
         data_eval = g
 
     best_epoch, best_score_val, count = 0, 0, 0
+    loss_list = [0, 0, 0]
     for epoch in range(1, conf["max_epoch"] + 1):
         if "SAGE" in model.model_name:
             loss = train_sage(model, data, feats, labels, criterion, optimizer)
@@ -290,10 +291,10 @@ def run_transductive(
                 score_val = evaluator(out[idx_val], labels[idx_val])
                 loss_test = criterion(out[idx_test], labels[idx_test]).item()
                 acc = evaluator(out[idx_test], labels[idx_test])
+            print(loss_list)
             # loss_list : [feature_rec_loss, edge_rec_loss, commit_loss]
             logger.info(
-                f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_test: {acc:.4f} \
-                | feature_loss: {loss_list[0]: 4f}| edge_loss: {loss_list[1]: 4f}| commit_loss: {loss_list[2]: 4f}"
+                f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_test: {acc:.4f} | feature_loss: {loss_list[0]: 4f}| edge_loss: {loss_list[1]: 4f}| commit_loss: {loss_list[2]: 4f}"
             )
             loss_and_score += [
                 [
