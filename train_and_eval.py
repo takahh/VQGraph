@@ -324,7 +324,7 @@ def run_transductive(
             model, feats, labels, criterion, batch_size, evaluator, idx_val
         )
     else:
-        out, _, score_val, h_list, dist, codebook = evaluate(
+        out, _, score_val, h_list, dist, codebook, loss_list = evaluate(
             model, data_eval, feats, labels, criterion, evaluator, idx_val
         )
 
@@ -332,7 +332,7 @@ def run_transductive(
     logger.info(
         f"Best valid model at epoch: {best_epoch: 3d}, acc: {acc :.4f}"
     )
-    return out, score_val, acc, h_list, dist, codebook
+    return out, score_val, acc, h_list, dist, codebook, loss_list
 
 
 def run_inductive(
