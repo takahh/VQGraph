@@ -115,7 +115,7 @@ class GCN(nn.Module):
         h = self.linear(h)
         loss = feature_rec_loss + edge_rec_loss + commit_loss
         
-        return h_list, h, loss, dist, codebook
+        return h_list, h, loss, dist, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
 
 
 class SAGE(nn.Module):

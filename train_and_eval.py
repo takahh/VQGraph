@@ -17,7 +17,7 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     model.train()
 
     # Compute loss and prediction
-    _, logits, loss, dist, codebooklogits = model(data, feats)
+    _, logits, loss, dist, codebooklogits, loss_list = model(data, feats)
     out = logits.log_softmax(dim=1)
     loss += criterion(out[idx_train], labels[idx_train])
     loss_val = loss.item()
@@ -26,7 +26,7 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-    return loss_val
+    return loss_val, loss_list
 
 
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
@@ -269,7 +269,7 @@ def run_transductive(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
             )
         else:
-            loss = train(model, data, feats, labels, criterion, optimizer, idx_train)
+            loss, loss_list = train(model, data, feats, labels, criterion, optimizer, idx_train)
 
         if epoch % conf["eval_interval"] == 0:
             if "MLP" in model.model_name:
@@ -290,9 +290,10 @@ def run_transductive(
                 score_val = evaluator(out[idx_val], labels[idx_val])
                 loss_test = criterion(out[idx_test], labels[idx_test]).item()
                 acc = evaluator(out[idx_test], labels[idx_test])
-
+            # loss_list : [feature_rec_loss, edge_rec_loss, commit_loss]
             logger.info(
-                f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_test: {acc:.4f}"
+                f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_test: {acc:.4f} \
+                | feature_loss: {loss_list[0]: 4f}| edge_loss: {loss_list[1]: 4f}| commit_loss: {loss_list[2]: 4f}"
             )
             loss_and_score += [
                 [
