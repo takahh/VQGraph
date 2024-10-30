@@ -60,13 +60,13 @@ def get_args():
     parser.add_argument(
         "--labelrate_train",
         type=int,
-        default=None,
+        default=30,
         help="How many labeled data per class as train set",
     )
     parser.add_argument(
         "--labelrate_val",
         type=int,
-        default=None,
+        default=20,
         help="How many labeled data per class in valid set",
     )
     parser.add_argument(
