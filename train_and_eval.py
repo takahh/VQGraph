@@ -142,7 +142,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     """
     model.eval()
     with torch.no_grad():
-        h_list, logits, _ , dist, codebook = model.inference(data, feats)
+        h_list, logits, _ , dist, codebook, loss_list = model.inference(data, feats)
         out = logits.log_softmax(dim=1)
         if idx_eval is None:
             loss = criterion(out, labels)
@@ -150,7 +150,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
         else:
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
-    return out, loss.item(), score, h_list, dist, codebook
+    return out, loss.item(), score, h_list, dist, codebook, loss_list
 
 
 def evaluate_mini_batch(
