@@ -255,7 +255,7 @@ def run(args):
 
         
         # out, score_val, score_test, h_list, dist, codebook = 
-        out, score_val, score_test, h_list, dist, codebook = run_transductive(
+        out, score_val, score_test, h_list, dist, codebook, loss_list = run_transductive(
             conf,
             model,
             g,
