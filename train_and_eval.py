@@ -553,7 +553,7 @@ def run_inductive(
         )
 
     else:
-        obs_out, _, score_val, h_list, dist, codebook = evaluate(
+        obs_out, _, score_val, h_list, dist, codebook, loss_list = evaluate(
             model,
             obs_data_eval,
             obs_feats,
@@ -562,7 +562,7 @@ def run_inductive(
             evaluator,
             obs_idx_val,
         )
-        out, _, acc_ind, h_list, dist, codebook = evaluate(
+        out, _, acc_ind, h_list, dist, codebook, loss_list = evaluate(
             model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
         )
 
