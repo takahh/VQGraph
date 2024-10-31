@@ -639,6 +639,11 @@ def get_train_val_test_split(
 
     num_samples, num_classes = labels.shape
     remaining_indices = list(range(num_samples))
+
+    print("len(remaining_indices)")
+    print(len(remaining_indices))
+    print("train_size")
+    print(train_size)
     if train_examples_per_class is not None:
         train_indices = sample_per_class(random_state, labels, train_examples_per_class)
     else:
@@ -647,6 +652,10 @@ def get_train_val_test_split(
             remaining_indices, train_size, replace=False
         )
 
+    print("len(remaining_indices)")
+    print(len(remaining_indices))
+    print("valid_size")
+    print(valid_size)
     if val_examples_per_class is not None:
         val_indices = sample_per_class(
             random_state,
