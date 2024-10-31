@@ -43,7 +43,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         batch_labels = labels[output_nodes]
 
         # Compute loss and prediction
-        _, logits, loss , _ , _= model(blocks, batch_feats)
+        _, logits, loss , _ , _, loss_list = model(blocks, batch_feats)
         out = logits.log_softmax(dim=1)
         # print(loss)
         loss += criterion(out, batch_labels)
@@ -55,7 +55,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         loss.backward()
         optimizer.step()
 
-    return total_loss / len(dataloader)
+    return total_loss / len(dataloader), loss_list
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
@@ -264,7 +264,7 @@ def run_transductive(
     loss_list = [0, 0, 0]
     for epoch in range(1, conf["max_epoch"] + 1):
         if "SAGE" in model.model_name:
-            loss = train_sage(model, data, feats, labels, criterion, optimizer)
+            loss, loss_list = train_sage(model, data, feats, labels, criterion, optimizer)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
