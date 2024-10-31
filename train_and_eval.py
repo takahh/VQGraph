@@ -405,7 +405,7 @@ def run_inductive(
             drop_last=False,
             num_workers=conf["num_workers"],
         )
-        dataloader_eval = dgl.dataloading.NodeDataLoader(
+        dataloader_eval = dgl.dataloading.DataLoader(
             g,
             torch.arange(g.num_nodes()),
             sampler_eval,
