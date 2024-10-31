@@ -94,7 +94,7 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
 
     # remove self loop and extract the largest CC
     print("data in load cpf")
-    print(data)
+    print(dir(data))
     data = data.standardize()
     adj, features, labels = data.unpack()
     print("labels in load cpf")
