@@ -564,7 +564,8 @@ def load_npz_to_sparse_graph(file_name):
             (loader["adj_data"], loader["adj_indices"], loader["adj_indptr"]),
             shape=loader["adj_shape"],
         )
-
+        print("adj_matrix")
+        print(adj_matrix.shape)
         if "attr_data" in loader:
             # Attributes are stored as a sparse CSR matrix
             attr_matrix = sp.csr_matrix(
