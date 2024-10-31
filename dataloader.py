@@ -34,7 +34,7 @@ from data_preprocess import (
 from ogb.nodeproppred import DglNodePropPredDataset
 
 
-CPF_data = ["cora", "citeseer", "pubmed", "a-computer", "a-photo"]
+CPF_data = ["cora", "citeseer", "pubmed", "a-computer", "a-photo", "molecules"]
 OGB_data = ["ogbn-arxiv", "ogbn-products"]
 NonHom_data = ["pokec", "penn94"]
 BGNN_data = ["house_class", "vk_class"]

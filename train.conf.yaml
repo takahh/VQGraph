@@ -1,7 +1,19 @@
 global:
   num_layers: 2
   hidden_dim: 128
-  
+
+molecule:
+  SAGE:
+    fan_out: 5,5
+    learning_rate: 0.01
+    dropout_ratio: 0
+    weight_decay: 0.0005
+
+  GCN:
+    hidden_dim: 64
+    dropout_ratio: 0.8
+    weight_decay: 0.001
+
 cora: 
   SAGE:
     fan_out: 5,5
