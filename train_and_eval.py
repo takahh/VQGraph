@@ -383,7 +383,8 @@ def run_inductive(
         sampler = dgl.dataloading.MultiLayerNeighborSampler(
             [eval(fanout) for fanout in conf["fan_out"].split(",")]
         )
-        obs_dataloader = dgl.dataloading.NodeDataLoader(
+        # obs_dataloader = dgl.dataloading.NodeDataLoader(
+        obs_dataloader = dgl.dataloading.DataLoader(
             obs_g,
             obs_idx_train,
             sampler,
