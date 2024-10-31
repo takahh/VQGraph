@@ -85,6 +85,8 @@ def load_ogb_data(dataset, dataset_path):
 
 def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
     data_path = Path.cwd().joinpath(dataset_path, f"{dataset}.npz")
+    print("datapath")
+    print(data_path)
     if os.path.isfile(data_path):
         data = load_npz_to_sparse_graph(data_path)
     else:
