@@ -93,6 +93,7 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
         raise ValueError(f"{data_path} doesn't exist.")
 
     # remove self loop and extract the largest CC
+    print("data in load cpf")
     print(data)
     data = data.standardize()
     adj, features, labels = data.unpack()
@@ -451,13 +452,11 @@ class SparseGraph:
                 raise ValueError(
                     "Dimensions of the adjacency and attribute matrices don't agree"
                 )
-
         if labels is not None:
             if labels.shape[0] != adj_matrix.shape[0]:
                 raise ValueError(
                     "Dimensions of the adjacency matrix and the label vector don't agree"
                 )
-
         if node_names is not None:
             if len(node_names) != adj_matrix.shape[0]:
                 raise ValueError(
