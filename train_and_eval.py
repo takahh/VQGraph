@@ -485,7 +485,7 @@ def run_inductive(
                 # --------------------------------------
                 # 2. Evaluate
                 # --------------------------------------
-                obs_out, loss_train, score_train, h_list, dist, codebook = evaluate(
+                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list = evaluate(
                     model,
                     obs_data_eval,
                     obs_feats,
