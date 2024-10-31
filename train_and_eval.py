@@ -395,7 +395,8 @@ def run_inductive(
         )
 
         sampler_eval = dgl.dataloading.MultiLayerFullNeighborSampler(1)
-        obs_dataloader_eval = dgl.dataloading.NodeDataLoader(
+        # obs_dataloader_eval = dgl.dataloading.NodeDataLoader(
+        obs_dataloader_eval = dgl.dataloading.DataLoader(
             obs_g,
             torch.arange(obs_g.num_nodes()),
             sampler_eval,
