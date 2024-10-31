@@ -85,22 +85,14 @@ def load_ogb_data(dataset, dataset_path):
 
 def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
     data_path = Path.cwd().joinpath(dataset_path, f"{dataset}.npz")
-    print("datapath")
-    print(data_path)
     if os.path.isfile(data_path):
         data = load_npz_to_sparse_graph(data_path)
     else:
         raise ValueError(f"{data_path} doesn't exist.")
 
     # remove self loop and extract the largest CC
-    print("1 data.labels in load cpf")
-    print(data.labels.shape)
     # data = data.standardize()
-    print("2 data.labels in load cpf")
-    print(data.labels.shape)
     adj, features, labels = data.unpack()
-    print("3 data.labels in load cpf")
-    print(data.labels.shape)
     # print(labels[696], labels[701])
     # print(features.dtype)
     # print(adj[165])
@@ -646,15 +638,8 @@ def get_train_val_test_split(
     val_size=10,
     test_size=2800,
 ):
-    print("labels.shape")
-    print(labels.shape)
     num_samples, num_classes = labels.shape
     remaining_indices = list(range(num_samples))
-
-    print("len(remaining_indices)")
-    print(len(remaining_indices))
-    print("train_size")
-    print(train_size)
     if train_examples_per_class is not None:
         train_indices = sample_per_class(random_state, labels, train_examples_per_class)
     else:
@@ -663,10 +648,6 @@ def get_train_val_test_split(
             remaining_indices, train_size, replace=False
         )
 
-    print("len(remaining_indices)")
-    print(len(remaining_indices))
-    print("valid_size")
-    print(val_size)
     if val_examples_per_class is not None:
         val_indices = sample_per_class(
             random_state,
@@ -687,10 +668,6 @@ def get_train_val_test_split(
             forbidden_indices=forbidden_indices,
         )
     elif test_size is not None:
-        print("len(remaining_indices)")
-        print(len(remaining_indices))
-        print("test_size")
-        print(test_size)
         remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
         test_indices = random_state.choice(remaining_indices, test_size, replace=False)
     else:
