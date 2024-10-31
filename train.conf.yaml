@@ -2,7 +2,7 @@ global:
   num_layers: 2
   hidden_dim: 128
 
-molecule:
+molecules:
   SAGE:
     fan_out: 5,5
     learning_rate: 0.01
