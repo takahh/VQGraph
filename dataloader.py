@@ -551,14 +551,10 @@ def load_npz_to_sparse_graph(file_name):
     """
     with np.load(file_name, allow_pickle=True) as loader:
         loader = dict(loader)
-        print("loader")
-        print(loader)
         adj_matrix = sp.csr_matrix(
             (loader["adj_data"], loader["adj_indices"], loader["adj_indptr"]),
             shape=loader["adj_shape"],
         )
-        print("adj_matrix")
-        print(adj_matrix.shape)
         if "attr_data" in loader:
             # Attributes are stored as a sparse CSR matrix
             attr_matrix = sp.csr_matrix(
@@ -586,8 +582,6 @@ def load_npz_to_sparse_graph(file_name):
             labels = loader["labels"]
         else:
             labels = None
-        print("labels")
-        print(labels.shape)
         node_names = loader.get("node_names")
         attr_names = loader.get("attr_names")
         class_names = loader.get("class_names")
