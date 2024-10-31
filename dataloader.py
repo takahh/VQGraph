@@ -636,7 +636,8 @@ def get_train_val_test_split(
     val_size=10,
     test_size=2800,
 ):
-
+    print("labels.shape")
+    print(labels.shape)
     num_samples, num_classes = labels.shape
     remaining_indices = list(range(num_samples))
 
