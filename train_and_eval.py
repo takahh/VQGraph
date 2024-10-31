@@ -437,6 +437,7 @@ def run_inductive(
 
     best_epoch, best_score_val, count = 0, 0, 0
     for epoch in range(1, conf["max_epoch"] + 1):
+        print(epoch)
         if "SAGE" in model.model_name:
             loss = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer
@@ -517,6 +518,10 @@ def run_inductive(
             logger.info(f"Ep {epoch:3d} | loss: {loss[0]:.4f}| s_train: {score_train:.4f} | s_val: {score_val:.4f}| s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}")
             logger.info(f" --> feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}")
                 # f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_tt: {acc_tran:.4f} | feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}"
+            print(
+                f"Ep {epoch:3d} | loss: {loss[0]:.4f}| s_train: {score_train:.4f} | s_val: {score_val:.4f}| s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}")
+            print(
+                f" --> feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}")
 
             loss_and_score += [
                 [
