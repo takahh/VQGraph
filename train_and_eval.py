@@ -514,9 +514,8 @@ def run_inductive(
                 out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
-            print(f"loss {loss}")
             logger.info(f"Ep {epoch:3d}")
-            logger.info(f"loss: {loss.item():.4f}")
+            logger.info(f"loss: {loss[0]:.4f}")
             logger.info(f"| s_train: {score_train:.4f}")
             logger.info(f" | s_val: {score_val:.4f}")
             logger.info(f" | s_tt: {acc_tran:.4f}")
