@@ -655,7 +655,7 @@ def get_train_val_test_split(
     print("len(remaining_indices)")
     print(len(remaining_indices))
     print("valid_size")
-    print(valid_size)
+    print(val_size)
     if val_examples_per_class is not None:
         val_indices = sample_per_class(
             random_state,
