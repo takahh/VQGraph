@@ -593,7 +593,8 @@ def load_npz_to_sparse_graph(file_name):
             labels = loader["labels"]
         else:
             labels = None
-
+        print("labels")
+        print(labels.shape)
         node_names = loader.get("node_names")
         attr_names = loader.get("attr_names")
         class_names = loader.get("class_names")
