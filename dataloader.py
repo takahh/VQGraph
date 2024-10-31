@@ -667,6 +667,10 @@ def get_train_val_test_split(
             forbidden_indices=forbidden_indices,
         )
     elif test_size is not None:
+        print("len(remaining_indices)")
+        print(len(remaining_indices))
+        print("test_size")
+        print(test_size)
         remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
         test_indices = random_state.choice(remaining_indices, test_size, replace=False)
     else:
