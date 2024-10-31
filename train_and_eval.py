@@ -515,9 +515,9 @@ def run_inductive(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
             logger.info(
-                # f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}"
+                f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}"
 
-                f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_tt: {acc_tran:.4f} | feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}"
+                # f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_tt: {acc_tran:.4f} | feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}"
             )
             loss_and_score += [
                 [
