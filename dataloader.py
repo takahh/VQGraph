@@ -93,8 +93,8 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
         raise ValueError(f"{data_path} doesn't exist.")
 
     # remove self loop and extract the largest CC
-    print("data in load cpf")
-    print(dir(data))
+    print("data.labels in load cpf")
+    print(data.labels)
     data = data.standardize()
     adj, features, labels = data.unpack()
     print("labels in load cpf")
