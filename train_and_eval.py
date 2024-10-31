@@ -359,7 +359,9 @@ def run_inductive(
     idx_obs: Idx of nodes in the original graph `g`, which form the observed graph 'obs_g'.
     loss_and_score: Stores losses and scores.
     """
-
+    # indices = [obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind]
+    # idx_obs = idx_train + idx_val + idx_test_tran
+    # idx_test_ind :  idx_test_ind + idx_test_tran = idx_test
     set_seed(conf["seed"])
     device = conf["device"]
     batch_size = conf["batch_size"]
@@ -442,6 +444,9 @@ def run_inductive(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
             )
         else:
+            # --------------------------------------
+            # 1. Train
+            # --------------------------------------
             loss = train(
                 model,
                 obs_data,
@@ -477,6 +482,9 @@ def run_inductive(
                     evaluator,
                 )
             else:
+                # --------------------------------------
+                # 2. Evaluate
+                # --------------------------------------
                 obs_out, loss_train, score_train, h_list, dist, codebook = evaluate(
                     model,
                     obs_data_eval,
@@ -497,6 +505,9 @@ def run_inductive(
                     obs_out[obs_idx_test], obs_labels[obs_idx_test]
                 )
 
+                # --------------------------------------
+                # 3. Evaluate
+                # --------------------------------------
                 # Evaluate the inductive part with the full graph
                 out, loss_test_ind, acc_ind, h_list, dist, codebook = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind

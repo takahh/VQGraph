@@ -632,9 +632,9 @@ def get_train_val_test_split(
     train_examples_per_class=None,
     val_examples_per_class=None,
     test_examples_per_class=None,
-    train_size=2310,
-    val_size=1,
-    test_size=577,
+    train_size=40,
+    val_size=10,
+    test_size=2800,
 ):
 
     num_samples, num_classes = labels.shape
