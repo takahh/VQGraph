@@ -384,6 +384,9 @@ def run_inductive(
             [eval(fanout) for fanout in conf["fan_out"].split(",")]
         )
         # obs_dataloader = dgl.dataloading.NodeDataLoader(
+        # -------------------------
+        # all obs data PARTIAL sampling (for training)
+        # -------------------------
         obs_dataloader = dgl.dataloading.DataLoader(
             obs_g,
             obs_idx_train,
@@ -396,6 +399,9 @@ def run_inductive(
 
         sampler_eval = dgl.dataloading.MultiLayerFullNeighborSampler(1)
         # obs_dataloader_eval = dgl.dataloading.NodeDataLoader(
+        # -------------------------
+        # all obs data FULL sampling (for inference/test)
+        # -------------------------
         obs_dataloader_eval = dgl.dataloading.DataLoader(
             obs_g,
             torch.arange(obs_g.num_nodes()),
@@ -405,6 +411,10 @@ def run_inductive(
             drop_last=False,
             num_workers=conf["num_workers"],
         )
+
+        # -------------------------
+        # all data, FULL sampling
+        # -------------------------
         dataloader_eval = dgl.dataloading.DataLoader(
             g,
             torch.arange(g.num_nodes()),
@@ -438,7 +448,11 @@ def run_inductive(
     best_epoch, best_score_val, count = 0, 0, 0
     for epoch in range(1, conf["max_epoch"] + 1):
         print(epoch)
+        # --------------------------------
+        # train
+        # --------------------------------
         if "SAGE" in model.model_name:
+            # partial sampling, only obs data
             loss = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer
             )
@@ -447,9 +461,6 @@ def run_inductive(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
             )
         else:
-            # --------------------------------------
-            # 1. Train
-            # --------------------------------------
             loss = train(
                 model,
                 obs_data,
@@ -486,9 +497,9 @@ def run_inductive(
                 )
             else:
                 # --------------------------------------
-                # 2. Evaluate
+                # test/inference, no sampling, full obs graph
                 # --------------------------------------
-                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list = evaluate(
+                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0 = evaluate(
                     model,
                     obs_data_eval,
                     obs_feats,
@@ -509,19 +520,21 @@ def run_inductive(
                 )
 
                 # --------------------------------------
-                # 3. Evaluate
+                # 3. Evaluate the inductive part (idx_test_ind),
+                # which is unlabeled, unseen in training
                 # --------------------------------------
                 # Evaluate the inductive part with the full graph
-                out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list = evaluate(
+                out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1 = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
             logger.info(f"Ep {epoch:3d} | loss: {loss[0]:.4f}| s_train: {score_train:.4f} | s_val: {score_val:.4f}| s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}")
-            logger.info(f" --> feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}")
+            logger.info(f" (test) --> feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}")
+            logger.info(f" (ind infer) --> feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}")
                 # f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_tt: {acc_tran:.4f} | feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}"
-            print(
-                f"Ep {epoch:3d} | loss: {loss[0]:.4f}| s_train: {score_train:.4f} | s_val: {score_val:.4f}| s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}")
-            print(
-                f" --> feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}")
+            # print(
+            #     f"Ep {epoch:3d} | loss: {loss[0]:.4f}| s_train: {score_train:.4f} | s_val: {score_val:.4f}| s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}")
+            # print(
+            #     f" --> feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}")
 
             loss_and_score += [
                 [
