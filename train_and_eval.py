@@ -530,16 +530,14 @@ def run_inductive(
                 out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1 = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
-            logger.info(f"Ep {epoch:3d} | loss: {loss[0]:.4f}| s_train: {score_train:.4f} | s_val: {score_val:.4f}| s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}")
-            logger.info(f" (test) --> feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}")
-            logger.info(f" (ind infer) --> feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}")
+            logger.info(f"train, epoch {epoch:3d}, loss {loss[0]:.4f}")
+            logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train[0].item()}")
+            logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind[0].item()}")
 
-            print(
-                f"Ep {epoch:3d} | loss: {loss[0]:.4f}| s_train: {score_train:.4f} | s_val: {score_val:.4f}| s_tt: {acc_tran:.4f} | s_ti: {acc_ind:.4f}")
-            print(
-                f" (test) --> feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}")
-            print(
-                f" (ind infer) --> feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}")
+            print(f"train, epoch {epoch:3d}, loss {loss[0]:.4f}")
+            print(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train[0].item()}")
+            print(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind[0].item()}")
+
             print("####------------####")
             loss_and_score += [
                 [
