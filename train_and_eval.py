@@ -531,12 +531,12 @@ def run_inductive(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
             logger.info(f"train, epoch {epoch:3d}, loss {loss[0]:.4f}")
-            logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train[0].item()}")
-            logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind[0].item()}")
+            logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train}")
+            logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind}")
 
             print(f"train, epoch {epoch:3d}, loss {loss[0]:.4f}")
-            print(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train[0].item()}")
-            print(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind[0].item()}")
+            print(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train}")
+            print(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind}")
 
             print("####------------####")
             loss_and_score += [
