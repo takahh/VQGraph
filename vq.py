@@ -604,7 +604,7 @@ class VectorQuantize(nn.Module):
         loss = torch.tensor([0.], device=device, requires_grad=self.training)
 
         if self.training:
-            if self.commitment_weight > 0:
+            if self.commitment_weight > 0:  # 0.25 is assigned
                 detached_quantize = quantize.detach()
 
                 if exists(mask):
@@ -621,7 +621,7 @@ class VectorQuantize(nn.Module):
 
                 loss = loss + commit_loss * self.commitment_weight
 
-            if self.orthogonal_reg_weight > 0:
+            if self.orthogonal_reg_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
 
                 if self.orthogonal_reg_active_codes_only:

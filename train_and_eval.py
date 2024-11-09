@@ -150,6 +150,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
         else:
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
+        #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1
     return out, loss.item(), score, h_list, dist, codebook, loss_list
 
 
@@ -453,6 +454,7 @@ def run_inductive(
         # --------------------------------
         if "SAGE" in model.model_name:
             # partial sampling, only obs data
+            # this loss is label loss
             loss = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer
             )
@@ -499,6 +501,7 @@ def run_inductive(
                 # --------------------------------------
                 # test/inference, no sampling, full obs graph
                 # --------------------------------------
+                # the "loss_train" is test loss in training
                 obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0 = evaluate(
                     model,
                     obs_data_eval,
@@ -519,10 +522,10 @@ def run_inductive(
                     obs_out[obs_idx_test], obs_labels[obs_idx_test]
                 )
 
-                # --------------------------------------
+                # -------------------------------------------------
                 # 3. Evaluate the inductive part (idx_test_ind),
                 # which is unlabeled, unseen in training
-                # --------------------------------------
+                # -------------------------------------------------
                 # Evaluate the inductive part with the full graph
                 out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1 = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind

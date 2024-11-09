@@ -174,12 +174,25 @@ class SAGE(nn.Module):
         quantized, _, commit_loss, dist, codebook = self.vq(h)
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
-
+        # --------------------
+        # Feat loss
+        # --------------------
         feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
+        # --------------------
+        # Adj loss (1D to 2D)
+        # --------------------
         adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
+        # ----------------------------
+        # change values to probability
+        # ----------------------------
         adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
+        # ----------------------------
+        # Edge recon loss
+        # ----------------------------
         edge_rec_loss = self.lamb_edge * torch.sqrt(F.mse_loss(adj, adj_quantized))
-
+        # -------------------------
+        # adjust variables to pass
+        # -------------------------
         dist = torch.squeeze(dist)
         h_list.append(quantized)
         h = self.graph_layer_2(g, quantized_edge)
