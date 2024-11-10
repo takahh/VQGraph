@@ -621,9 +621,6 @@ class VectorQuantize(nn.Module):
 
                 loss = loss + commit_loss * self.commitment_weight
 
-                print("loss0")
-                print(loss.item())
-
             if self.orthogonal_reg_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
 
@@ -639,10 +636,6 @@ class VectorQuantize(nn.Module):
 
                 orthogonal_reg_loss = orthogonal_loss_fn(codebook)
                 loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
-
-                print("loss1")
-                print(loss.item())
-
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
@@ -665,5 +658,9 @@ class VectorQuantize(nn.Module):
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         # print(self._codebook.embed)
+
+        print("loss")
+        print(loss)
+        print(loss.item())
 
         return quantize, embed_ind, loss, dist, self._codebook.embed
