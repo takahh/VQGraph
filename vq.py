@@ -602,7 +602,8 @@ class VectorQuantize(nn.Module):
             quantize = x + (quantize - x).detach()
 
         loss = torch.tensor([0.], device=device, requires_grad=self.training)
-
+        print("self.training")
+        print(self.training)
         if self.training:
             if self.commitment_weight > 0:  # 0.25 is assigned
                 detached_quantize = quantize.detach()
