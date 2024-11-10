@@ -236,7 +236,7 @@ class SAGE(nn.Module):
 
             quantized, _, commit_loss, dist, codebook = self.vq(h)
 
-            print("loss : in the middle of SAGE inference")
+            print("#### loss : in the middle of SAGE inference")
             print(commit_loss)
             print(commit_loss.item())
 
@@ -256,7 +256,7 @@ class SAGE(nn.Module):
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
 
-            print("loss : in the end of SAGE inference")
+            print("#### loss : in the end of SAGE inference")
             print(commit_loss)
             print(commit_loss.item())
         

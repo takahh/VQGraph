@@ -621,7 +621,7 @@ class VectorQuantize(nn.Module):
 
                 loss = loss + commit_loss * self.commitment_weight
 
-                print("loss in if")
+                print("#### loss in if")
                 print(loss)
 
             if self.orthogonal_reg_weight > 0:  # now skip because it is zero
@@ -640,7 +640,7 @@ class VectorQuantize(nn.Module):
                 orthogonal_reg_loss = orthogonal_loss_fn(codebook)
                 loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
 
-        print("loss : mid of vq forward")
+        print("#### loss : mid of vq forward")
         print(loss)
         print(loss.item())
 
@@ -666,7 +666,7 @@ class VectorQuantize(nn.Module):
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         # print(self._codebook.embed)
 
-        print("loss : end of vq forward")
+        print("#### loss : end of vq forward")
         print(loss)
         print(loss.item())
 
