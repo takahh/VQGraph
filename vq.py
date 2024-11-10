@@ -621,6 +621,9 @@ class VectorQuantize(nn.Module):
 
                 loss = loss + commit_loss * self.commitment_weight
 
+                print("loss in if")
+                print(loss)
+
             if self.orthogonal_reg_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
 
