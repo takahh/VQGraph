@@ -152,6 +152,7 @@ class SAGE(nn.Module):
         self.lamb_node = lamb_node
 
     def forward(self, blocks, feats):
+        print("--------- begin forward ---------")
         h = feats
         h_list = []
         g = dgl.DGLGraph().to(h.device)
@@ -214,6 +215,7 @@ class SAGE(nn.Module):
         dataloader : The entire graph loaded in blocks with full neighbors for each node.
         feats : The input feats of entire node set.
         """
+        print("--------- begin inference ---------")
         device = feats.device
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
