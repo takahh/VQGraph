@@ -37,6 +37,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
     device = feats.device
     model.train()
     total_loss = 0
+    print("len(dataloader)")
+    print(len(dataloader))
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         print("step")
         print(step)
