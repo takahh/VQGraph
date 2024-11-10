@@ -45,7 +45,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         batch_labels = labels[output_nodes]
 
         # Compute loss and prediction
+        print("forward start")
         _, logits, loss , _ , _, loss_list = model(blocks, batch_feats)
+        print("forward done")
         out = logits.log_softmax(dim=1)
         # print(loss)
         loss += criterion(out, batch_labels)
