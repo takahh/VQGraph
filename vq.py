@@ -609,10 +609,6 @@ class VectorQuantize(nn.Module):
 
                 if exists(mask):
                     # with variable lengthed sequences
-                    print("detached_quantize")
-                    print(detached_quantize)
-                    print("x")
-                    print(x)
                     commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
                     if is_multiheaded:
@@ -623,6 +619,10 @@ class VectorQuantize(nn.Module):
                 else:
                     commit_loss = F.mse_loss(detached_quantize, x)
 
+                print("detached_quantize")
+                print(detached_quantize)
+                print("x")
+                print(x)
                 loss = loss + commit_loss * self.commitment_weight
 
             if self.orthogonal_reg_weight > 0:  # now skip because it is zero
