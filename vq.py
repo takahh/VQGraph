@@ -662,7 +662,7 @@ class VectorQuantize(nn.Module):
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         # print(self._codebook.embed)
 
-        print("loss")
+        print("loss : end of vq forward")
         print(loss)
         print(loss.item())
 
