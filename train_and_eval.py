@@ -38,6 +38,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
     model.train()
     total_loss = 0
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+        print("step")
+        print(step)
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         batch_labels = labels[output_nodes]
