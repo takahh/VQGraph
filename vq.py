@@ -619,10 +619,8 @@ class VectorQuantize(nn.Module):
                 else:
                     commit_loss = F.mse_loss(detached_quantize, x)
 
-                print("detached_quantize")
-                print(detached_quantize)
-                print("x")
-                print(x)
+                print("commit_loss")
+                print(commit_loss)
                 loss = loss + commit_loss * self.commitment_weight
 
             if self.orthogonal_reg_weight > 0:  # now skip because it is zero
