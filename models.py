@@ -172,8 +172,11 @@ class SAGE(nn.Module):
         h = self.dropout(h)
         h_list.append(h)
         quantized, _, commit_loss, dist, codebook = self.vq(h)
-        print("blocks")
-        print(blocks)
+
+        print("#### output of vq in train")
+        print(commit_loss)
+        print(commit_loss.item())
+
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
         # --------------------
