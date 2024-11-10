@@ -233,6 +233,11 @@ class SAGE(nn.Module):
             h_list.append(h)
 
             quantized, _, commit_loss, dist, codebook = self.vq(h)
+
+            print("loss : after vq forward")
+            print(commit_loss)
+            print(commit_loss.item())
+
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
             quantized_edge = self.decoder_1(quantized)
@@ -248,6 +253,10 @@ class SAGE(nn.Module):
             loss = feature_rec_loss + edge_rec_loss + commit_loss
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
+
+            print("loss : aend of SAGE inference")
+            print(commit_loss)
+            print(commit_loss.item())
         
         return h_list, y, loss, dist_all, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
 
