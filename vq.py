@@ -640,10 +640,6 @@ class VectorQuantize(nn.Module):
                 orthogonal_reg_loss = orthogonal_loss_fn(codebook)
                 loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
 
-        print("loss : in the middle of vq forward")
-        print(loss)
-        print(loss.item())
-
         if is_multiheaded:
             if self.separate_codebook_per_head:
                 quantize = rearrange(quantize, 'h b n d -> b n (h d)', h=heads)
