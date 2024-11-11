@@ -67,7 +67,6 @@ def load_ogb_data(dataset, dataset_path):
         splitted_idx["valid"],
         splitted_idx["test"],
     )
-    print(f"train {idx_train}, val {idx_val}, test {idx_test}")
     g, labels = data[0]
     labels = labels.squeeze()
 
