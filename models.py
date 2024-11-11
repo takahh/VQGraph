@@ -211,7 +211,6 @@ class SAGE(nn.Module):
         dataloader : The entire graph loaded in blocks with full neighbors for each node.
         feats : The input feats of entire node set.
         """
-        print("--------- begin inference ---------")
         device = feats.device
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
@@ -252,10 +251,6 @@ class SAGE(nn.Module):
             loss = feature_rec_loss + edge_rec_loss + commit_loss
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
-
-            print("#### loss : in the end of SAGE inference")
-            print(commit_loss)
-            print(commit_loss.item())
         
         return h_list, y, loss, dist_all, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
 
