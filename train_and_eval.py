@@ -37,19 +37,13 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
     device = feats.device
     model.train()
     total_loss = 0
-    print("len(dataloader)")
-    print(len(dataloader))
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-        print("step")
-        print(step)
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         batch_labels = labels[output_nodes]
 
         # Compute loss and prediction
-        print("forward start")
         _, logits, loss , _ , _, loss_list = model(blocks, batch_feats)
-        print("forward done")
         out = logits.log_softmax(dim=1)
         # print(loss)
         loss += criterion(out, batch_labels)
@@ -460,7 +454,7 @@ def run_inductive(
         if "SAGE" in model.model_name:
             # partial sampling, only obs data
             # this loss is label loss
-            loss = train_sage(
+            loss, loss_list = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer
             )
         elif "MLP" in model.model_name:
@@ -540,6 +534,7 @@ def run_inductive(
             logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind}")
 
             print(f"train, epoch {epoch:3d}, loss {loss[0]:.4f}")
+            print(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, loss_train {loss}")
             print(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train}")
             print(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind}")
 

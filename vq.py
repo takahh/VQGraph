@@ -428,7 +428,10 @@ class CosineSimCodebook(nn.Module):
 
         flatten = rearrange(x, 'h ... d -> h (...) d')
         flatten = l2norm(flatten)
-
+        # -----------------------
+        # initialize codebook
+        # optimization done here
+        # -----------------------
         self.init_embed_(flatten)
 
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
