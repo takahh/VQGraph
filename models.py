@@ -152,7 +152,6 @@ class SAGE(nn.Module):
         self.lamb_node = lamb_node
 
     def forward(self, blocks, feats):
-        print("--------- begin forward ---------")
         h = feats
         h_list = []
         g = dgl.DGLGraph().to(h.device)
