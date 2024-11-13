@@ -119,7 +119,7 @@ def get_args():
     parser.add_argument("--learning_rate", type=float, default=0.0001)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument(
-        "--max_epoch", type=int, default=100, help="Evaluate once per how many epochs"
+        "--max_epoch", type=int, default=200, help="Evaluate once per how many epochs"
     )
     parser.add_argument(
         "--patience",

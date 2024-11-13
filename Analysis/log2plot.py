@@ -1,15 +1,20 @@
 import matplotlib.pyplot as plt
 
-path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_2024_11_11"
+# path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_2024_11_11"
+path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_11_12_both"
+epoch_num = 100
 
 
 def get_four_lists(kwd):
     with open(path) as f:
         line_list = [x for x in f.readlines() if kwd in x]
     # Nov10 22-46-18: train_known_g, epoch   2, feature_loss:  0.001953| edge_loss:  0.018125| commit_loss:  0.251250, loss_train 2.4667
-    feat_loss_list = [float(x.split()[6][:-1]) for x in line_list]
-    edge_loss_list = [float(x.split()[8][:-1]) for x in line_list]
-    commit_loss_list = [float(x.split()[10][:-1]) for x in line_list]
+    feat_loss_list = [float(x.split()[4][:-1]) for x in line_list]
+    edge_loss_list = [float(x.split()[6][:-1]) for x in line_list]
+    commit_loss_list = [float(x.split()[8][:-1]) for x in line_list]
+    # feat_loss_list = [float(x.split()[6][:-1]) for x in line_list]
+    # edge_loss_list = [float(x.split()[8][:-1]) for x in line_list]
+    # commit_loss_list = [float(x.split()[10][:-1]) for x in line_list]
     model_loss_list = [float(x.split()[-1].strip()) for x in line_list]
     return feat_loss_list, edge_loss_list, commit_loss_list, model_loss_list
 
@@ -23,9 +28,9 @@ def main():
         def plot_three(train_list, tran_list, ind_list, plotname):
             plt.figure()
             plt.title(plotname)
-            plt.scatter(list(range(100)), train_list, label='train')
-            plt.scatter(list(range(100)), tran_list, label='tran')
-            plt.scatter(list(range(100)), ind_list, label='ind')
+            plt.scatter(list(range(epoch_num)), train_list, label='train')
+            plt.scatter(list(range(epoch_num)), tran_list, label='tran')
+            plt.scatter(list(range(epoch_num)), ind_list, label='ind')
             plt.legend()
             plt.show()
 
