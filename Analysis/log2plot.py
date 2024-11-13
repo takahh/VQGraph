@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 # path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_2024_11_11"
-path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_11_12_both"
+path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_11_12_both_shuffled"
 epoch_num = 100
 
 
