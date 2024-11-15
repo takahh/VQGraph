@@ -79,7 +79,7 @@ def get_args():
     )
 
     """VQGraph"""
-    parser.add_argument("--codebook_size", type=int, default=25, help="Codebook size of VQGraph")
+    parser.add_argument("--codebook_size", type=int, default=50, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_node", type=float, default=0.001)
     parser.add_argument("--lamb_edge",  type=float, default=0.03)
 
@@ -108,7 +108,7 @@ def get_args():
     parser.add_argument(
         "--fan_out",
         type=str,
-        default="5,5",
+        default="4,4",
         help="Number of samples for each layer in SAGE. Length = num_layers",
     )
     parser.add_argument(
