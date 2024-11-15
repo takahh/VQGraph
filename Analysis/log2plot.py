@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
 # path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_2024_11_11"
-path = "/Users/taka/PycharmProjects/VQGraph/Analysis/fan_out_3_drp_0.2_4_4_1"
-epoch_num = 94
+path = "/Users/taka/PycharmProjects/VQGraph/Analysis/drp_0.5_cdbk_500_4_1_1"
+epoch_num = 32
 
 
 def get_four_lists(kwd):
