@@ -605,39 +605,39 @@ class VectorQuantize(nn.Module):
             quantize = x + (quantize - x).detach()
 
         loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        if self.training:
-            if self.commitment_weight > 0:  # 0.25 is assigned
-                detached_quantize = quantize.detach()
+        # if self.training:
+        if self.commitment_weight > 0:  # 0.25 is assigned
+            detached_quantize = quantize.detach()
 
-                if exists(mask):
-                    # with variable lengthed sequences
-                    commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
+            if exists(mask):
+                # with variable lengthed sequences
+                commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
-                    if is_multiheaded:
-                        mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
-                                      h=commit_loss.shape[1] // mask.shape[0])
+                if is_multiheaded:
+                    mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
+                                  h=commit_loss.shape[1] // mask.shape[0])
 
-                    commit_loss = commit_loss[mask].mean()
-                else:
-                    commit_loss = F.mse_loss(detached_quantize, x)
+                commit_loss = commit_loss[mask].mean()
+            else:
+                commit_loss = F.mse_loss(detached_quantize, x)
 
-                loss = loss + commit_loss * self.commitment_weight
+            loss = loss + commit_loss * self.commitment_weight
 
-            if self.orthogonal_reg_weight > 0:  # now skip because it is zero
-                codebook = self._codebook.embed
+        if self.orthogonal_reg_weight > 0:  # now skip because it is zero
+            codebook = self._codebook.embed
 
-                if self.orthogonal_reg_active_codes_only:
-                    # only calculate orthogonal loss for the activated codes for this batch
-                    unique_code_ids = torch.unique(embed_ind)
-                    codebook = codebook[unique_code_ids]
+            if self.orthogonal_reg_active_codes_only:
+                # only calculate orthogonal loss for the activated codes for this batch
+                unique_code_ids = torch.unique(embed_ind)
+                codebook = codebook[unique_code_ids]
 
-                num_codes = codebook.shape[0]
-                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                    codebook = codebook[rand_ids]
+            num_codes = codebook.shape[0]
+            if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                codebook = codebook[rand_ids]
 
-                orthogonal_reg_loss = orthogonal_loss_fn(codebook)
-                loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
+            orthogonal_reg_loss = orthogonal_loss_fn(codebook)
+            loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
