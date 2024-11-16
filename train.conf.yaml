@@ -1,12 +1,12 @@
 global:
-  num_layers: 4
-  hidden_dim: 258
+  num_layers: 6
+  hidden_dim: 256
 
 molecules:
   SAGE:
     fan_out: 4,4
     learning_rate: 0.01
-    dropout_ratio: 0.5
+    dropout_ratio: 0.2
     weight_decay: 0.0005
 
   GCN:
