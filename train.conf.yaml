@@ -5,8 +5,8 @@ global:
 molecules:
   SAGE:
     fan_out: 3,3,3,4,4,4
-    learning_rate: 0.01
-    dropout_ratio: 0
+    learning_rate: 0.001
+    dropout_ratio: 0.1
     weight_decay: 0.0005
 
   GCN:
