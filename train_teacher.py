@@ -81,7 +81,7 @@ def get_args():
     """VQGraph"""
     parser.add_argument("--codebook_size", type=int, default=50, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_node", type=float, default=0.0001)  # default=0.001)
-    parser.add_argument("--lamb_edge",  type=float, default=0.6)  # default=0.03)
+    parser.add_argument("--lamb_edge",  type=float, default=3)  # default=0.03)
 
 
     """Model"""
