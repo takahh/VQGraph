@@ -147,7 +147,7 @@ class SAGE(nn.Module):
         self.decoder_2 = nn.Linear(input_dim, input_dim)
         self.linear = nn.Linear(hidden_dim, output_dim)
         self.codebook_size = codebook_size
-        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8,commitment_weight=1.0, use_cosine_sim=True)
+        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8,commitment_weight=0.75, use_cosine_sim=True)
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
 
