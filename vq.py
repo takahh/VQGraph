@@ -620,7 +620,7 @@ class VectorQuantize(nn.Module):
                 commit_loss = commit_loss[mask].mean()
             else:
                 commit_loss = F.mse_loss(detached_quantize, x)
-
+            raw_commit_loss = commit_loss
             loss = loss + commit_loss * self.commitment_weight
 
         if self.orthogonal_reg_weight > 0:  # now skip because it is zero
@@ -661,4 +661,4 @@ class VectorQuantize(nn.Module):
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         # print(self._codebook.embed)
 
-        return quantize, embed_ind, loss, dist, self._codebook.embed
+        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss

@@ -171,14 +171,15 @@ class SAGE(nn.Module):
             h = self.norms[0](h)
         h = self.dropout(h)
         h_list.append(h)
-        quantized, _, commit_loss, dist, codebook = self.vq(h)
+        quantized, _, commit_loss, dist, codebook, raw_commit_loss = self.vq(h)
 
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
         # --------------------
         # Feat loss
         # --------------------
-        feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
+        raw_feat_loss = F.mse_loss(h, quantized_node)
+        feature_rec_loss = self.lamb_node * raw_feat_loss
         # --------------------
         # Adj loss (1D to 2D)
         # --------------------
@@ -190,7 +191,8 @@ class SAGE(nn.Module):
         # ----------------------------
         # Edge recon loss
         # ----------------------------
-        edge_rec_loss = self.lamb_edge * torch.sqrt(F.mse_loss(adj, adj_quantized))
+        raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
+        edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
         # -------------------------
         # adjust variables to pass
         # -------------------------
@@ -201,7 +203,7 @@ class SAGE(nn.Module):
         h = self.linear(h)
         loss = feature_rec_loss + edge_rec_loss + commit_loss
         h = h[:blocks[-1].num_dst_nodes()]
-        return h_list, h, loss, dist, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
+        return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss]
 
 
     def inference(self, dataloader, feats):
@@ -233,17 +235,22 @@ class SAGE(nn.Module):
             h = self.dropout(h)
             h_list.append(h)
 
-            quantized, _, commit_loss, dist, codebook = self.vq(h)
+            quantized, _, commit_loss, dist, codebook, raw_commit_loss = self.vq(h)
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
             quantized_edge = self.decoder_1(quantized)
             quantized_node = self.decoder_2(quantized)
 
-            feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
+            raw_feat_loss = F.mse_loss(h, quantized_node)
+            feature_rec_loss = self.lamb_node * raw_feat_loss
+            # feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
             adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
             adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
-            edge_rec_loss = self.lamb_edge * torch.sqrt(F.mse_loss(adj, adj_quantized))
+
+            raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
+            edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
+            # edge_rec_loss = self.lamb_edge * torch.sqrt(F.mse_loss(adj, adj_quantized))
             h = self.graph_layer_2(g, quantized_edge)
             h_list.append(h)
             h = self.linear(h)
@@ -251,7 +258,7 @@ class SAGE(nn.Module):
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
         
-        return h_list, y, loss, dist_all, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss]
 
 class GAT(nn.Module):
     def __init__(
