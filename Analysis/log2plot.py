@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 # path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_2024_11_11"
 path = "/Users/taka/PycharmProjects/VQGraph2/Analysis/log"
-epoch_num = 62
+epoch_num = 21
 
 
 def get_four_lists(kwd):
