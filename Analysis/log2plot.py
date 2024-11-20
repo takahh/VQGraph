@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
 # path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_2024_11_11"
-path = "/Users/taka/PycharmProjects/VQGraph/Analysis/log_11_11_2"
-epoch_num = 53
+path = "/Users/taka/PycharmProjects/VQGraph2/Analysis/log"
+epoch_num = 62
 
 
 def get_four_lists(kwd):
@@ -34,6 +34,7 @@ def main():
         def plot_three(train_list, plotname, tran_list=None, ind_list=None):
             plt.figure()
             plt.title(plotname)
+            plt.ylim(0, 0.20)
             if plotname == "Ind Accuracy":
                 plt.scatter(list(range(epoch_num)), ind_acc_list, label='ind')
             else:
