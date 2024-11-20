@@ -46,7 +46,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         _, logits, loss , _ , _, loss_list = model(blocks, batch_feats)
         out = logits.log_softmax(dim=1)
         # print(loss)
-        loss += criterion(out, batch_labels)
+        # loss += criterion(out, batch_labels)
         # print(loss)
         total_loss += loss.item()
 
