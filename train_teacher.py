@@ -318,13 +318,13 @@ def run(args):
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
     """ Saving loss curve and model """
-    if args.save_results:
+    # if args.save_results:
         # Loss curves
-        loss_and_score = np.array(loss_and_score)
-        np.savez(output_dir.joinpath("loss_and_score"), loss_and_score)
+    loss_and_score = np.array(loss_and_score)
+    np.savez(output_dir.joinpath("loss_and_score"), loss_and_score)
 
-        # Model
-        torch.save(model.state_dict(), output_dir.joinpath("model.pth"))
+    # Model
+    torch.save(model.state_dict(), output_dir.joinpath("model.pth"))
 
     """ Saving min-cut loss """
     if args.exp_setting == "tran" and args.compute_min_cut:
