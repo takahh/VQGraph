@@ -660,5 +660,6 @@ class VectorQuantize(nn.Module):
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         # print(self._codebook.embed)
-
+        print("$$$$$$$   torch.unique(embed_ind).shape[0]")
+        print(torch.unique(embed_ind).shape[0])
         return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss

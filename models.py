@@ -171,6 +171,7 @@ class SAGE(nn.Module):
             h = self.norms[0](h)
         h = self.dropout(h)
         h_list.append(h)
+        # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss
         quantized, _, commit_loss, dist, codebook, raw_commit_loss = self.vq(h)
 
         quantized_edge = self.decoder_1(quantized)
