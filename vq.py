@@ -366,6 +366,7 @@ class CosineSimCodebook(nn.Module):
         self.sample_codebook_temp = sample_codebook_temp
 
         self.sample_fn = sample_vectors_distributed if use_ddp and sync_kmeans else batched_sample_vectors
+        print(f"{self.sample_fn} sample_fn")
         self.kmeans_all_reduce_fn = distributed.all_reduce if use_ddp and sync_kmeans else noop
         self.all_reduce_fn = distributed.all_reduce if use_ddp else noop
 
@@ -383,7 +384,6 @@ class CosineSimCodebook(nn.Module):
     def init_embed_(self, data):
         if self.initted:
             return
-        print(self.sample_fn)
         embed, cluster_size = kmeans(
             data,
             self.codebook_size,
