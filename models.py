@@ -232,6 +232,7 @@ class SAGE(nn.Module):
             adj = adj = g.adjacency_matrix().to_dense().to(feats.device)
             h_list = []
             h = feats[input_nodes]
+            h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
             if self.norm_type != "none":
                 h = self.norms[0](h)
