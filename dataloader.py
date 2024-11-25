@@ -108,6 +108,7 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
     )
 
     features = torch.FloatTensor(np.array(features.todense()))
+    print(f"{features.shape}  features.shape")
     num_nodes = features.shape[0]
     # adj = torch.FloatTensor(np.array(adj.todense()))
     #print(features)
