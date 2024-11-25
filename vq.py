@@ -214,11 +214,8 @@ class EuclideanCodebook(nn.Module):
         super().__init__()
         self.decay = decay
         init_fn = uniform_init if not kmeans_init else torch.zeros
-        # print(dim, codebook_size, num_codebooks)
         embed = init_fn(num_codebooks, codebook_size, dim)
-        # print(embed)
         self.codebook_size = codebook_size
-        print(f"codebook size: {codebook_size}")
         self.num_codebooks = num_codebooks
 
         self.kmeans_iters = kmeans_iters
@@ -242,7 +239,6 @@ class EuclideanCodebook(nn.Module):
             self.embed = nn.Parameter(embed)
         else:
             self.register_buffer('embed', embed)
-        # print(self.initted)
 
     @torch.jit.ignore
     def init_embed_(self, data):
@@ -292,27 +288,16 @@ class EuclideanCodebook(nn.Module):
 
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
-        # print(flatten.shape)
         self.init_embed_(flatten)
 
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
-        # print(embed)
-        # print(flatten.shape, embed.shape)
-        # flatten: 2110 * 3703 embed: 8192*3703
-        # print(f"flatten: {flatten}")
         dist = -torch.cdist(flatten, embed, p=2)
-        # print(dist.shape)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
-        # print(embed_ind.shape)
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
-        # print(embed_onehot.shape)
         embed_ind = embed_ind.view(*shape[:-1])
-        # print(embed_ind.shape)
         quantize = batched_embedding(embed_ind, self.embed)
-        # print(embed_onehot.shape)
         if self.training:
             cluster_size = embed_onehot.sum(dim=1)
-            # print(cluster_size.shape)
             self.all_reduce_fn(cluster_size)
             self.cluster_size.data.lerp_(cluster_size, 1 - self.decay)
 
@@ -321,14 +306,12 @@ class EuclideanCodebook(nn.Module):
             self.embed_avg.data.lerp_(embed_sum, 1 - self.decay)
 
             cluster_size = laplace_smoothing(self.cluster_size, self.codebook_size, self.eps) * self.cluster_size.sum()
-            # print(cluster_size.shape)
             embed_normalized = self.embed_avg / rearrange(cluster_size, '... -> ... 1')
             self.embed.data.copy_(embed_normalized)
             self.expire_codes_(x)
 
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
-        # print(quantize.shape)
         return quantize, embed_ind, dist, self.embed
 
 
@@ -357,7 +340,6 @@ class CosineSimCodebook(nn.Module):
             embed = torch.zeros(num_codebooks, codebook_size, dim)
 
         self.codebook_size = codebook_size
-        print(f"codebook size: {codebook_size}")
         self.num_codebooks = num_codebooks
 
         self.kmeans_iters = kmeans_iters
@@ -366,7 +348,6 @@ class CosineSimCodebook(nn.Module):
         self.sample_codebook_temp = sample_codebook_temp
 
         self.sample_fn = sample_vectors_distributed if use_ddp and sync_kmeans else batched_sample_vectors
-        print(f"{self.sample_fn} sample_fn")
         self.kmeans_all_reduce_fn = distributed.all_reduce if use_ddp and sync_kmeans else noop
         self.all_reduce_fn = distributed.all_reduce if use_ddp else noop
 
@@ -421,7 +402,6 @@ class CosineSimCodebook(nn.Module):
 
     @autocast(enabled=False)
     def forward(self, x):
-        print("running CosSim")
         needs_codebook_dim = x.ndim < 4
 
         x = x.float()
@@ -437,19 +417,17 @@ class CosineSimCodebook(nn.Module):
         # initialize codebook
         # optimization done here
         # -----------------------
-        print(f"{self.cluster_size} before")
+        # print(f"{self.cluster_size} before")
         self.init_embed_(flatten)
-        print(f"{self.cluster_size} after")
-        print(f"{self.embed.shape} embed")
+        # print(f"{self.cluster_size} after")
+        # print(f"{self.embed.shape} embed")
 
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
         embed = l2norm(embed)
 
         dist = einsum('h n d, h c d -> h n c', flatten, embed)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
-        # print(embed_ind.shape)
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
-        # print(embed_onehot.shape)
         embed_ind = embed_ind.view(*shape[:-1])
 
         quantize = batched_embedding(embed_ind, self.embed)
@@ -586,7 +564,6 @@ class VectorQuantize(nn.Module):
 
         if only_one:
             x = rearrange(x, 'b d -> b 1 d')
-        # print(x.shape)
         shape, device, heads, is_multiheaded, codebook_size = x.shape, x.device, self.heads, self.heads > 1, self.codebook_size
 
         need_transpose = not self.channel_last and not self.accept_image_fmap
@@ -604,12 +581,7 @@ class VectorQuantize(nn.Module):
             x = rearrange(x, f'b n (h d) -> {ein_rhs_eq}', h=heads)
 
         quantize, embed_ind, dist, embed = self._codebook(x)
-        print(f"embed {embed.shape}")
-        print(f"embed_ind {embed_ind.shape}")
-        print(f"quantize {quantize.shape}")
-        print(self.training)
         codes = self.get_codes_from_indices(embed_ind)
-        # print(codes.shape)
         if self.training:
             quantize = x + (quantize - x).detach()
 
@@ -668,7 +640,6 @@ class VectorQuantize(nn.Module):
         if only_one:
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
-        # print(self._codebook.embed)
         print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
         print(torch.unique(embed_ind).shape[0])
         return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss

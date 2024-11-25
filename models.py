@@ -154,8 +154,6 @@ class SAGE(nn.Module):
 
     def forward(self, blocks, feats):
         h = feats
-        print(f"h.shape {h.shape}")
-        print(blocks)
         torch.save(h, "/h.pt")
         h_list = []
         g = dgl.DGLGraph().to(h.device)
@@ -167,12 +165,9 @@ class SAGE(nn.Module):
             dst = dst.type(torch.int64)
             g.add_edges(src,dst)
             g.add_edges(dst,src)
-        # print(g)
         adj = g.adjacency_matrix().to_dense().to(feats.device)
         h_list = []
         h = self.linear_2(h)
-        print(f"h.shape {h.shape}")
-        print(f"g.shape {g}")
         h = self.graph_layer_1(g, h)
         if self.norm_type != "none":
             h = self.norms[0](h)
