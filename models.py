@@ -146,6 +146,7 @@ class SAGE(nn.Module):
         self.decoder_1 = nn.Linear(input_dim, input_dim)
         self.decoder_2 = nn.Linear(input_dim, input_dim)
         self.linear = nn.Linear(hidden_dim, output_dim)
+        self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
         self.codebook_size = codebook_size
         self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8,commitment_weight=0.75, use_cosine_sim=True)
         self.lamb_edge = lamb_edge
@@ -169,6 +170,7 @@ class SAGE(nn.Module):
         # print(g)
         adj = g.adjacency_matrix().to_dense().to(feats.device)
         h_list = []
+        h = self.linear_2(h)
         print(f"h.shape {h.shape}")
         print(f"g.shape {g}")
         h = self.graph_layer_1(g, h)
