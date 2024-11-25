@@ -604,9 +604,9 @@ class VectorQuantize(nn.Module):
             x = rearrange(x, f'b n (h d) -> {ein_rhs_eq}', h=heads)
 
         quantize, embed_ind, dist, embed = self._codebook(x)
-        print(f"embed {embed}")
-        print(f"embed_ind {embed_ind}")
-        print(f"quantize {quantize}")
+        print(f"embed {embed.shape}")
+        print(f"embed_ind {embed_ind.shape}")
+        print(f"quantize {quantize.shape}")
         print(self.training)
         codes = self.get_codes_from_indices(embed_ind)
         # print(codes.shape)
