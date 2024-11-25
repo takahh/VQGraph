@@ -153,6 +153,7 @@ class SAGE(nn.Module):
 
     def forward(self, blocks, feats):
         h = feats
+        print(f"h.shape {h.shape}")
         print(blocks)
         torch.save(h, "/h.pt")
         h_list = []
