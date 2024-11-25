@@ -59,8 +59,6 @@ def sample_vectors(samples, num):
 
 
 def batched_sample_vectors(samples, num):
-    print(f"samples.shape {samples.shape}")
-    print(f"num {num}")
     return torch.stack([sample_vectors(sample, num) for sample in samples.unbind(dim=0)], dim=0)
 
 
@@ -110,6 +108,8 @@ def sample_vectors_distributed(local_samples, num):
 
     rank = distributed.get_rank()
     all_num_samples = all_gather_sizes(local_samples, dim=0)
+    print(f"{local_samples} local_samples")
+    print(f"{num} num")
 
     if rank == 0:
         samples_per_rank = sample_multinomial(num, all_num_samples / all_num_samples.sum())
