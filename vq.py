@@ -377,8 +377,8 @@ class CosineSimCodebook(nn.Module):
         else:
             self.register_buffer('embed', embed)
 
-    # @torch.jit.ignore
-    @torch.jit.unused
+    @torch.jit.ignore
+    # @torch.jit.unused
     def init_embed_(self, data):
         if self.initted:
             return
@@ -392,7 +392,7 @@ class CosineSimCodebook(nn.Module):
             all_reduce_fn=self.kmeans_all_reduce_fn
         )
 
-        print(f"cluster_size: {cluster_size} after init kmeans")
+        torch.jit.log(torch.jit.logging_levels.INFO, f"cluster_size: {cluster_size} after init kmeans")
 
         self.embed.data.copy_(embed)
         self.cluster_size.data.copy_(cluster_size)
@@ -422,6 +422,7 @@ class CosineSimCodebook(nn.Module):
 
     @autocast(enabled=False)
     def forward(self, x):
+        print("running CosSim")
         needs_codebook_dim = x.ndim < 4
 
         x = x.float()
