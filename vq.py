@@ -440,7 +440,7 @@ class CosineSimCodebook(nn.Module):
         print(f"{self.cluster_size} before")
         self.init_embed_(flatten)
         print(f"{self.cluster_size} after")
-        print(f"{self.embed} embed")
+        print(f"{self.embed.shape} embed")
 
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
         embed = l2norm(embed)
