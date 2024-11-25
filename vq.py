@@ -640,7 +640,7 @@ class VectorQuantize(nn.Module):
         if only_one:
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
-        if self.training:
-            print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
-            print(torch.unique(embed_ind).shape[0])
+        # if self.training:
+        #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
+        #     print(torch.unique(embed_ind).shape[0])
         return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss
