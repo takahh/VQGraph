@@ -341,7 +341,7 @@ class CosineSimCodebook(nn.Module):
             sync_kmeans=True,
             decay=0.8,
             eps=1e-5,
-            threshold_ema_dead_code=2,
+            threshold_ema_dead_code=0,
             use_ddp=False,
             learnable_codebook=False,
             sample_codebook_temp=0.
