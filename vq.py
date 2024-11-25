@@ -383,7 +383,7 @@ class CosineSimCodebook(nn.Module):
     def init_embed_(self, data):
         if self.initted:
             return
-
+        print(self.sample_fn)
         embed, cluster_size = kmeans(
             data,
             self.codebook_size,
