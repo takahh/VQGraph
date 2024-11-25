@@ -168,6 +168,8 @@ class SAGE(nn.Module):
         # print(g)
         adj = g.adjacency_matrix().to_dense().to(feats.device)
         h_list = []
+        print(f"h.shape {h.shape}")
+        print(f"g.shape {g.shape}")
         h = self.graph_layer_1(g, h)
         if self.norm_type != "none":
             h = self.norms[0](h)
