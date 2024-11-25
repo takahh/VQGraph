@@ -436,7 +436,7 @@ class CosineSimCodebook(nn.Module):
         # optimization done here
         # -----------------------
         print(f"{self.cluster_size} before")
-        embed_shape = self.init_embed_(flatten)
+        self.init_embed_(flatten)
         print(f"{self.cluster_size} after")
         print(f"{self.embed} embed")
 
@@ -502,7 +502,7 @@ class VectorQuantize(nn.Module):
             channel_last=True,
             accept_image_fmap=False,
             commitment_weight=1.,
-            orthogonal_reg_weight=0.,
+            orthogonal_reg_weight=0.1,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
