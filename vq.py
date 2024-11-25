@@ -393,7 +393,6 @@ class CosineSimCodebook(nn.Module):
         self.embed.data.copy_(embed)
         self.cluster_size.data.copy_(cluster_size)
         self.initted.data.copy_(torch.Tensor([True]))
-        return self.embed.shape
 
 
     def replace(self, batch_samples, batch_mask):
@@ -439,7 +438,7 @@ class CosineSimCodebook(nn.Module):
         print(f"{self.cluster_size} before")
         embed_shape = self.init_embed_(flatten)
         print(f"{self.cluster_size} after")
-        print(f"{embed_shape} embed shape")
+        print(f"{self.embed} embed")
 
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
         embed = l2norm(embed)
