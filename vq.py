@@ -391,7 +391,7 @@ class CosineSimCodebook(nn.Module):
             all_reduce_fn=self.kmeans_all_reduce_fn
         )
 
-        print(f"cluster_size: {self.cluster_size} after init kmeans")
+        print(f"cluster_size: {cluster_size} after init kmeans")
 
         self.embed.data.copy_(embed)
         self.cluster_size.data.copy_(cluster_size)
