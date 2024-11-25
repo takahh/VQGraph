@@ -377,7 +377,7 @@ class CosineSimCodebook(nn.Module):
         else:
             self.register_buffer('embed', embed)
 
-    # @torch.jit.ignore
+    @torch.jit.ignore
     # @torch.jit.unused
     def init_embed_(self, data):
         if self.initted:
@@ -438,7 +438,9 @@ class CosineSimCodebook(nn.Module):
         # initialize codebook
         # optimization done here
         # -----------------------
+        print(self.cluster_size)
         self.init_embed_(flatten)
+        print(self.cluster_size)
 
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
         embed = l2norm(embed)
