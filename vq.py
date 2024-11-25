@@ -515,7 +515,7 @@ class VectorQuantize(nn.Module):
         self.heads = heads
         self.separate_codebook_per_head = separate_codebook_per_head
 
-        codebook_dim = default(codebook_dim, dim)
+        codebook_dim = default(codebook_dim, dim)  # use coocbook_dim if not None
         codebook_input_dim = codebook_dim * heads
         requires_projection = codebook_input_dim != dim
         self.project_in = nn.Linear(dim, codebook_input_dim) if requires_projection else nn.Identity()
