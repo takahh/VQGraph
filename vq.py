@@ -143,7 +143,7 @@ def kmeans(
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
 
     means = sample_fn(samples, num_clusters)
-
+    print(f"means {means}")
     for _ in range(num_iters):
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
@@ -217,6 +217,7 @@ class EuclideanCodebook(nn.Module):
         embed = init_fn(num_codebooks, codebook_size, dim)
         # print(embed)
         self.codebook_size = codebook_size
+        print(f"codebook size: {codebook_size}")
         self.num_codebooks = num_codebooks
 
         self.kmeans_iters = kmeans_iters
@@ -660,6 +661,6 @@ class VectorQuantize(nn.Module):
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         # print(self._codebook.embed)
-        print("$$$$$$$   torch.unique(embed_ind).shape[0]")
+        print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
         print(torch.unique(embed_ind).shape[0])
         return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss
