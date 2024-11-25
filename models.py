@@ -153,7 +153,7 @@ class SAGE(nn.Module):
 
     def forward(self, blocks, feats):
         h = feats
-        print(blocks)
+        print(blocks[0])
         torch.save(h, "/h.pt")
         h_list = []
         g = dgl.DGLGraph().to(h.device)
