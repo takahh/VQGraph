@@ -143,7 +143,6 @@ def kmeans(
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
 
     means = sample_fn(samples, num_clusters)
-    print(f"means {means}")
     for _ in range(num_iters):
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
@@ -391,12 +390,11 @@ class CosineSimCodebook(nn.Module):
             sample_fn=self.sample_fn,
             all_reduce_fn=self.kmeans_all_reduce_fn
         )
-        print(f"cluster_size: {cluster_size} after init kmeans")
-        torch.jit.log(torch.jit.logging_levels.INFO, f"cluster_size: {cluster_size} after init kmeans")
-
         self.embed.data.copy_(embed)
         self.cluster_size.data.copy_(cluster_size)
         self.initted.data.copy_(torch.Tensor([True]))
+        return self.embed.shape
+
 
     def replace(self, batch_samples, batch_mask):
         batch_samples = l2norm(batch_samples)
@@ -438,9 +436,10 @@ class CosineSimCodebook(nn.Module):
         # initialize codebook
         # optimization done here
         # -----------------------
-        print(self.cluster_size)
-        self.init_embed_(flatten)
-        print(self.cluster_size)
+        print(f"{self.cluster_size} before")
+        embed_shape = self.init_embed_(flatten)
+        print(f"{self.cluster_size} after")
+        print(f"{embed_shape} embed shape")
 
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
         embed = l2norm(embed)
