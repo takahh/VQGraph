@@ -377,7 +377,8 @@ class CosineSimCodebook(nn.Module):
         else:
             self.register_buffer('embed', embed)
 
-    @torch.jit.ignore
+    # @torch.jit.ignore
+    @torch.jit.unused
     def init_embed_(self, data):
         if self.initted:
             return
