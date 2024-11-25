@@ -634,8 +634,10 @@ def get_train_val_test_split(
     num_samples, num_classes = labels.shape
     remaining_indices = list(range(num_samples))
     if train_examples_per_class is not None:
+        print("train_examples_per_class is not None:")
         train_indices = sample_per_class(random_state, labels, train_examples_per_class)
     else:
+        print("train_examples_per_class is None:")
         # select train examples with no respect to class distribution
         train_indices = random_state.choice(
             remaining_indices, train_size, replace=False
