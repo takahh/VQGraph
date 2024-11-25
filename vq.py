@@ -356,6 +356,7 @@ class CosineSimCodebook(nn.Module):
             embed = torch.zeros(num_codebooks, codebook_size, dim)
 
         self.codebook_size = codebook_size
+        print(f"codebook size: {codebook_size}")
         self.num_codebooks = num_codebooks
 
         self.kmeans_iters = kmeans_iters
