@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import torch
 import torch.optim as optim
+import torch.nn.functional as F
 from pathlib import Path
 from models import Model
 from dataloader import load_data
@@ -312,6 +313,8 @@ def run(args):
     out_codebook = codebook.detach().cpu().numpy()
     out_emb = h_list[0].detach().cpu().numpy()
     dist_vq = dist.detach().cpu().numpy()
+    latents_ind = F.normalize(latents_ind, p=2, dim=-1)
+    latents_trans = F.normalize(latents_trans, p=2, dim=-1)
     np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
     np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
     np.savez(output_dir.joinpath("codebook"), codebook.cpu())
