@@ -220,7 +220,7 @@ class SAGE(nn.Module):
         device = feats.device
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
-        # print(y.shape)
+        latent_list = []
         for input_nodes, output_nodes, blocks in dataloader:
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
@@ -241,7 +241,11 @@ class SAGE(nn.Module):
             h = self.dropout(h)
             h_list.append(h)
 
+            # ----------------
+            # Quantize
+            # ----------------
             quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors = self.vq(h)
+            latent_list.append(latent_vectors)
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
@@ -264,7 +268,7 @@ class SAGE(nn.Module):
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
         
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_vectors
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list
 
 class GAT(nn.Module):
     def __init__(
