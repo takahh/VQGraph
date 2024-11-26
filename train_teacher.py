@@ -314,10 +314,10 @@ def run(args):
     dist_vq = dist.detach().cpu().numpy()
     np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
     np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
-    np.savez(output_dir.joinpath("codebook"), codebook)
+    np.savez(output_dir.joinpath("codebook"), codebook.cpu())
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
-    np.savez(output_dir.joinpath("latents_trans"), latents_trans)
-    np.savez(output_dir.joinpath("latents_ind"), latents_ind)
+    np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
+    np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
     """ Saving loss curve and model """
