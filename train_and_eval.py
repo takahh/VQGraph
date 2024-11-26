@@ -577,7 +577,7 @@ def run_inductive(
         )
 
     else:
-        obs_out, _, score_val, h_list, dist, codebook, loss_list = evaluate(
+        obs_out, _, score_val, h_list, dist, codebook, loss_list, latent_trans = evaluate(
             model,
             obs_data_eval,
             obs_feats,
@@ -586,7 +586,7 @@ def run_inductive(
             evaluator,
             obs_idx_val,
         )
-        out, _, acc_ind, h_list, dist, codebook, loss_list = evaluate(
+        out, _, acc_ind, h_list, dist, codebook, loss_list, latent_ind = evaluate(
             model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
         )
 
@@ -595,7 +595,7 @@ def run_inductive(
     logger.info(
         f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
     )
-    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latents_trans_list, latents_ind_list
+    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latent_trans, latent_ind
 
 
 """
