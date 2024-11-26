@@ -37,6 +37,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
     device = feats.device
     model.train()
     total_loss = 0
+    latent_list = []
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
@@ -49,13 +50,14 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         # loss += criterion(out, batch_labels)
         # print(loss)
         total_loss += loss.item()
+        latent_list.append(latent_train)
 
         loss *= lamb
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-    return total_loss / len(dataloader), loss_list, latent_train
+    return total_loss / len(dataloader), loss_list, latent_list
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
@@ -447,8 +449,7 @@ def run_inductive(
         data_eval = g
 
     best_epoch, best_score_val, count = 0, 1, 0
-    latent_ind, latent_trans = None, None
-    latents_ind_list, latents_trans_list, latent_train_list = [], [], []
+    latent_ind, latent_trans, latent_train = None, None, None
     for epoch in range(1, conf["max_epoch"] + 1):
         # --------------------------------
         # train
@@ -459,7 +460,6 @@ def run_inductive(
             loss, loss_list, latent_train = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer
             )
-            latent_train_list.append(latent_train)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
@@ -534,7 +534,6 @@ def run_inductive(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
                 loss_total = float(sum(loss_list1)/3)
-                latents_ind_list.append(latent_ind)
             logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, loss_train {loss:.4f}")
             logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
             logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
@@ -596,7 +595,7 @@ def run_inductive(
     logger.info(
         f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
     )
-    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latent_trans, latent_ind, latent_train_list
+    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latent_trans, latent_ind, latent_train
 
 
 """
