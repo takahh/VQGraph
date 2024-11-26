@@ -306,6 +306,11 @@ def run(args):
         f"num_layers: {conf['num_layers']}. hidden_dim: {conf['hidden_dim']}. dropout_ratio: {conf['dropout_ratio']}"
     )
     logger.info(f"# params {sum(p.numel() for p in model.parameters())}")
+
+    # latent_train_list = F.normalize(torch.stack(latent_train_list))
+
+    max_size = max(tensor.shape[0] for tensor in latent_train_list)
+    latent_train_list = [F.pad(tensor, (0, 0, 0, 0, 0, max_size - tensor.shape[0])) for tensor in latent_train_list]
     latent_train_list = F.normalize(torch.stack(latent_train_list))
 
     # print(batch_dist.shape)
