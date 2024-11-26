@@ -307,13 +307,20 @@ def run(args):
     )
     logger.info(f"# params {sum(p.numel() for p in model.parameters())}")
 
-    # latent_train_list = F.normalize(torch.stack(latent_train_list))
+    # ----------------------------------
+    # combine tensors of different sizes
+    # ----------------------------------
+    def combine_raggid_tensors(latent_list):
+        max_size = max(tensor.shape[0] for tensor in latent_list)
+        latent_list = [F.pad(tensor, (0, 0, 0, 0, 0, max_size - tensor.shape[0])) for tensor in latent_list]
+        combined = F.normalize(torch.stack(latent_list))
+        return combined
 
-    max_size = max(tensor.shape[0] for tensor in latent_train_list)
-    latent_train_list = [F.pad(tensor, (0, 0, 0, 0, 0, max_size - tensor.shape[0])) for tensor in latent_train_list]
-    latent_train_list = F.normalize(torch.stack(latent_train_list))
 
-    # print(batch_dist.shape)
+    latent_train_list = combine_raggid_tensors(latent_train_list)
+    latents_ind = combine_raggid_tensors(latents_ind)
+    latents_trans = combine_raggid_tensors(latents_trans)
+
     """ Saving teacher outputs """
     out_np = out.detach().cpu().numpy()
     out_codebook = codebook.detach().cpu().numpy()

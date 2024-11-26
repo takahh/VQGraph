@@ -3,11 +3,10 @@ import numpy as np
 import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
-
 from scipy.stats import gaussian_kde
 
 path = "/Users/taka/Downloads/"
-namelist = ["codebook.npz", "latents_ind.npz"]
+namelist = ["codebook.npz", "latents_ind.npz", "latent_train_list.npz"]
 
 
 def main():
