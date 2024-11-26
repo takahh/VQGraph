@@ -249,6 +249,7 @@ def run(args):
 
     """ Data split and run """
     loss_and_score = []
+    latent_train_list = None
     if args.exp_setting == "tran":
         indices = (idx_train, idx_val, idx_test)
 
@@ -286,7 +287,7 @@ def run(args):
             feats = feature_prop(feats, g, args.feature_aug_k)
             feats[idx_obs] = obs_feats
 
-        out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind = run_inductive(
+        out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind, latent_train_list = run_inductive(
             conf,
             model,
             g,
@@ -305,7 +306,7 @@ def run(args):
         f"num_layers: {conf['num_layers']}. hidden_dim: {conf['hidden_dim']}. dropout_ratio: {conf['dropout_ratio']}"
     )
     logger.info(f"# params {sum(p.numel() for p in model.parameters())}")
-
+    latent_train_list = F.normalize(torch.stack(latent_train_list))
 
     # print(batch_dist.shape)
     """ Saving teacher outputs """
@@ -321,6 +322,7 @@ def run(args):
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
     np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
     np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
+    np.savez(output_dir.joinpath("latent_train_list"), latent_train_list.cpu())
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
     """ Saving loss curve and model """

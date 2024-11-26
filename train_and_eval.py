@@ -43,7 +43,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         batch_labels = labels[output_nodes]
 
         # Compute loss and prediction
-        _, logits, loss , _ , _, loss_list = model(blocks, batch_feats)
+        _, logits, loss , _ , _, loss_list, latent_train = model(blocks, batch_feats)
         out = logits.log_softmax(dim=1)
         # print(loss)
         # loss += criterion(out, batch_labels)
@@ -55,7 +55,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         loss.backward()
         optimizer.step()
 
-    return total_loss / len(dataloader), loss_list
+    return total_loss / len(dataloader), loss_list, latent_train
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
@@ -448,7 +448,7 @@ def run_inductive(
 
     best_epoch, best_score_val, count = 0, 1, 0
     latent_ind, latent_trans = None, None
-    latents_ind_list, latents_trans_list = [], []
+    latents_ind_list, latents_trans_list, latent_train_list = [], [], []
     for epoch in range(1, conf["max_epoch"] + 1):
         # --------------------------------
         # train
@@ -456,9 +456,10 @@ def run_inductive(
         if "SAGE" in model.model_name:
             # partial sampling, only obs data
             # this loss is label loss
-            loss, loss_list = train_sage(
+            loss, loss_list, latent_train = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer
             )
+            latent_train_list.append(latent_train)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
@@ -595,7 +596,7 @@ def run_inductive(
     logger.info(
         f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
     )
-    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latent_trans, latent_ind
+    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latent_trans, latent_ind, latent_train_list
 
 
 """
