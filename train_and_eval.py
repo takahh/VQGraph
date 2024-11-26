@@ -142,7 +142,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     """
     model.eval()
     with torch.no_grad():
-        h_list, logits, _ , dist, codebook, loss_list = model.inference(data, feats)
+        h_list, logits, _ , dist, codebook, loss_list, latent_vectors = model.inference(data, feats)
         out = logits.log_softmax(dim=1)
         if idx_eval is None:
             loss = criterion(out, labels)
@@ -151,7 +151,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
         #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1
-    return out, loss.item(), score, h_list, dist, codebook, loss_list
+    return out, loss.item(), score, h_list, dist, codebook, loss_list, latent_vectors
 
 
 def evaluate_mini_batch(
@@ -447,6 +447,8 @@ def run_inductive(
         data_eval = g
 
     best_epoch, best_score_val, count = 0, 1, 0
+    latent_ind, latent_trans = None, None
+    latents_ind_list, latents_trans_list = [], []
     for epoch in range(1, conf["max_epoch"] + 1):
         # --------------------------------
         # train
@@ -501,7 +503,7 @@ def run_inductive(
                 # test/inference, no sampling, full obs graph
                 # --------------------------------------
                 # the "loss_train" is test loss in training
-                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0 = evaluate(
+                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans = evaluate(
                     model,
                     obs_data_eval,
                     obs_feats,
@@ -510,6 +512,7 @@ def run_inductive(
                     evaluator,
                     obs_idx_train,
                 )
+                latents_trans_list.append(latent_trans)
                 loss_val = criterion(
                     obs_out[obs_idx_val], obs_labels[obs_idx_val]
                 ).item()
@@ -526,10 +529,11 @@ def run_inductive(
                 # which is unlabeled, unseen in training
                 # -------------------------------------------------
                 # Evaluate the inductive part with the full graph
-                out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1 = evaluate(
+                out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
                 loss_total = float(sum(loss_list1)/3)
+                latents_ind_list.append(latent_ind)
             logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, loss_train {loss:.4f}")
             logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
             logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
@@ -591,7 +595,7 @@ def run_inductive(
     logger.info(
         f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
     )
-    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook
+    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latents_trans_list, latents_ind_list
 
 
 """

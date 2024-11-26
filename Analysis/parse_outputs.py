@@ -1,4 +1,4 @@
-path = "/Users/taka/Downloads/outputs 2/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
+path = "/Users/taka/Downloads/outputs_1125/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
 
 namelist = ["codebook_embeddings.npz", "out_emb_list.npz", "tea_soft_labels.npz", "tea_soft_token_assignments.npz"]
 # log

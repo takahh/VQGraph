@@ -175,7 +175,7 @@ class SAGE(nn.Module):
         h = self.dropout(h)
         h_list.append(h)
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss
-        quantized, _, commit_loss, dist, codebook, raw_commit_loss = self.vq(h)
+        quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors = self.vq(h)
 
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
@@ -241,7 +241,7 @@ class SAGE(nn.Module):
             h = self.dropout(h)
             h_list.append(h)
 
-            quantized, _, commit_loss, dist, codebook, raw_commit_loss = self.vq(h)
+            quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors = self.vq(h)
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
@@ -264,7 +264,7 @@ class SAGE(nn.Module):
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
         
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss]
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_vectors
 
 class GAT(nn.Module):
     def __init__(

@@ -285,7 +285,7 @@ def run(args):
             feats = feature_prop(feats, g, args.feature_aug_k)
             feats[idx_obs] = obs_feats
 
-        out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook = run_inductive(
+        out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind = run_inductive(
             conf,
             model,
             g,
@@ -314,7 +314,10 @@ def run(args):
     dist_vq = dist.detach().cpu().numpy()
     np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
     np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
+    np.savez(output_dir.joinpath("codebook"), codebook)
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
+    np.savez(output_dir.joinpath("latents_trans"), latents_trans)
+    np.savez(output_dir.joinpath("latents_ind"), latents_ind)
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
     """ Saving loss curve and model """
