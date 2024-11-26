@@ -513,7 +513,6 @@ def run_inductive(
                     evaluator,
                     obs_idx_train,
                 )
-                latents_trans_list.append(latent_trans)
                 loss_val = criterion(
                     obs_out[obs_idx_val], obs_labels[obs_idx_val]
                 ).item()
