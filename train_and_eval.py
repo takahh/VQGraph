@@ -27,7 +27,6 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     loss.backward()
     optimizer.step()
     return loss_val, loss_list
-import torch
 
 
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
@@ -42,28 +41,28 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-        # Print memory usage before processing the batch
+        # Monitor reserved memory before processing the batch
+        print(f"Step {step}: Before loading batch - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
         print(f"Step {step}: Before loading batch - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         batch_labels = labels[output_nodes]
 
-        # Monitor memory after moving data to device
-        print(f"Step {step}: After moving data to device - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
-
         # Gradient accumulation
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
-        # Monitor memory after forward pass
+        # Monitor reserved memory after forward pass
+        print(f"Step {step}: After forward pass - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
         print(f"Step {step}: After forward pass - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
         # Backpropagation
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
 
-        # Monitor memory after backward pass
+        # Monitor reserved memory after backward pass
+        print(f"Step {step}: After backward pass - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
         print(f"Step {step}: After backward pass - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
         # Update weights after accumulation_steps
@@ -81,7 +80,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         del blocks, batch_feats, batch_labels, loss
         torch.cuda.empty_cache()
 
-        # Monitor memory after cleanup
+        # Monitor reserved memory after cleanup
+        print(f"Step {step}: After cleanup - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
         print(f"Step {step}: After cleanup - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
     # Average total loss over all steps
