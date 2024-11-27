@@ -291,6 +291,7 @@ def run_transductive(
             batch_size=batch_size,
             shuffle=True,
             drop_last=False,
+            pin_memory=True,
             num_workers=conf["num_workers"],
         )
 
