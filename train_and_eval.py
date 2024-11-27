@@ -72,7 +72,6 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
 #
 #     # Average total loss over all steps
 #     return total_loss / len(dataloader), loss_list, latent_list
-
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     """
     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
@@ -85,19 +84,23 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+        # Move blocks and batch data to device
         blocks = [blk.int().to(device) for blk in blocks]
-        batch_feats = feats[input_nodes]
-        batch_labels = labels[output_nodes]
+        batch_feats = feats[input_nodes].to(device, non_blocking=True)
+        batch_labels = labels[output_nodes].to(device, non_blocking=True)
 
-        # Gradient accumulation
-        with torch.cuda.amp.autocast():  # Mixed precision forward pass
+        # Mixed precision forward pass
+        with torch.cuda.amp.autocast():
             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
-        # Backpropagation
-        scaler.scale(loss).backward()  # Scale gradients for mixed precision
+        # Backward pass
+        scaler.scale(loss).backward()
 
-        # Update weights after accumulation_steps
+        # Release intermediate variables to free memory
+        del blocks, batch_feats, batch_labels, logits
+
+        # Perform optimizer step after accumulation_steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             print(f"Step {step}: Performing optimizer step")
             scaler.step(optimizer)
@@ -108,10 +111,13 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         total_loss += loss.item() * accumulation_steps
         latent_list.append(latent_train)
 
+        # Release loss and other temporary tensors
+        del loss, loss_list, latent_train
+        torch.cuda.empty_cache()  # Explicitly clear cache to reduce fragmentation
+
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list, latent_list
-
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
