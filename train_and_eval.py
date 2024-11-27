@@ -54,6 +54,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
 
         loss *= lamb
         optimizer.zero_grad()
+        torch.cuda.empty_cache()
         loss.backward()
         optimizer.step()
 
