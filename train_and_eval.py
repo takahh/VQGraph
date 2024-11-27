@@ -60,6 +60,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             print(f"step {step} : accumlated !!!")
             optimizer.step()
+            torch.cuda.empty_cache()
             optimizer.zero_grad()
 
     # Average total loss over all steps
