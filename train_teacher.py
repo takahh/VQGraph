@@ -105,7 +105,7 @@ def get_args():
     )
 
     """SAGE Specific"""
-    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument(
         "--fan_out",
         type=str,
@@ -117,6 +117,7 @@ def get_args():
     )
 
     """Optimization"""
+    parser.add_argument("--accumulation_steps", type=int, default=30) # default=0.0001)
     parser.add_argument("--learning_rate", type=float, default=0.0005) # default=0.0001)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument(
@@ -299,6 +300,7 @@ def run(args):
             optimizer,
             logger,
             loss_and_score,
+            args.accumulation_steps
         )
         score_lst = [score_test_tran, score_test_ind]
 

@@ -29,7 +29,7 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     return loss_val, loss_list
 
 
-def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
+def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     """
     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead the entire graph `g`.
     lamb: weight parameter lambda
@@ -56,7 +56,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         optimizer.zero_grad()
         torch.cuda.empty_cache()
         loss.backward()
-        optimizer.step()
+
+        # Update weights after accumulation_steps
+        if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
+            optimizer.step()
+            optimizer.zero_grad()
 
     return total_loss / len(dataloader), loss_list, latent_list
 
@@ -351,6 +355,7 @@ def run_inductive(
         optimizer,
         logger,
         loss_and_score,
+        accumulation_steps=1
 ):
     """
     Train and eval under the inductive setting.
@@ -459,7 +464,7 @@ def run_inductive(
             # partial sampling, only obs data
             # this loss is label loss
             loss, loss_list, latent_train = train_sage(
-                model, obs_data, obs_feats, obs_labels, criterion, optimizer
+                model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
             )
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
