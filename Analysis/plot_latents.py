@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 path = "/Users/taka/Downloads/"
-namelist = ["codebook.npz", "latents_ind.npz", "latent_train_list.npz"]
+namelist = ["codebook.npz", "latents_ind.npz", "latents_trans.npz", "latent_train_list.npz"]
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
         print("################")
         print(names)
         arr = seeinside(names)
-        print(arr)
+        print(arr.shape)
         arr_list.append(arr)
     arr_combined = np.vstack(arr_list)
     print(arr_combined.shape)

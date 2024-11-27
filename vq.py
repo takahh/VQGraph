@@ -459,7 +459,7 @@ class CosineSimCodebook(nn.Module):
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
 
-        return quantize, embed_ind, dist, self.embed
+        return quantize, embed_ind, dist, self.embed, flatten
 
     # main class
 
@@ -580,7 +580,7 @@ class VectorQuantize(nn.Module):
             ein_rhs_eq = 'h b n d' if self.separate_codebook_per_head else '1 (b h) n d'
             x = rearrange(x, f'b n (h d) -> {ein_rhs_eq}', h=heads)
 
-        quantize, embed_ind, dist, embed = self._codebook(x)   #
+        quantize, embed_ind, dist, embed, latents = self._codebook(x)
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
             quantize = x + (quantize - x).detach()
@@ -643,4 +643,4 @@ class VectorQuantize(nn.Module):
         # if self.training:
         #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
         #     quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors
-        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
+        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents
