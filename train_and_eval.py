@@ -27,51 +27,9 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     loss.backward()
     optimizer.step()
     return loss_val, loss_list
+import torch
 
-#
-# def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
-#     """
-#     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
-#     lamb: weight parameter lambda
-#     """
-#     accumulation_steps = 5000
-#     device = feats.device
-#     model.train()
-#     total_loss = 0
-#     latent_list = []
-#     print("dataloader.__len__()")
-#     print(dataloader.__len__())
-#     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-#         blocks = [blk.int().to(device) for blk in blocks]
-#         batch_feats = feats[input_nodes]
-#         batch_labels = labels[output_nodes]
-#         # Compute loss and prediction
-#
-#         scaler = torch.cuda.amp.GradScaler()
-#         with torch.cuda.amp.autocast():
-#             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
-#             loss = loss * lamb / accumulation_steps
-#             scaler.scale(loss).backward()
-#             scaler.step(optimizer)
-#             scaler.update()
-#
-#         out = logits.log_softmax(dim=1)
-#
-#         # Scale loss for gradient accumulation
-#         loss.backward()
-#         total_loss += loss.item() * accumulation_steps  # Accumulated loss for logging
-#         latent_list.append(latent_train)
-#         # print(step)
-#
-#         # Update weights after accumulation_steps
-#         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-#             print(f"step {step} : accumlated !!!")
-#             optimizer.step()
-#             torch.cuda.empty_cache()
-#             optimizer.zero_grad()
-#
-#     # Average total loss over all steps
-#     return total_loss / len(dataloader), loss_list, latent_list
+
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     """
     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
@@ -84,23 +42,31 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-        # Move blocks and batch data to device
-        blocks = [blk.int().to(device) for blk in blocks]
-        batch_feats = feats[input_nodes].to(device, non_blocking=True)
-        batch_labels = labels[output_nodes].to(device, non_blocking=True)
+        # Print memory usage before processing the batch
+        print(f"Step {step}: Before loading batch - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
-        # Mixed precision forward pass
-        with torch.cuda.amp.autocast():
+        blocks = [blk.int().to(device) for blk in blocks]
+        batch_feats = feats[input_nodes]
+        batch_labels = labels[output_nodes]
+
+        # Monitor memory after moving data to device
+        print(f"Step {step}: After moving data to device - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
+
+        # Gradient accumulation
+        with torch.cuda.amp.autocast():  # Mixed precision forward pass
             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
-        # Backward pass
-        scaler.scale(loss).backward()
+        # Monitor memory after forward pass
+        print(f"Step {step}: After forward pass - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
-        # Release intermediate variables to free memory
-        del blocks, batch_feats, batch_labels, logits
+        # Backpropagation
+        scaler.scale(loss).backward()  # Scale gradients for mixed precision
 
-        # Perform optimizer step after accumulation_steps
+        # Monitor memory after backward pass
+        print(f"Step {step}: After backward pass - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
+
+        # Update weights after accumulation_steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             print(f"Step {step}: Performing optimizer step")
             scaler.step(optimizer)
@@ -111,9 +77,12 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         total_loss += loss.item() * accumulation_steps
         latent_list.append(latent_train)
 
-        # Release loss and other temporary tensors
-        del loss, loss_list, latent_train
-        torch.cuda.empty_cache()  # Explicitly clear cache to reduce fragmentation
+        # Release memory explicitly
+        del blocks, batch_feats, batch_labels, loss
+        torch.cuda.empty_cache()
+
+        # Monitor memory after cleanup
+        print(f"Step {step}: After cleanup - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
