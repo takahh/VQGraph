@@ -307,9 +307,9 @@ def run(args):
     )
     logger.info(f"# params {sum(p.numel() for p in model.parameters())}")
 
-    latent_train_list = torch.cat(latent_train_list)
-    latents_ind = torch.cat(latents_ind)
-    latents_trans = torch.cat(latents_trans)
+    latent_train_list = torch.cat(latent_train_list, dim=0)
+    latents_ind = torch.cat(latents_ind, dim=0)
+    latents_trans = torch.cat(latents_trans, dim=0)
 
     """ Saving teacher outputs """
     out_np = out.detach().cpu().numpy()
