@@ -310,16 +310,17 @@ def run(args):
     # ----------------------------------
     # combine tensors of different sizes
     # ----------------------------------
-    def combine_raggid_tensors(latent_list):
+    def combine_ragged_tensors(latent_list):
+        latent_list = [torch.squeeze(x) for x in latent_list]
         max_size = max(tensor.shape[0] for tensor in latent_list)
         latent_list = [F.pad(tensor, (0, 0, 0, 0, 0, max_size - tensor.shape[0])) for tensor in latent_list]
         combined = F.normalize(torch.stack(latent_list))
         return combined
 
 
-    latent_train_list = combine_raggid_tensors(latent_train_list)
-    latents_ind = combine_raggid_tensors(latents_ind)
-    latents_trans = combine_raggid_tensors(latents_trans)
+    latent_train_list = combine_ragged_tensors(latent_train_list)
+    latents_ind = combine_ragged_tensors(latents_ind)
+    latents_trans = combine_ragged_tensors(latents_trans)
 
     """ Saving teacher outputs """
     out_np = out.detach().cpu().numpy()
