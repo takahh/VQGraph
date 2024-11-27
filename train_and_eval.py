@@ -54,9 +54,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         loss.backward()
         total_loss += loss.item() * accumulation_steps  # Accumulated loss for logging
         latent_list.append(latent_train)
+        print(step)
 
         # Update weights after accumulation_steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
+            print("accumlated !!!")
             optimizer.step()
             optimizer.zero_grad()
 
