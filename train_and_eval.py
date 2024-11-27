@@ -46,11 +46,18 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         batch_feats = feats[input_nodes]
         batch_labels = labels[output_nodes]
         # Compute loss and prediction
-        _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
+
+        scaler = torch.cuda.amp.GradScaler()
+        with torch.cuda.amp.autocast():
+            _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
+            loss = loss * lamb / accumulation_steps
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
         out = logits.log_softmax(dim=1)
 
         # Scale loss for gradient accumulation
-        loss = loss * lamb / accumulation_steps
         loss.backward()
         total_loss += loss.item() * accumulation_steps  # Accumulated loss for logging
         latent_list.append(latent_train)
