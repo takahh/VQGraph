@@ -267,7 +267,7 @@ class SAGE(nn.Module):
             loss = feature_rec_loss + edge_rec_loss + commit_loss
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
-        
+             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
         return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list
 
 class GAT(nn.Module):

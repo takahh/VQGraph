@@ -152,7 +152,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
         else:
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
-        #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1
+        #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind
     return out, loss.item(), score, h_list, dist, codebook, loss_list, latent_vectors
 
 
@@ -594,6 +594,7 @@ def run_inductive(
     logger.info(
         f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
     )
+    #      out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind, latent_train_list
     return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latent_trans, latent_ind, latent_train
 
 
