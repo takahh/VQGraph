@@ -44,8 +44,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         batch_labels = labels[output_nodes]
-        print(step)
-        print(blocks)
         # Compute loss and prediction
         _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
         out = logits.log_softmax(dim=1)
