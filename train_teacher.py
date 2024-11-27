@@ -307,9 +307,13 @@ def run(args):
     )
     logger.info(f"# params {sum(p.numel() for p in model.parameters())}")
 
-    latent_train_list = torch.cat(latent_train_list, dim=0)
-    latents_ind = torch.cat(latents_ind, dim=0)
-    latents_trans = torch.cat(latents_trans, dim=0)
+    def squeezeit(dlist):
+        dlist = [torch.squeeze(x) for x in dlist]
+        return dlist
+    print(f"{squeezeit(latent_train_list)} squeezeit(latent_train_list)")
+    latent_train_list = torch.cat(squeezeit(latent_train_list), dim=0)
+    latents_ind = torch.cat(squeezeit(latents_ind), dim=0)
+    latents_trans = torch.cat(squeezeit(latents_trans), dim=0)
 
     """ Saving teacher outputs """
     out_np = out.detach().cpu().numpy()
