@@ -170,8 +170,10 @@ def run(args):
     """ Set seed, device, and logger """
     set_seed(args.seed)
     if torch.cuda.is_available() and args.device >= 0:
+        print(f"$$$$$$$$$$$$$$$$$$$  USING GPU !!!!! $$$$$$$$$$$$$$$$$$$")
         device = torch.device("cuda:" + str(args.device))
     else:
+        print(f"$$$$$$$$$$$$$$$$$$$  USING CPU ????? $$$$$$$$$$$$$$$$$$$")
         device = "cpu"
     torch.cuda.empty_cache()
     if args.feature_noise != 0:
