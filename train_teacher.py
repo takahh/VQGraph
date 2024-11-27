@@ -334,7 +334,7 @@ def run(args):
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
     np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
     np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
-    np.savez(output_dir.joinpath("latent_train_list"), latent_train_list.cpu())
+    np.savez(output_dir.joinpath("latent_train_list"), latent_train_list.cpu().detach().numpy())
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
     """ Saving loss curve and model """
