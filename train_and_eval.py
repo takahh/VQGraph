@@ -28,50 +28,90 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     optimizer.step()
     return loss_val, loss_list
 
+#
+# def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
+#     """
+#     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
+#     lamb: weight parameter lambda
+#     """
+#     accumulation_steps = 5000
+#     device = feats.device
+#     model.train()
+#     total_loss = 0
+#     latent_list = []
+#     print("dataloader.__len__()")
+#     print(dataloader.__len__())
+#     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+#         blocks = [blk.int().to(device) for blk in blocks]
+#         batch_feats = feats[input_nodes]
+#         batch_labels = labels[output_nodes]
+#         # Compute loss and prediction
+#
+#         scaler = torch.cuda.amp.GradScaler()
+#         with torch.cuda.amp.autocast():
+#             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
+#             loss = loss * lamb / accumulation_steps
+#             scaler.scale(loss).backward()
+#             scaler.step(optimizer)
+#             scaler.update()
+#
+#         out = logits.log_softmax(dim=1)
+#
+#         # Scale loss for gradient accumulation
+#         loss.backward()
+#         total_loss += loss.item() * accumulation_steps  # Accumulated loss for logging
+#         latent_list.append(latent_train)
+#         # print(step)
+#
+#         # Update weights after accumulation_steps
+#         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
+#             print(f"step {step} : accumlated !!!")
+#             optimizer.step()
+#             torch.cuda.empty_cache()
+#             optimizer.zero_grad()
+#
+#     # Average total loss over all steps
+#     return total_loss / len(dataloader), loss_list, latent_list
 
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     """
     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
     lamb: weight parameter lambda
     """
-    accumulation_steps = 5000
     device = feats.device
     model.train()
     total_loss = 0
     latent_list = []
-    print("dataloader.__len__()")
-    print(dataloader.__len__())
+    scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
+
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         batch_labels = labels[output_nodes]
-        # Compute loss and prediction
 
-        scaler = torch.cuda.amp.GradScaler()
-        with torch.cuda.amp.autocast():
+        # Gradient accumulation
+        with torch.cuda.amp.autocast():  # Mixed precision forward pass
             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
-            loss = loss * lamb / accumulation_steps
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
-        out = logits.log_softmax(dim=1)
-
-        # Scale loss for gradient accumulation
-        loss.backward()
-        total_loss += loss.item() * accumulation_steps  # Accumulated loss for logging
-        latent_list.append(latent_train)
-        # print(step)
+        # Backpropagation
+        scaler.scale(loss).backward()  # Scale gradients for mixed precision
 
         # Update weights after accumulation_steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-            print(f"step {step} : accumlated !!!")
-            optimizer.step()
-            torch.cuda.empty_cache()
-            optimizer.zero_grad()
+            print(f"Step {step}: Performing optimizer step")
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()  # Reset gradients after optimizer step
+
+        # Logging
+        total_loss += loss.item() * accumulation_steps
+        latent_list.append(latent_train)
 
     # Average total loss over all steps
-    return total_loss / len(dataloader), loss_list, latent_list
+    avg_loss = total_loss / len(dataloader)
+    return avg_loss, loss_list, latent_list
+
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
