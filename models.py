@@ -247,11 +247,6 @@ class SAGE(nn.Module):
             quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors = self.vq(h)
             latent_list.append(latent_vectors.detach().cpu())
 
-            # # Append latent_train to CPU to avoid GPU memory growth
-            # latent_list.append(latent_train.detach().cpu())
-            # # Move loss_list to CPU and release memory
-            # loss_list = [l.detach().cpu() for l in loss_list]
-
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
             quantized_edge = self.decoder_1(quantized)
@@ -272,7 +267,13 @@ class SAGE(nn.Module):
             loss = feature_rec_loss + edge_rec_loss + commit_loss
             h = h[:block.num_dst_nodes()]
             y[output_nodes] = h
-             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
+
+            torch.cuda.empty_cache()
+            # Monitor reserved memory after cleanup
+            print(f"After cleanup - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
+            print(f"After cleanup - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
+
+            # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
         return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list
 
 class GAT(nn.Module):
