@@ -113,7 +113,7 @@ def get_args():
         help="Number of samples for each layer in SAGE. Length = num_layers",
     )
     parser.add_argument(
-        "--num_workers", type=int, default=4, help="Number of workers for sampler"
+        "--num_workers", type=int, default=8, help="Number of workers for sampler"
     )
 
     """Optimization"""

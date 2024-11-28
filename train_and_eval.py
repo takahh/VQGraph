@@ -40,10 +40,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-        # Monitor reserved memory before processing the batch
-        print(f"Step {step}: Before loading batch - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
-        print(f"Step {step}: Before loading batch - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
-
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
 
@@ -52,16 +48,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
-        # Monitor reserved memory after forward pass
-        print(f"Step {step}: After forward pass - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
-        print(f"Step {step}: After forward pass - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
-
         # Backpropagation
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
-
-        # Monitor reserved memory after backward pass
-        print(f"Step {step}: After backward pass - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
-        print(f"Step {step}: After backward pass - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
         # Update weights after accumulation_steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
@@ -82,10 +70,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Release memory explicitly
         del blocks, batch_feats, loss, logits
         torch.cuda.empty_cache()
-
-        # Monitor reserved memory after cleanup
-        print(f"Step {step}: After cleanup - Memory reserved: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
-        print(f"Step {step}: After cleanup - Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
 
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
