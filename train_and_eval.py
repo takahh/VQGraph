@@ -480,9 +480,10 @@ def run_inductive(
         if "SAGE" in model.model_name:
             # partial sampling, only obs data
             # this loss is label loss
-            loss, loss_list, latent_train = train_sage(
-                model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
-            )
+            # loss, loss_list, latent_train = train_sage(
+            #     model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
+            # )
+            pass
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
