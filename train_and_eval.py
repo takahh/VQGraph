@@ -86,7 +86,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
-    return avg_loss, loss_list, latent_list
+    return avg_loss
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
