@@ -53,10 +53,12 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Update weights after accumulation_steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-            print(f"Step {step}: Performing optimizer step")
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()  # Reset gradients after optimizer step
+
+            if (step + 1) % 5000 == 0 or (step + 1) == len(dataloader):
+                print(f"Step {step}")
 
         # Logging
         total_loss += loss.item() * accumulation_steps
