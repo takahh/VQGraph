@@ -33,6 +33,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
     lamb: weight parameter lambda
     """
+    accumulation_steps = 2
     device = feats.device
     model.train()
     total_loss = 0
@@ -57,7 +58,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             scaler.update()
             optimizer.zero_grad()  # Reset gradients after optimizer step
 
-            if (step + 1) % 5000 == 0 or (step + 1) == len(dataloader):
+            if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
                 print(f"Step {step}")
 
         # Logging
