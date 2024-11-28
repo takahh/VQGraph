@@ -58,8 +58,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             scaler.update()
             optimizer.zero_grad()  # Reset gradients after optimizer step
 
-            if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-                print(f"Step {step}")
+            # if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
+            #     print(f"Step {step}")
 
         # Logging
         total_loss += loss.item() * accumulation_steps
@@ -474,7 +474,7 @@ def run_inductive(
     best_epoch, best_score_val, count = 0, 1, 0
     latent_ind, latent_trans, latent_train = None, None, None
     for epoch in range(1, conf["max_epoch"] + 1):
-        print(f"epoch {epoch}")
+        # print(f"epoch {epoch}")
         # --------------------------------
         # train
         # --------------------------------
