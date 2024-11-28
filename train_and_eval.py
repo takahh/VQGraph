@@ -77,7 +77,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         latent_list.append(latent_train)
 
         # Release memory explicitly
-        del blocks, batch_feats, batch_labels, loss
+        del blocks, batch_feats, batch_labels, loss, loss_list, latent_train
         torch.cuda.empty_cache()
 
         # Monitor reserved memory after cleanup
