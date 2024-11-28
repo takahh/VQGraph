@@ -28,7 +28,6 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     optimizer.step()
     return loss_val, loss_list
 
-
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     """
     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
@@ -37,7 +36,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     device = feats.device
     model.train()
     total_loss = 0
-    latent_list = []
+    loss_list, latent_list = [], []
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
@@ -47,7 +46,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
-        batch_labels = labels[output_nodes]
 
         # Gradient accumulation
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
@@ -74,10 +72,15 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Logging
         total_loss += loss.item() * accumulation_steps
-        latent_list.append(latent_train)
+
+        # Append latent_train to CPU to avoid GPU memory growth
+        latent_list.append(latent_train.detach().cpu())
+
+        # Move loss_list to CPU and release memory
+        loss_list = [l.detach().cpu() for l in loss_list]
 
         # Release memory explicitly
-        del blocks, batch_feats, batch_labels, loss, loss_list, latent_train
+        del blocks, batch_feats, loss, logits
         torch.cuda.empty_cache()
 
         # Monitor reserved memory after cleanup
@@ -86,9 +89,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
-    del total_loss, latent_list, scaler
+    del total_loss, scaler
     torch.cuda.empty_cache()
-    return avg_loss
+    return avg_loss, loss_list, latent_list
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
