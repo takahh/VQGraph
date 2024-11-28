@@ -592,27 +592,33 @@ def run_inductive(
             break
 
     model.load_state_dict(state)
-    if "MLP" in model.model_name:
-        obs_out, _, score_val = evaluate_mini_batch(
-            model, obs_feats, obs_labels, criterion, batch_size, evaluator, obs_idx_val
-        )
-        out, _, acc_ind = evaluate_mini_batch(
-            model, feats, labels, criterion, batch_size, evaluator, idx_test_ind
-        )
-
-    else:
-        obs_out, _, score_val, h_list, dist, codebook, loss_list, latent_trans = evaluate(
-            model,
-            obs_data_eval,
-            obs_feats,
-            obs_labels,
-            criterion,
-            evaluator,
-            obs_idx_val,
-        )
-        out, _, acc_ind, h_list, dist, codebook, loss_list, latent_ind = evaluate(
-            model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
-        )
+    # if "MLP" in model.model_name:
+    #     obs_out, _, score_val = evaluate_mini_batch(
+    #         model, obs_feats, obs_labels, criterion, batch_size, evaluator, obs_idx_val
+    #     )
+    #     out, _, acc_ind = evaluate_mini_batch(
+    #         model, feats, labels, criterion, batch_size, evaluator, idx_test_ind
+    #     )
+    #
+    # else:
+    #     logger.info(
+    #         f"started the final tran test"
+    #     )
+    #     obs_out, _, score_val, h_list, dist, codebook, loss_list, latent_trans = evaluate(
+    #         model,
+    #         obs_data_eval,
+    #         obs_feats,
+    #         obs_labels,
+    #         criterion,
+    #         evaluator,
+    #         obs_idx_val,
+    #     )
+    #     logger.info(
+    #         f"started the final ind test"
+    #     )
+    #     out, _, acc_ind, h_list, dist, codebook, loss_list, latent_ind = evaluate(
+    #         model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
+    #     )
 
     acc_tran = evaluator(obs_out[obs_idx_test], obs_labels[obs_idx_test])
     out[idx_obs] = obs_out
