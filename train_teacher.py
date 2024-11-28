@@ -105,7 +105,7 @@ def get_args():
     )
 
     """SAGE Specific"""
-    parser.add_argument("--batch_size", type=int, default=4096)
+    parser.add_argument("--batch_size", type=int, default=65536)
     parser.add_argument(
         "--fan_out",
         type=str,
@@ -113,7 +113,7 @@ def get_args():
         help="Number of samples for each layer in SAGE. Length = num_layers",
     )
     parser.add_argument(
-        "--num_workers", type=int, default=8, help="Number of workers for sampler"
+        "--num_workers", type=int, default=24, help="Number of workers for sampler"
     )
 
     """Optimization"""
@@ -319,25 +319,25 @@ def run(args):
         return dlist
     print(f"{squeezeit(latent_train_list)} squeezeit(latent_train_list)")
     latent_train_list = torch.cat(squeezeit(latent_train_list), dim=0)
-    latents_ind = torch.cat(squeezeit(latents_ind), dim=0)
-    latents_trans = torch.cat(squeezeit(latents_trans), dim=0)
+    # latents_ind = torch.cat(squeezeit(latents_ind), dim=0)
+    # latents_trans = torch.cat(squeezeit(latents_trans), dim=0)
 
     """ Saving teacher outputs """
     out_np = out.detach().cpu().numpy()
     out_codebook = codebook.detach().cpu().numpy()
     out_emb = h_list[0].detach().cpu().numpy()
     dist_vq = dist.detach().cpu().numpy()
-    latents_ind = F.normalize(latents_ind, p=2, dim=-1)
-    latents_trans = F.normalize(latents_trans, p=2, dim=-1)
+    # latents_ind = F.normalize(latents_ind, p=2, dim=-1)
+    # latents_trans = F.normalize(latents_trans, p=2, dim=-1)
     print(f"latent : train {latent_train_list.shape}")
-    print(f"latent : tran {latents_trans.shape}")
-    print(f"latent : ind {latents_ind.shape}")
+    # print(f"latent : tran {latents_trans.shape}")
+    # print(f"latent : ind {latents_ind.shape}")
     np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
     np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
     np.savez(output_dir.joinpath("codebook"), codebook.cpu())
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
-    np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
-    np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
+    # np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
+    # np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
     np.savez(output_dir.joinpath("latent_train_list"), latent_train_list.cpu().detach().numpy())
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
