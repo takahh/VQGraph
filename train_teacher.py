@@ -319,8 +319,10 @@ def run(args):
         return dlist
     print(f"{squeezeit(latent_train_list)} squeezeit(latent_train_list)")
     latent_train_list = torch.cat(squeezeit(latent_train_list), dim=0)
-    # latents_ind = torch.cat(squeezeit(latents_ind), dim=0)
-    # latents_trans = torch.cat(squeezeit(latents_trans), dim=0)
+    # Generate random indices for sampling
+    random_indices = torch.randperm(latent_train_list.size(0))[:30000]
+    # Sample the tensor
+    latent_train_list_sampled = latent_train_list[random_indices]
 
     """ Saving teacher outputs """
     out_np = out.detach().cpu().numpy()
@@ -338,7 +340,7 @@ def run(args):
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
     # np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
     # np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
-    np.savez(output_dir.joinpath("latent_train_list"), latent_train_list.cpu().detach().numpy())
+    np.savez(output_dir.joinpath("latent_train_list"), latent_train_list_sampled.cpu().detach().numpy())
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
     """ Saving loss curve and model """

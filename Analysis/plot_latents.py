@@ -4,32 +4,10 @@ import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
+import h5py
 
 path = "/Users/taka/Downloads/"
-namelist = ["codebook.npz", "latents_ind.npz", "latents_trans.npz", "latent_train_list.npz"]
-
-
-def main():
-    arr_list = []
-    for names in namelist:
-        print("################")
-        print(names)
-        arr = seeinside(names)
-        print(arr.shape)
-        arr_list.append(arr)
-    arr_combined = np.vstack(arr_list)
-    print(arr_combined.shape)
-    plot_graph(arr_combined)
-
-
-def seeinside(filename):
-    # filename = "out_emb_list.npz"
-    name = filename.replace(".npz", "")
-    arr = np.load(f"{path}{filename}")["arr_0"]
-    arr = np.squeeze(arr)
-    # print(arr.shape)
-    # print(arr)
-    return arr
+namelist = ["codebook.npz", "latent_train_list.npz"]
 
 
 def density_plot(data):
@@ -70,8 +48,44 @@ def plot_graph(data):
     # Plot the 2D UMAP projection
     # plt.scatter(embedding[30:, 0], embedding[30:, 1], s=125, c='blue', alpha=0.1)
     plt.scatter(embedding[:30, 0], embedding[:30, 1], s=15, c='red', alpha=0.8)
-
     plt.show()
+
+
+def seeinside(filename):
+    # filename = "out_emb_list.npz"
+    if "codebook" in filename:
+        arr = np.load(f"{path}{filename}")["arr_0"]
+        arr = np.squeeze(arr)
+    else:
+        import zipfile
+        with zipfile.ZipFile(f"{path}{filename}", 'r') as z:
+            z.extractall("extracted_folder")
+        print("checking the npz file is done")
+        with np.load(f"{path}{filename}", mmap_mode='r') as data:
+            with h5py.File("large_file.h5", "w") as h5_file:
+                h5_file.create_dataset("arr_0", data=data['arr_0'], chunks=True, compression="gzip")
+
+        with h5py.File("large_file.h5", "r") as h5_file:
+            array = h5_file["arr_0"]
+            chunk_size = 100000
+            for start_idx in range(0, array.shape[0], chunk_size):
+                chunk = array[start_idx:start_idx + chunk_size]
+                print("Chunk shape:", chunk.shape)
+    return arr
+
+
+def main():
+    arr_list = []
+    for names in namelist:
+        print("################")
+        print(names)
+        arr = seeinside(names)
+        print(arr.shape)
+        arr_list.append(arr)
+    arr_combined = np.vstack(arr_list)
+    print(arr_combined.shape)
+    plot_graph(arr_combined)
+
 
 if __name__ == '__main__':
     main()
