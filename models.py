@@ -245,7 +245,12 @@ class SAGE(nn.Module):
             # Quantize
             # ----------------
             quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors = self.vq(h)
-            latent_list.append(latent_vectors)
+            latent_list.append(latent_vectors.detach().cpu())
+
+            # # Append latent_train to CPU to avoid GPU memory growth
+            # latent_list.append(latent_train.detach().cpu())
+            # # Move loss_list to CPU and release memory
+            # loss_list = [l.detach().cpu() for l in loss_list]
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
