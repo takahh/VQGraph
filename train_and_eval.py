@@ -86,6 +86,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
+    del total_loss, latent_list, scaler
+    torch.cuda.empty_cache()
     return avg_loss
 
 
