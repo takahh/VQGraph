@@ -211,7 +211,7 @@ def orthogonal_loss_fn(t, min_distance=1.0):
     # Regularization: Encourage spread in the embedding space
     spread_loss = torch.var(t)  # Small weight for spread regularization
 
-    return [margin_loss, spread_loss, dist_matrix]
+    return [margin_loss, spread_loss, mask]
 
 
 # distance types
