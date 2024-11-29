@@ -339,7 +339,7 @@ def run(args):
     # print(f"latent : ind {latents_ind.shape}")
     np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
     np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
-    np.savez(output_dir.joinpath("codebook"), codebook.cpu())
+    np.savez(output_dir.joinpath("codebook"), codebook.cpu().detach().numpy())
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
     # np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
     # np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
