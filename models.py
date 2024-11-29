@@ -243,7 +243,7 @@ class SAGE(nn.Module):
             # ----------------
             # Quantize
             # ----------------
-            quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, spread_loss, margin_loss, dist_matrix = self.vq(h)
+            quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, spread_loss, margin_loss = self.vq(h)
             latent_list.append(latent_vectors.detach().cpu())
 
             dist = torch.squeeze(dist)
