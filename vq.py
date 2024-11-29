@@ -196,7 +196,8 @@ def orthogonal_loss_fn(t):
     # pair_distance_loss = scaling_factor * torch.sum(torch.exp(-dist_matrix))
     # Penalize closeness by summing the inverse of distances
     # pair_distance_loss = torch.sum(torch.exp(-dist_matrix))
-    pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix ** 2 + 1e-18))
+    # pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix ** 2 + 1e-18))
+    pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
     return pair_distance_loss
 
 
