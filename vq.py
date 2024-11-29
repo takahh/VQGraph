@@ -195,11 +195,11 @@ def orthogonal_loss_fn(t):
     dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal
 
     # Loss: Penalize closeness with smooth inverse distance
-    scaling_factor = 1e5  # Adjust scaling factor
+    scaling_factor = 1e6  # Adjust scaling factor
     pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
 
     # Regularization: Encourage spread in the embedding space
-    spread_loss_weight = 0.01  # Small weight for spread regularization
+    spread_loss_weight = 0.1  # Small weight for spread regularization
     spread_loss = spread_loss_weight * torch.var(t)
 
     # Combine and ensure non-negativity
