@@ -48,7 +48,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             _, logits, loss, _, _, loss_list, latent_train = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
-
+        print(loss_list[3])
         # Backpropagation
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
 

@@ -624,6 +624,7 @@ class VectorQuantize(nn.Module):
                 codebook = codebook[rand_ids]
 
             orthogonal_reg_loss = orthogonal_loss_fn(codebook)
+            print(f"orthogonal_reg_loss {orthogonal_reg_loss}")
             loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
 
         if is_multiheaded:
