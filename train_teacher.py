@@ -54,8 +54,9 @@ def get_args():
         action="store_true",
         help="Set to True to save the loss curves, trained model, and min-cut loss for the transductive setting",
     )
-
-    """Dataset"""
+    # --------------
+    # Dataset
+    # --------------
     parser.add_argument("--dataset", type=str, default="cora", help="Dataset")
     parser.add_argument("--data_path", type=str, default="./data", help="Path to data")
     parser.add_argument(
@@ -78,14 +79,16 @@ def get_args():
         default=0,
         help="For Non-Homo datasets only, one of [0,1,2,3,4]",
     )
-
-    """VQGraph"""
+    # --------------
+    # VQ
+    # --------------
     parser.add_argument("--codebook_size", type=int, default=30, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_node", type=float, default=0.008)  # default=0.001)
     parser.add_argument("--lamb_edge",  type=float, default=0.01)  # default=0.03)
 
-
-    """Model"""
+    # --------------
+    # Model
+    # --------------
     parser.add_argument(
         "--model_config_path",
         type=str,
