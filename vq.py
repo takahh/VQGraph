@@ -195,12 +195,7 @@ def orthogonal_loss_fn(t):
 
     # Penalize closeness by summing the inverse of distances
     pair_distance_loss = torch.sum(torch.exp(-dist_matrix))
-
-    # eq (2) from https://arxiv.org/abs/2112.00384
-    h, n = t.shape[:2]
-    normed_codes = l2norm(t)
-    cosine_sim = einsum('h i d, h j d -> h i j', normed_codes, normed_codes)
-    return (cosine_sim ** 2).sum() / (h * n ** 2) - (1 / n) + pair_distance_loss
+    return pair_distance_loss
 
 
 # distance types
@@ -492,7 +487,7 @@ class VectorQuantize(nn.Module):
             channel_last=True,
             accept_image_fmap=False,
             commitment_weight=1.,
-            orthogonal_reg_weight=0.4,
+            orthogonal_reg_weight=10,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
