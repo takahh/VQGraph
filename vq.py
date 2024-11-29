@@ -643,4 +643,4 @@ class VectorQuantize(nn.Module):
         # if self.training:
         #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
         #     quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors
-        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents
+        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, orthogonal_reg_loss

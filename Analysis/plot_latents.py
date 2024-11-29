@@ -16,7 +16,7 @@ def plot_graph(data, mode):
         tsne = TSNE(n_components=2, random_state=44, perplexity=130, n_iter=250)
         embedding = tsne.fit_transform(data)
     elif mode == "umap":
-        reducer = umap.UMAP(n_neighbors=50, min_dist=0.1, n_components=2, random_state=42)
+        reducer = umap.UMAP(n_neighbors=10, min_dist=0.1, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
 
     plt.figure()
