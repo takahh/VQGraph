@@ -211,7 +211,7 @@ def orthogonal_loss_fn(t, min_distance=0.3):
     # Regularization: Encourage spread in the embedding space
     spread_loss = torch.var(t)  # Small weight for spread regularization
 
-    return [margin_loss, spread_loss, dist_matrix]
+    return [margin_loss, spread_loss]
 
 
 # distance types
@@ -640,7 +640,7 @@ class VectorQuantize(nn.Module):
                 rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
                 codebook = codebook[rand_ids]
 
-            margin_loss, spread_loss, dist_matrix = orthogonal_loss_fn(codebook)
+            margin_loss, spread_loss = orthogonal_loss_fn(codebook)
             loss = loss + spread_loss * self.spread_weight + margin_loss * self.margin_weight
 
         if is_multiheaded:
@@ -666,4 +666,4 @@ class VectorQuantize(nn.Module):
         # if self.training:
         #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
         #     quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors
-        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, spread_loss, margin_loss, dist_matrix
+        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, spread_loss, margin_loss
