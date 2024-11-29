@@ -209,7 +209,7 @@ def orthogonal_loss_fn(t, min_distance=1.0):
     margin_loss = torch.sum(margin_loss ** 2)  # Square the penalty for stronger gradients
 
     # Regularization: Encourage spread in the embedding space
-    spread_loss = 0.1 * torch.var(t)  # Small weight for spread regularization
+    spread_loss = torch.var(t)  # Small weight for spread regularization
 
     # Combine losses
     total_loss = margin_loss + spread_loss
