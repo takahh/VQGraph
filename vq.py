@@ -183,7 +183,17 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t):
+def orthogonal_loss_fn(t, min_distance=1.0):
+    """
+    Enforces a minimum distance between points and regularizes spread.
+
+    Args:
+        t (torch.Tensor): Input tensor of shape (n_points, n_dims).
+        min_distance (float): Desired minimum distance between points.
+
+    Returns:
+        torch.Tensor: Computed orthogonal loss.
+    """
     # Normalize vectors to unit length
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
@@ -192,21 +202,19 @@ def orthogonal_loss_fn(t):
 
     # Set diagonal to ignore self-distances
     mask = torch.eye(t.shape[0], device=t.device)
-    dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal
+    dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal to ignore self-distances
 
-    # Loss: Penalize closeness with smooth inverse distance
-    scaling_factor = 1e6  # Adjust scaling factor
-    pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
+    # Margin-based penalization for minimum distance
+    margin_loss = torch.relu(min_distance - dist_matrix)  # Penalize if distance < min_distance
+    margin_loss = torch.sum(margin_loss ** 2)  # Square the penalty for stronger gradients
 
     # Regularization: Encourage spread in the embedding space
-    spread_loss_weight = 0.1  # Small weight for spread regularization
-    spread_loss = spread_loss_weight * torch.var(t)
+    spread_loss = 0.1 * torch.var(t)  # Small weight for spread regularization
 
-    # Combine and ensure non-negativity
-    pair_distance_loss += spread_loss
-    pair_distance_loss = torch.clamp(pair_distance_loss, min=0.0)
+    # Combine losses
+    total_loss = margin_loss + spread_loss
 
-    return pair_distance_loss
+    return total_loss
 
 
 # distance types

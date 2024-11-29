@@ -56,7 +56,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()  # Reset gradients after optimizer step
-            print(loss_list[3])
+            print(loss_list)
 
             # if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             #     print(f"Step {step}")
