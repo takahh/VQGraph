@@ -186,11 +186,21 @@ def batched_embedding(indices, embeds):
 # regularization losses
 
 def orthogonal_loss_fn(t):
+    # Compute pairwise distance between codebook vectors
+    dist_matrix = torch.cdist(t, t, p=2)  # Euclidean distance
+
+    # Set the diagonal to a large value to ignore self-distances
+    mask = torch.eye(t.shape[0], device=t.device)
+    dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal
+
+    # Penalize closeness by summing the inverse of distances
+    pair_distance_loss = torch.sum(torch.exp(-dist_matrix))
+
     # eq (2) from https://arxiv.org/abs/2112.00384
     h, n = t.shape[:2]
     normed_codes = l2norm(t)
     cosine_sim = einsum('h i d, h j d -> h i j', normed_codes, normed_codes)
-    return (cosine_sim ** 2).sum() / (h * n ** 2) - (1 / n)
+    return (cosine_sim ** 2).sum() / (h * n ** 2) - (1 / n) + pair_distance_loss
 
 
 # distance types
