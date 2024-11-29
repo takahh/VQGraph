@@ -184,22 +184,28 @@ def batched_embedding(indices, embeds):
 
 
 # regularization losses
-
 def orthogonal_loss_fn(t):
-    # Compute pairwise distance between codebook vectors
+    # Normalize vectors to unit length
+    t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
+
+    # Compute pairwise distances
     dist_matrix = torch.cdist(t, t, p=2)  # Euclidean distance
 
-    # Set the diagonal to a large value to ignore self-distances
+    # Set diagonal to ignore self-distances
     mask = torch.eye(t.shape[0], device=t.device)
     dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal
-    scaling_factor = 1e14  # Choose a suitable scaling factor
-    # pair_distance_loss = scaling_factor * torch.sum(torch.exp(-dist_matrix))
-    # Penalize closeness by summing the inverse of distances
-    # pair_distance_loss = torch.sum(torch.exp(-dist_matrix))
-    # pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix ** 2 + 1e-18))
-    pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
-    return pair_distance_loss
 
+    # Scaling factor for loss
+    scaling_factor = 1e2  # Adjust as needed
+
+    # Loss: Penalize closeness with smooth inverse distance
+    pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
+
+    # Regularization: Encourage spread in the embedding space
+    spread_loss = -torch.var(t)  # Spread-out embeddings
+    pair_distance_loss += spread_loss
+
+    return pair_distance_loss
 
 # distance types
 
