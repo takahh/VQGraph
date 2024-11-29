@@ -201,7 +201,7 @@ def orthogonal_loss_fn(t, min_distance=1.0):
     dist_matrix = torch.cdist(t, t, p=2)  # Euclidean distance
 
     # Set diagonal to ignore self-distances
-    mask = torch.eye(t.shape[0], device=t.device)
+    mask = torch.eye(t.shape[1], device=t.device)
     dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal to ignore self-distances
 
     # Margin-based penalization for minimum distance
