@@ -192,7 +192,7 @@ def orthogonal_loss_fn(t):
     # Set the diagonal to a large value to ignore self-distances
     mask = torch.eye(t.shape[0], device=t.device)
     dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal
-    scaling_factor = 1e15  # Choose a suitable scaling factor
+    scaling_factor = 1e16  # Choose a suitable scaling factor
     pair_distance_loss = scaling_factor * torch.sum(torch.exp(-dist_matrix))
     # Penalize closeness by summing the inverse of distances
     # pair_distance_loss = torch.sum(torch.exp(-dist_matrix))
