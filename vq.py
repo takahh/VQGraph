@@ -183,7 +183,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=1.0):
+def orthogonal_loss_fn(t, min_distance=0.1):
     """
     Enforces a minimum distance between points and regularizes spread.
 
