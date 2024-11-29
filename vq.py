@@ -214,7 +214,7 @@ def orthogonal_loss_fn(t, min_distance=1.0):
     # Combine losses
     total_loss = margin_loss + spread_loss
 
-    return total_loss
+    return [margin_loss, spread_loss]
 
 
 # distance types
@@ -506,7 +506,8 @@ class VectorQuantize(nn.Module):
             channel_last=True,
             accept_image_fmap=False,
             commitment_weight=1.,
-            orthogonal_reg_weight=10,
+            margin_weight=10,
+            spread_weight=10,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
@@ -526,8 +527,9 @@ class VectorQuantize(nn.Module):
         self.eps = eps
         self.commitment_weight = commitment_weight
 
-        has_codebook_orthogonal_loss = orthogonal_reg_weight > 0
-        self.orthogonal_reg_weight = orthogonal_reg_weight
+        has_codebook_orthogonal_loss = margin_weight > 0
+        self.margin_weight = margin_weight
+        self.spread_weight = spread_weight
         self.orthogonal_reg_active_codes_only = orthogonal_reg_active_codes_only
         self.orthogonal_reg_max_codes = orthogonal_reg_max_codes
 
@@ -641,9 +643,8 @@ class VectorQuantize(nn.Module):
                 rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
                 codebook = codebook[rand_ids]
 
-            orthogonal_reg_loss = orthogonal_loss_fn(codebook)
-            print(f"orthogonal_reg_loss {orthogonal_reg_loss}")
-            loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
+            margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+            loss = loss + spread_loss * self.spread_weight + margin_loss * self.margin_weight
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
@@ -668,4 +669,4 @@ class VectorQuantize(nn.Module):
         # if self.training:
         #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
         #     quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors
-        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, orthogonal_reg_loss
+        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, spread_loss, margin_loss

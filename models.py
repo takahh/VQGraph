@@ -175,7 +175,7 @@ class SAGE(nn.Module):
         h = self.dropout(h)
         h_list.append(h)
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
-        quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, ortho_loss = self.vq(h)
+        quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, spread_loss, margin_loss = self.vq(h)
 
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
@@ -207,7 +207,7 @@ class SAGE(nn.Module):
         h = self.linear(h)
         loss = feature_rec_loss + edge_rec_loss + commit_loss
         h = h[:blocks[-1].num_dst_nodes()]
-        return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, ortho_loss], latents
+        return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, spread_loss, margin_loss], latents
 
 
     def inference(self, dataloader, feats):
@@ -244,7 +244,7 @@ class SAGE(nn.Module):
             # ----------------
             # Quantize
             # ----------------
-            quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, ortho_loss = self.vq(h)
+            quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, spread_loss, margin_loss = self.vq(h)
             latent_list.append(latent_vectors.detach().cpu())
 
             dist = torch.squeeze(dist)
