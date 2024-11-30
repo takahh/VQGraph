@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from einops import rearrange, repeat, pack, unpack
 from torch import nn, einsum
 from torch.cuda.amp import autocast
+from torch.onnx.symbolic_opset9 import pairwise_distance
 
 
 def exists(val):
@@ -183,7 +184,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=0.3):
+def orthogonal_loss_fn(t, min_distance=10):
     """
     Enforces a minimum distance between points and regularizes spread.
 
@@ -197,21 +198,21 @@ def orthogonal_loss_fn(t, min_distance=0.3):
     # Normalize vectors to unit length
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
-    # Compute pairwise distances
-    dist_matrix = torch.cdist(t, t, p=2)  # Euclidean distance
-
-    # Set diagonal to ignore self-distances
+    """ pairwise distances loss """
+    dist_matrix = torch.cdist(t, t, p=2)
     mask = torch.eye(t.shape[1], device=t.device)
     dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal to ignore self-distances
+    scaling_factor = 1e2  # Adjust scaling factor
+    pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
 
-    # Margin-based penalization for minimum distance
+    """ margin loss """
     margin_loss = torch.relu(min_distance - dist_matrix)  # Penalize if distance < min_distance
     margin_loss = torch.sum(margin_loss ** 2)  # Square the penalty for stronger gradients
 
-    # Regularization: Encourage spread in the embedding space
+    """ spread loss """
     spread_loss = torch.var(t)  # Small weight for spread regularization
 
-    return [margin_loss, spread_loss]
+    return [margin_loss, spread_loss, pair_distance_loss]
 
 
 # distance types
@@ -505,6 +506,7 @@ class VectorQuantize(nn.Module):
             commitment_weight=1.,
             margin_weight=10,
             spread_weight=10,
+            pair_weight=10,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
@@ -527,6 +529,7 @@ class VectorQuantize(nn.Module):
         has_codebook_orthogonal_loss = margin_weight > 0
         self.margin_weight = margin_weight
         self.spread_weight = spread_weight
+        self.pair_weight = pair_weight
         self.orthogonal_reg_active_codes_only = orthogonal_reg_active_codes_only
         self.orthogonal_reg_max_codes = orthogonal_reg_max_codes
 
@@ -640,8 +643,8 @@ class VectorQuantize(nn.Module):
                 rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
                 codebook = codebook[rand_ids]
 
-            margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-            loss = loss + spread_loss * self.spread_weight + margin_loss * self.margin_weight
+            margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+            loss = loss + spread_loss * self.spread_weight + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
@@ -666,4 +669,4 @@ class VectorQuantize(nn.Module):
         # if self.training:
         #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
         #     quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors
-        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, spread_loss, margin_loss
+        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, spread_loss, margin_loss, pair_distance_loss

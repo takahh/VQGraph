@@ -5,7 +5,7 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 import h5py
-MODE = "tsne"
+MODE = "umap"
 path = "/Users/taka/Documents/output_20241128/"
 namelist = ["codebook.npz", "latent_train_list.npz"]
 
@@ -13,10 +13,10 @@ namelist = ["codebook.npz", "latent_train_list.npz"]
 def plot_graph(data, mode):
     # Initialize UMAP with custom parameters
     if mode == "tsne":
-        tsne = TSNE(n_components=2, random_state=44, perplexity=20, n_iter=250)
+        tsne = TSNE(n_components=2, random_state=44, perplexity=10, n_iter=250)
         embedding = tsne.fit_transform(data)
     elif mode == "umap":
-        reducer = umap.UMAP(n_neighbors=10, min_dist=0.1, n_components=2, random_state=42)
+        reducer = umap.UMAP(n_neighbors=80, min_dist=0.1, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
 
     plt.figure()
