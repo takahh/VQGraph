@@ -189,7 +189,7 @@ def orthogonal_loss_fn(t, min_distance=0.5):
 
     """ pairwise distances loss """
     dist_matrix = torch.cdist(t, t, p=2)
-    pair_distance_loss =  torch.sum(1 / (dist_matrix + 1e-6))
+    pair_distance_loss =  torch.sum(1 / (dist_matrix + 1e-6))/2500
 
     """ margin loss """
     margin_loss = torch.relu(min_distance - dist_matrix)  # Penalize if distance < min_distance
