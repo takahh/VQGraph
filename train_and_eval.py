@@ -58,7 +58,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             optimizer.zero_grad()  # Reset gradients after optimizer step
 
             # count unique cb vectors
-            unique_vectors, counts = np.unique(cb, axis=0, return_counts=True)
+            unique_vectors, counts = np.unique(cb.cpu(), axis=0, return_counts=True)
             print("Unique codebook vectors count:", len(unique_vectors))
 
         # Logging
