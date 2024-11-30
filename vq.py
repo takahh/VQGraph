@@ -184,7 +184,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=10):
+def orthogonal_loss_fn(t, min_distance=1):
     """
     Enforces a minimum distance between points and regularizes spread.
 
@@ -211,7 +211,7 @@ def orthogonal_loss_fn(t, min_distance=10):
 
     """ spread loss """
     spread_loss = torch.var(t)  # Small weight for spread regularization
-
+    print(f"dist matrix {dist_matrix}")
     return [margin_loss, spread_loss, pair_distance_loss]
 
 
