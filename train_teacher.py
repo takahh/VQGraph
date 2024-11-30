@@ -393,7 +393,22 @@ def main():
     print(score_str)
 
 
+import requests
+
+def stop_instance(instance_id, api_key):
+    url = f"https://console.vast.ai/api/v0/instances/{instance_id}/stop/"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    response = requests.post(url, headers=headers)
+    if response.status_code == 200:
+        print("Instance stopped successfully.")
+    else:
+        print(f"Failed to stop instance: {response.status_code}, {response.text}")
+
+
 if __name__ == "__main__":
     main()
 
-    sys.exit()
+    # Replace with your Vast.ai instance ID and API key
+    instance_id = "13941138"
+    api_key = "2afa99317d40e9892f7f8b088a84641b4be2279be70103847bb480fb21997354"
+    stop_instance(instance_id, api_key)
