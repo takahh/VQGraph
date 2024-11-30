@@ -207,11 +207,11 @@ def orthogonal_loss_fn(t, min_distance=0.5):
 
     """ pairwise distances loss """
     dist_matrix = torch.cdist(t, t, p=2)
-    pair_distance_loss =  torch.sum(1 / (dist_matrix + 1e-6))/25000000
+    pair_distance_loss = torch.sum(1 / (dist_matrix + 1e-6)) / 25000000
 
-    """ margin loss """
-    margin_loss = torch.relu(min_distance - dist_matrix)  # Penalize if distance < min_distance
-    margin_loss = torch.sum(margin_loss ** 2)  # Square the penalty for stronger gradients
+    """ smoothed margin loss """
+    smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
+    margin_loss = torch.sum(smooth_penalty ** 2)  # Square for stronger gradients
 
     """ spread loss """
     spread_loss = torch.var(t)  # Small weight for spread regularization
