@@ -59,7 +59,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
             # count unique cb vectors
             print(cb.cpu().detach().numpy().shape)
-            unique_vectors, counts = np.unique(cb.cpu().detach().numpy(), axis=0, return_counts=True)
+            unique_vectors, counts = np.unique(cb.cpu().detach().numpy(), axis=1, return_counts=True)
             print("Unique codebook vectors count:", len(unique_vectors))
 
         # Logging
