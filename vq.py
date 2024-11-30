@@ -189,9 +189,7 @@ def orthogonal_loss_fn(t, min_distance=0.5):
 
     """ pairwise distances loss """
     dist_matrix = torch.cdist(t, t, p=2)
-    mask = torch.eye(t.shape[1], device=t.device)
-    scaling_factor = 1e2  # Adjust scaling factor
-    pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
+    pair_distance_loss =  torch.sum(1 / (dist_matrix + 1e-6))
 
     """ margin loss """
     margin_loss = torch.relu(min_distance - dist_matrix)  # Penalize if distance < min_distance
@@ -492,7 +490,7 @@ class VectorQuantize(nn.Module):
             channel_last=True,
             accept_image_fmap=False,
             commitment_weight=1.,
-            margin_weight=10,
+            margin_weight=0.1,
             spread_weight=10,
             pair_weight=10,
             orthogonal_reg_active_codes_only=False,
