@@ -13,7 +13,7 @@ namelist = ["codebook.npz", "latent_train_list.npz"]
 def plot_graph(data, mode):
     # Initialize UMAP with custom parameters
     if mode == "tsne":
-        tsne = TSNE(n_components=2, random_state=44, perplexity=50, n_iter=250)
+        tsne = TSNE(n_components=2, random_state=44, perplexity=30, n_iter=250)
         embedding = tsne.fit_transform(data)
     elif mode == "umap":
         reducer = umap.UMAP(n_neighbors=80, min_dist=0.1, n_components=2, random_state=42)
