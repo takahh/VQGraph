@@ -184,24 +184,12 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=1):
-    """
-    Enforces a minimum distance between points and regularizes spread.
-
-    Args:
-        t (torch.Tensor): Input tensor of shape (n_points, n_dims).
-        min_distance (float): Desired minimum distance between points.
-
-    Returns:
-        torch.Tensor: Computed orthogonal loss.
-    """
-    # Normalize vectors to unit length
+def orthogonal_loss_fn(t, min_distance=0.5):
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
     """ pairwise distances loss """
     dist_matrix = torch.cdist(t, t, p=2)
     mask = torch.eye(t.shape[1], device=t.device)
-    dist_matrix = dist_matrix + mask * 1e10  # Large value on diagonal to ignore self-distances
     scaling_factor = 1e2  # Adjust scaling factor
     pair_distance_loss = scaling_factor * torch.sum(1 / (dist_matrix + 1e-6))
 
