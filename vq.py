@@ -197,7 +197,7 @@ def orthogonal_loss_fn(t, min_distance=0.5):
 
     """ spread loss """
     spread_loss = torch.var(t)  # Small weight for spread regularization
-    print(f"dist matrix {dist_matrix}")
+    # print(f"dist matrix {dist_matrix}")
     return [margin_loss, spread_loss, pair_distance_loss]
 
 

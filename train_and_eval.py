@@ -56,9 +56,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()  # Reset gradients after optimizer step
-            for i, loss in enumerate(loss_list):
-                print(f"Loss {i}: Type: {type(loss)}, Value: {loss}")
-            print(f"feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, spread_loss {loss_list[3].item(): 4f}, margin loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
+            # for i, loss in enumerate(loss_list):
+            #     print(f"Loss {i}: Type: {type(loss)}, Value: {loss}")
+            # print(f"feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, spread_loss {loss_list[3].item(): 4f}, margin loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
 
             # if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             #     print(f"Step {step}")
