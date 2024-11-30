@@ -202,7 +202,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=0.6):
+def orthogonal_loss_fn(t, min_distance=0.5):
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
     """ pairwise distances loss """
@@ -501,7 +501,7 @@ class VectorQuantize(nn.Module):
             decay=0.8,
             eps=1e-5,
             kmeans_init=False,
-            kmeans_iters=10,
+            kmeans_iters=20,
             sync_kmeans=True,
             use_cosine_sim=False,
             threshold_ema_dead_code=0,
