@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import torch
+import sys
 import torch.optim as optim
 import torch.nn.functional as F
 from pathlib import Path
@@ -394,3 +395,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    sys.exit()
