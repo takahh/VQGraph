@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # import h5py
 MODE = "tsne"
 # path = "/Users/taka/Documents/output_20241128/"
-path = "/outputs/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
+path = "/VQGraph/outputs/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
 namelist = ["codebook.npz", "latent_train_list.npz"]
 
 
