@@ -642,7 +642,7 @@ class VectorQuantize(nn.Module):
             if self.orthogonal_reg_active_codes_only:
                 # only calculate orthogonal loss for the activated codes for this batch
                 unique_code_ids = torch.unique(embed_ind)
-                cookbook = torch.squeeze(codebook)
+                codebook = torch.squeeze(codebook)
                 codebook = codebook[unique_code_ids]
 
             num_codes = codebook.shape[0]
