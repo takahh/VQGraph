@@ -191,7 +191,6 @@ def kmeans(
             means,
             new_means
         )
-
     return means, bins
 
 
