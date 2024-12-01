@@ -14,7 +14,7 @@ namelist = ["codebook.npz", "latent_train_list.npz"]
 def plot_graph(data, mode):
     # Initialize UMAP or TSNE with custom parameters
     if mode == "tsne":
-        tsne = TSNE(n_components=2, random_state=44, perplexity=10, n_iter=250)
+        tsne = TSNE(n_components=2, random_state=44, perplexity=30, n_iter=250)
         embedding = tsne.fit_transform(data)
     elif mode == "umap":
         reducer = umap.UMAP(n_neighbors=80, min_dist=0.1, n_components=2, random_state=42)
@@ -24,8 +24,8 @@ def plot_graph(data, mode):
     x_min, x_max = embedding[:, 0].min(), embedding[:, 0].max()
     y_min, y_max = embedding[:, 1].min(), embedding[:, 1].max()
 
-    x_min, x_max = -3, 3
-    y_min, y_max =  -3, 3
+    x_min, x_max = -3.5, 3.5
+    y_min, y_max =  -3.5, 3.5
 
     # Add margins with zero density
     padding_factor = 0.1  # 10% padding
