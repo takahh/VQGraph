@@ -24,6 +24,9 @@ def plot_graph(data, mode):
     x_min, x_max = embedding[:, 0].min(), embedding[:, 0].max()
     y_min, y_max = embedding[:, 1].min(), embedding[:, 1].max()
 
+    x_min, x_max = -5, 5
+    y_min, y_max =  -5, 5
+
     # Add margins with zero density
     padding_factor = 0.1  # 10% padding
     x_padding = (x_max - x_min) * padding_factor
