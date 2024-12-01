@@ -213,10 +213,10 @@ def orthogonal_loss_fn(t, min_distance=0.5):
     smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
     margin_loss = torch.sum(smooth_penalty ** 2)  # Square for stronger gradients
 
-    """ spread loss """
-    spread_loss = torch.var(t)  # Small weight for spread regularization
+    # """ spread loss """
+    # spread_loss = torch.var(t)  # Small weight for spread regularization
     # print(f"dist matrix {dist_matrix}")
-    return [margin_loss, spread_loss, pair_distance_loss]
+    return [margin_loss, pair_distance_loss]
 
 
 # distance types
@@ -647,8 +647,8 @@ class VectorQuantize(nn.Module):
                 rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
                 codebook = codebook[rand_ids]
 
-            margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
-            loss = loss + spread_loss * self.spread_weight + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
+            margin_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+            loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
