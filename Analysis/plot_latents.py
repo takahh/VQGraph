@@ -3,8 +3,8 @@ import numpy as np
 import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
-import h5py
+# from scipy.stats import gaussian_kde
+# import h5py
 MODE = "tsne"
 path = "/Users/taka/Documents/output_20241128/"
 namelist = ["codebook.npz", "latent_train_list.npz"]
