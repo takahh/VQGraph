@@ -65,6 +65,7 @@ def main():
         arr = getdata(names)
         if "book" in names:
             arr = np.unique(arr, axis=0)
+            print("book")
         print(arr.shape)
         arr_list.append(arr)
     arr_combined = np.vstack(arr_list)
