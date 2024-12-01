@@ -206,8 +206,6 @@ def orthogonal_loss_fn(t, min_distance=0.5):
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
     """ pairwise distances loss """
-    print("Shape of t:", t.shape)
-    print("First few rows of t:", t[:5])
     dist_matrix = torch.cdist(t, t, p=2)
     pair_distance_loss = torch.sum(1 / (dist_matrix + 1e-6)) / 250000000
 
