@@ -628,9 +628,12 @@ def get_train_val_test_split(
     train_examples_per_class=None,
     val_examples_per_class=None,
     test_examples_per_class=None,
-    train_size=5939700,
-    val_size=1484900,
-    test_size=1484900,
+    train_size=593970,
+    val_size=148490,
+    test_size=148490,
+    # train_size=5939700,
+    # val_size=1484900,
+    # test_size=1484900,
 ):
     num_samples, num_classes = labels.shape
     print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
