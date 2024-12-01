@@ -510,7 +510,7 @@ class VectorQuantize(nn.Module):
             commitment_weight=2.,
             margin_weight=0.001,
             spread_weight=10,
-            pair_weight=0.1,
+            pair_weight=1,
             orthogonal_reg_active_codes_only=True,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
