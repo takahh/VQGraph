@@ -792,6 +792,7 @@ def distill_run_inductive(
     feats_test_ind, labels_test_ind = feats[idx_test_ind], labels[idx_test_ind]
 
     best_acc, count = 0, 0
+    print(conf["max_epoch"])
     for epoch in range(1, conf["max_epoch"] + 1):
         # soft token assignments distillation
         loss_token = train_mini_batch_token(
@@ -856,6 +857,7 @@ def distill_run_inductive(
                 count += 1
 
         if count == conf["patience"] or epoch == conf["max_epoch"]:
+            print(f"break cz count {count}, epoch {epoch}")
             break
 
     model.load_state_dict(state)
