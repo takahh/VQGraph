@@ -510,7 +510,7 @@ class VectorQuantize(nn.Module):
             commitment_weight=3.,
             margin_weight=0.001,
             spread_weight=10,
-            pair_weight=10,
+            pair_weight=20,
             orthogonal_reg_active_codes_only=True,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
@@ -650,6 +650,9 @@ class VectorQuantize(nn.Module):
 
             margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
             # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+            # ---------------------------------
+            # linearly combine losses !!!!
+            # ---------------------------------
             loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
             # loss = loss + margin_loss * self.margin_weight + self.spread_weight * spread_loss
 

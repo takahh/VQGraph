@@ -6,19 +6,19 @@ import matplotlib.pyplot as plt
 path = "/Users/taka/Documents/output_20241128/"
 # path = "/VQGraph/outputs/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
 namelist = ["codebook.npz", "latent_train_list.npz"]
-MODE = "tsne"
+MODE = "umap"
 
 
 def plot_graph(data, mode):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
     if mode == "tsne":
-        perplex = 5
+        perplex = 10
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex)
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}"
     elif mode == "umap":
-        n_neibougher = 10
+        n_neibougher = 20
         reducer = umap.UMAP(n_neighbors=n_neibougher, metric='cosine', min_dist=0.1, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
         parameter_names = f"umap: n_neiboughers {n_neibougher}"
@@ -27,8 +27,8 @@ def plot_graph(data, mode):
     # Define bin edges to control the size of the bins
     x_range = (-25, 25)  # Range for the x-axis
     y_range = (-25, 25)  # Range for the y-axis
-    x_range = (10, 19)  # Range for the x-axis
-    y_range = (6, 12)  # Range for the y-axis
+    # x_range = (10, 19)  # Range for the x-axis
+    # y_range = (6, 12)  # Range for the y-axis
     n_bins = 50  # Number of bins for both axes
 
     plt.hist2d(
