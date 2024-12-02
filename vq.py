@@ -201,7 +201,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=0.7):
+def orthogonal_loss_fn(t, min_distance=1):
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
     # """ pairwise distances loss """
