@@ -335,7 +335,6 @@ def run(args):
     dist_vq = dist.detach().cpu().numpy()
     # latents_ind = F.normalize(latents_ind, p=2, dim=-1)
     # latents_trans = F.normalize(latents_trans, p=2, dim=-1)
-    print(f"latent : train {latent_train_list.shape}")
     # print(f"latent : tran {latents_trans.shape}")
     # print(f"latent : ind {latents_ind.shape}")
     np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
