@@ -3,53 +3,42 @@ import numpy as np
 import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
-# from scipy.stats import gaussian_kde
-# import h5py
-MODE = "tsne"
-# path = "/Users/taka/Documents/output_20241128/"
-path = "/VQGraph/outputs/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
+path = "/Users/taka/Documents/output_20241128/"
+# path = "/VQGraph/outputs/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
 namelist = ["codebook.npz", "latent_train_list.npz"]
+MODE = "umap"
 
 
 def plot_graph(data, mode):
     # Initialize UMAP or TSNE with custom parameters
+    parameter_names = None
     if mode == "tsne":
-        tsne = TSNE(n_components=2, random_state=44, perplexity=20, n_iter=250)
+        perplex = 50
+        tsne = TSNE(n_components=2, random_state=44, perplexity=perplex)
         embedding = tsne.fit_transform(data)
+        parameter_names = f"tsne: perplex {perplex}"
     elif mode == "umap":
-        reducer = umap.UMAP(n_neighbors=80, min_dist=0.1, n_components=2, random_state=42)
+        n_neibougher = 5
+        reducer = umap.UMAP(n_neighbors=n_neibougher, min_dist=0.1, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
-
-    # Compute the range of the data
-    x_min, x_max = embedding[:, 0].min(), embedding[:, 0].max()
-    y_min, y_max = embedding[:, 1].min(), embedding[:, 1].max()
-
-    x_min, x_max = -5, 5
-    y_min, y_max =  -5, 5
-
-    # Add margins with zero density
-    padding_factor = 0.1  # 10% padding
-    x_padding = (x_max - x_min) * padding_factor
-    y_padding = (y_max - y_min) * padding_factor
-
-    # Define new ranges for the plot
-    x_range = [x_min - x_padding, x_max + x_padding]
-    y_range = [y_min - y_padding, y_max + y_padding]
+        parameter_names = f"umap: n_neiboughers {n_neibougher}"
 
     plt.figure()
-    # Define bins explicitly to include the padded range
+    # Define bin edges to control the size of the bins
+    x_range = (-20, 15)  # Range for the x-axis
+    y_range = (-15, 18)  # Range for the y-axis
+    n_bins = 50  # Number of bins for both axes
+
     plt.hist2d(
         embedding[30:, 0], embedding[30:, 1],
-        bins=[np.linspace(*x_range, 50), np.linspace(*y_range, 50)],
+        bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
         cmap='viridis'
     )
-    plt.colorbar(label='Density')
 
+    plt.colorbar(label='Density')
+    plt.title(parameter_names)
     # Overlay scatter plot
     plt.scatter(embedding[:30, 0], embedding[:30, 1], s=5, c='red', alpha=1)
-
-    plt.xlim(x_range)
-    plt.ylim(y_range)
 
     plt.show()
 
