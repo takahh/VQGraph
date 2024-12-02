@@ -473,6 +473,7 @@ def run_inductive(
         data_eval = g
 
     best_epoch, best_score_val, count = 0, 100, 0
+    cb_at_best, train_latents_at_best = None, None
     latent_ind, latent_trans, latent_train = None, None, None
     for epoch in range(1, conf["max_epoch"] + 1):
         # print(f"epoch {epoch}")
@@ -585,6 +586,8 @@ def run_inductive(
                 best_epoch = epoch
                 best_score_val = loss_total
                 state = copy.deepcopy(model.state_dict())
+                cb_at_best = codebook
+                train_latents_at_best = latent_train
                 print(f"best epoch is {best_epoch} !!!!!!!!!")
                 count = 0
             else:
@@ -628,7 +631,7 @@ def run_inductive(
         f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
     )
     #      out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind, latent_train_list
-    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook, latent_trans, latent_ind, latent_train
+    return out, score_val, acc_tran, acc_ind, h_list, dist, cb_at_best, latent_trans, latent_ind, train_latents_at_best
 
 
 """
