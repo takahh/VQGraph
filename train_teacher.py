@@ -85,7 +85,7 @@ def get_args():
     # --------------
     parser.add_argument("--codebook_size", type=int, default=50, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_node", type=float, default=0.008)  # default=0.001)
-    parser.add_argument("--lamb_edge",  type=float, default=0.20)  # default=0.03)
+    parser.add_argument("--lamb_edge",  type=float, default=0.30)  # default=0.03)
 
     # --------------
     # Model
@@ -101,7 +101,7 @@ def get_args():
         "--num_layers", type=int, default=2, help="Model number of layers"
     )
     parser.add_argument(
-        "--hidden_dim", type=int, default=256, help="Model hidden layer dimensions"
+        "--hidden_dim", type=int, default=512, help="Model hidden layer dimensions"
     )
     parser.add_argument("--dropout_ratio", type=float, default=0)
     parser.add_argument(
