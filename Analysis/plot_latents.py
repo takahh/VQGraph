@@ -25,8 +25,8 @@ def plot_graph(data, mode):
 
     plt.figure()
     # Define bin edges to control the size of the bins
-    x_range = (-20, 15)  # Range for the x-axis
-    y_range = (-15, 18)  # Range for the y-axis
+    x_range = (-20, 25)  # Range for the x-axis
+    y_range = (-20, 25)  # Range for the y-axis
     n_bins = 50  # Number of bins for both axes
 
     plt.hist2d(
