@@ -18,7 +18,7 @@ def plot_graph(data, mode):
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}"
     elif mode == "umap":
-        n_neibougher = 130
+        n_neibougher = 10
         reducer = umap.UMAP(n_neighbors=n_neibougher, metric='cosine', min_dist=0.1, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
         parameter_names = f"umap: n_neiboughers {n_neibougher}"
