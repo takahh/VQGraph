@@ -321,7 +321,7 @@ def run(args):
     def squeezeit(dlist):
         dlist = [torch.squeeze(x) for x in dlist]
         return dlist
-    print(f"{squeezeit(latent_train_list)} squeezeit(latent_train_list)")
+    # print(f"{squeezeit(latent_train_list)} squeezeit(latent_train_list)")
     latent_train_list = torch.cat(squeezeit(latent_train_list), dim=0)
     # Generate random indices for sampling
     random_indices = torch.randperm(latent_train_list.size(0))[:30000]
