@@ -407,7 +407,7 @@ def stop_instance(instance_id, api_key):
 if __name__ == "__main__":
     main()
 
-    # Replace with your Vast.ai instance ID and API key
-    instance_id = "13941138"
-    api_key = "2afa99317d40e9892f7f8b088a84641b4be2279be70103847bb480fb21997354"
-    stop_instance(instance_id, api_key)
+    # # Replace with your Vast.ai instance ID and API key
+    # instance_id = "13941138"
+    # api_key = "2afa99317d40e9892f7f8b088a84641b4be2279be70103847bb480fb21997354"
+    # stop_instance(instance_id, api_key)
