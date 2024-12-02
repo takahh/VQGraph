@@ -472,7 +472,7 @@ def run_inductive(
         obs_data_eval = obs_g
         data_eval = g
 
-    best_epoch, best_score_val, count = 0, 1, 0
+    best_epoch, best_score_val, count = 0, 100, 0
     latent_ind, latent_trans, latent_train = None, None, None
     for epoch in range(1, conf["max_epoch"] + 1):
         # print(f"epoch {epoch}")
