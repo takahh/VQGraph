@@ -13,15 +13,16 @@ def plot_graph(data, mode):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
     if mode == "tsne":
-        perplex = 10
+        perplex = 50
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex)
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}"
     elif mode == "umap":
-        n_neibougher = 5
-        reducer = umap.UMAP(n_neighbors=n_neibougher, metric='cosine', min_dist=0.05, n_components=2, random_state=42)
+        n_neibogher = 20
+        min_dist=1
+        reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
-        parameter_names = f"umap: n_neiboughers {n_neibougher}"
+        parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}"
 
     plt.figure()
     # Define bin edges to control the size of the bins
