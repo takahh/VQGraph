@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 MODE = "umap"
 
 
-def plot_graph(data, mode):
+def plot_graph(data, mode, epoch):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
     if mode == "tsne":
@@ -40,8 +40,7 @@ def plot_graph(data, mode):
     plt.title(parameter_names)
     # Overlay scatter plot
     plt.scatter(embedding[:30, 0], embedding[:30, 1], s=5, c='red', alpha=1)
-
-    plt.show()
+    plt.savefig(f"./plot_epoch{epoch}")
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -65,7 +64,7 @@ def main():
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
         print(arr_combined.shape)
-        plot_graph(arr_combined, MODE)
+        plot_graph(arr_combined, MODE, epoch)
 
 
 if __name__ == '__main__':
