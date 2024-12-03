@@ -3,9 +3,7 @@ import numpy as np
 import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
-path = "/Users/taka/Documents/output_20241128/"
-# path = "/VQGraph/outputs/inductive/split_rate_0.2/molecules/SAGE/seed_0/"
-namelist = ["codebook.npz", "latent_train_list.npz"]
+# path = "/Users/taka/Documents/output_20241128/"
 MODE = "umap"
 
 
@@ -47,25 +45,27 @@ def plot_graph(data, mode):
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
-    arr = np.load(f"{path}{filename}")["arr_0"]
+    arr = np.load(f"./{filename}")["arr_0"]
     arr = np.squeeze(arr)
     return arr
 
 
 def main():
     arr_list = []
-    for names in namelist:
-        print("################")
-        print(names)
-        arr = getdata(names)
-        if "book" in names:
-            arr = np.unique(arr, axis=0)
-            print("book")
-        print(arr.shape)
-        arr_list.append(arr)
-    arr_combined = np.vstack(arr_list)
-    print(arr_combined.shape)
-    plot_graph(arr_combined, MODE)
+    for epoch in range(1, 11):
+        namelist = [f"codebook_{epoch}.npz", f"latent_train_{epoch}.npz"]
+        for names in namelist:
+            print("################")
+            print(names)
+            arr = getdata(names)
+            if "book" in names:
+                arr = np.unique(arr, axis=0)
+                print("book")
+            print(arr.shape)
+            arr_list.append(arr)
+        arr_combined = np.vstack(arr_list)
+        print(arr_combined.shape)
+        plot_graph(arr_combined, MODE)
 
 
 if __name__ == '__main__':
