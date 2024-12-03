@@ -490,7 +490,7 @@ def run_inductive(
             )
             # save codebook and vectors every epoch
             np.savez(f"./codebook_{epoch}", cb_just_trained.cpu().detach().numpy())
-            print(f"latent_train {latent_train}")
+            latent_train = torch.stack(latent_train)
             np.savez(f"./latent_train_{epoch}", latent_train.numpy())
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
