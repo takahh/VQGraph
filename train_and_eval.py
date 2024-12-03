@@ -476,7 +476,7 @@ def run_inductive(
     best_epoch, best_score_val, count = 0, 100, 0
     cb_at_best, train_latents_at_best = None, None
     latent_ind, latent_trans, latent_train = None, None, None
-    latent_train_list = []
+    cb_just_trained = None
     for epoch in range(1, conf["max_epoch"] + 1):
         # print(f"epoch {epoch}")
         # --------------------------------
@@ -488,7 +488,9 @@ def run_inductive(
             loss, loss_list, latent_train, cb_just_trained = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
             )
-            pass
+            # save codebook and vectors every epoch
+            np.savez(f"./codebook_{epoch}", cb_just_trained)
+            np.savez(f"./latent_train_{epoch}", latent_train.cpu().detach().numpy())
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
@@ -504,64 +506,64 @@ def run_inductive(
                 obs_idx_train,
             )
 
-        if epoch % conf["eval_interval"] == 0:
-            if "MLP" in model.model_name:
-                _, loss_train, score_train = evaluate_mini_batch(
-                    model, feats_train, labels_train, criterion, batch_size, evaluator
-                )
-                _, loss_val, score_val = evaluate_mini_batch(
-                    model, feats_val, labels_val, criterion, batch_size, evaluator
-                )
-                _, loss_test_tran, acc_tran = evaluate_mini_batch(
-                    model,
-                    feats_test_tran,
-                    labels_test_tran,
-                    criterion,
-                    batch_size,
-                    evaluator,
-                )
-                _, loss_test_ind, acc_ind = evaluate_mini_batch(
-                    model,
-                    feats_test_ind,
-                    labels_test_ind,
-                    criterion,
-                    batch_size,
-                    evaluator,
-                )
-            else:
-                # --------------------------------------
-                # test/inference, no sampling, full obs graph
-                # --------------------------------------
-                # the "loss_train" is test loss in training
-                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans = evaluate(
-                    model,
-                    obs_data_eval,
-                    obs_feats,
-                    obs_labels,
-                    criterion,
-                    evaluator,
-                    obs_idx_train,
-                )
-                loss_val = criterion(
-                    obs_out[obs_idx_val], obs_labels[obs_idx_val]
-                ).item()
-                score_val = evaluator(obs_out[obs_idx_val], obs_labels[obs_idx_val])
-                loss_test_tran = criterion(
-                    obs_out[obs_idx_test], obs_labels[obs_idx_test]
-                ).item()
-                acc_tran = evaluator(
-                    obs_out[obs_idx_test], obs_labels[obs_idx_test]
-                )
+        # if epoch % conf["eval_interval"] == 0:
+        if "MLP" in model.model_name:
+            _, loss_train, score_train = evaluate_mini_batch(
+                model, feats_train, labels_train, criterion, batch_size, evaluator
+            )
+            _, loss_val, score_val = evaluate_mini_batch(
+                model, feats_val, labels_val, criterion, batch_size, evaluator
+            )
+            _, loss_test_tran, acc_tran = evaluate_mini_batch(
+                model,
+                feats_test_tran,
+                labels_test_tran,
+                criterion,
+                batch_size,
+                evaluator,
+            )
+            _, loss_test_ind, acc_ind = evaluate_mini_batch(
+                model,
+                feats_test_ind,
+                labels_test_ind,
+                criterion,
+                batch_size,
+                evaluator,
+            )
+        else:
+            # --------------------------------------
+            # test/inference, no sampling, full obs graph
+            # --------------------------------------
+            # the "loss_train" is test loss in training
+            obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans = evaluate(
+                model,
+                obs_data_eval,
+                obs_feats,
+                obs_labels,
+                criterion,
+                evaluator,
+                obs_idx_train,
+            )
+            loss_val = criterion(
+                obs_out[obs_idx_val], obs_labels[obs_idx_val]
+            ).item()
+            score_val = evaluator(obs_out[obs_idx_val], obs_labels[obs_idx_val])
+            loss_test_tran = criterion(
+                obs_out[obs_idx_test], obs_labels[obs_idx_test]
+            ).item()
+            acc_tran = evaluator(
+                obs_out[obs_idx_test], obs_labels[obs_idx_test]
+            )
 
-                # -------------------------------------------------
-                # 3. Evaluate the inductive part (idx_test_ind),
-                # which is unlabeled, unseen in training
-                # -------------------------------------------------
-                # Evaluate the inductive part with the full graph
-                out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind = evaluate(
-                    model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
-                )
-                loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])    #                                              0 raw_feat_loss, 1 raw_edge_rec_loss, 2 raw_commit_loss, 3 spread_loss, 4 margin_loss, 5 pair_loss
+            # -------------------------------------------------
+            # 3. Evaluate the inductive part (idx_test_ind),
+            # which is unlabeled, unseen in training
+            # -------------------------------------------------
+            # Evaluate the inductive part with the full graph
+            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind = evaluate(
+                model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
+            )
+            loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])    #                                              0 raw_feat_loss, 1 raw_edge_rec_loss, 2 raw_commit_loss, 3 spread_loss, 4 margin_loss, 5 pair_loss
             logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, loss_train {loss:.4f}")
             logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
             logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
@@ -570,6 +572,7 @@ def run_inductive(
             print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
             print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
             print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+
 
             loss_and_score += [
                 [
