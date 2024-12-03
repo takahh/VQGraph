@@ -201,12 +201,12 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=0.5):
+def orthogonal_loss_fn(t, min_distance=0.7):
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
     # """ pairwise distances loss """
     dist_matrix = torch.cdist(t, t, p=2)
-    # pair_distance_loss = torch.sum(1 / (dist_matrix + 1e-6)) / 250000000
+    pair_distance_loss = torch.sum(1 / (dist_matrix + 1e-6)) / 250000000
 
     """ smoothed margin loss """
     smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
@@ -214,9 +214,8 @@ def orthogonal_loss_fn(t, min_distance=0.5):
 
     """ spread loss """
     spread_loss = torch.var(t)  # Small weight for spread regularization
-    # print(f"dist matrix {dist_matrix}")
-    # return [margin_loss, spread_loss, pair_distance_loss]
-    return [margin_loss, spread_loss]
+    return [margin_loss, spread_loss, pair_distance_loss]
+    # return [margin_loss, spread_loss]
 
 
 # distance types
@@ -609,52 +608,59 @@ class VectorQuantize(nn.Module):
         if is_multiheaded:
             ein_rhs_eq = 'h b n d' if self.separate_codebook_per_head else '1 (b h) n d'
             x = rearrange(x, f'b n (h d) -> {ein_rhs_eq}', h=heads)
-
+        # --------------------------------------------------
+        # quantize here
+        # --------------------------------------------------
         quantize, embed_ind, dist, embed, latents = self._codebook(x)
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
             quantize = x + (quantize - x).detach()
 
         loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        # if self.training:
-        if self.commitment_weight > 0:  # 0.25 is assigned
-            detached_quantize = quantize.detach()
+        # --------------------------------------------------
+        # calculate loss about codebook itself in training
+        # --------------------------------------------------
+        if self.training:
+            if self.commitment_weight > 0:  # 0.25 is assigned
+                detached_quantize = quantize.detach()
 
-            if exists(mask):
-                # with variable lengthed sequences
-                commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
+                if exists(mask):
+                    # with variable lengthed sequences
+                    commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
-                if is_multiheaded:
-                    mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
-                                  h=commit_loss.shape[1] // mask.shape[0])
+                    if is_multiheaded:
+                        mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
+                                      h=commit_loss.shape[1] // mask.shape[0])
 
-                commit_loss = commit_loss[mask].mean()
-            else:
-                commit_loss = F.mse_loss(detached_quantize, x)
-            raw_commit_loss = commit_loss
-            loss = loss + commit_loss * self.commitment_weight
+                    commit_loss = commit_loss[mask].mean()
+                else:
+                    commit_loss = F.mse_loss(detached_quantize, x)
+                raw_commit_loss = commit_loss
+                loss = loss + commit_loss * self.commitment_weight
 
-        if self.margin_weight > 0:  # now skip because it is zero
-            codebook = self._codebook.embed
+            if self.margin_weight > 0:  # now skip because it is zero
+                codebook = self._codebook.embed
 
-            if self.orthogonal_reg_active_codes_only:
-                # only calculate orthogonal loss for the activated codes for this batch
-                unique_code_ids = torch.unique(embed_ind)
-                codebook = torch.squeeze(codebook)
-                codebook = codebook[unique_code_ids]
+                if self.orthogonal_reg_active_codes_only:
+                    # only calculate orthogonal loss for the activated codes for this batch
+                    unique_code_ids = torch.unique(embed_ind)
+                    codebook = torch.squeeze(codebook)
+                    codebook = codebook[unique_code_ids]
 
-            num_codes = codebook.shape[0]
-            if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                codebook = codebook[rand_ids]
-
-            margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-            # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-            # ---------------------------------
-            # linearly combine losses !!!!
-            # ---------------------------------
-            # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
-            loss = loss + margin_loss * self.margin_weight + self.spread_weight * spread_loss
+                num_codes = codebook.shape[0]
+                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                    codebook = codebook[rand_ids]
+                # ---------------------------------
+                # Calculate Codebook Losses
+                # ---------------------------------
+                margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+                # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+                # ---------------------------------
+                # linearly combine losses !!!!
+                # ---------------------------------
+                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
+                # loss = loss + margin_loss * self.margin_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
@@ -679,4 +685,4 @@ class VectorQuantize(nn.Module):
         # if self.training:
         #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
             # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors
-        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, margin_loss, spread_loss
+        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss

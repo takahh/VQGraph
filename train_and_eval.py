@@ -79,7 +79,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
-    return avg_loss, loss_list, latent_list
+    return avg_loss, loss_list, latent_list, cb
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
@@ -164,6 +164,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     out: log probability of all input data
     loss & score (float): evaluated loss & score, if idx_eval is not None, only loss & score on those idx.
     """
+    # this line explicitly set self.training True
     model.eval()
     with torch.no_grad():
         h_list, logits, _ , dist, codebook, loss_list, latent_vectors = model.inference(data, feats)
@@ -483,7 +484,7 @@ def run_inductive(
         if "SAGE" in model.model_name:
             # partial sampling, only obs data
             # this loss is label loss
-            loss, loss_list, latent_train = train_sage(
+            loss, loss_list, latent_train, cb_just_trained = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
             )
             pass
@@ -565,7 +566,7 @@ def run_inductive(
             logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
             print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
-            print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, loss_train {loss:.4f}")
+            print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
             print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
             print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
@@ -587,7 +588,7 @@ def run_inductive(
                 best_epoch = epoch
                 best_score_val = loss_total
                 state = copy.deepcopy(model.state_dict())
-                cb_at_best = codebook
+                cb_at_best = cb_just_trained
                 train_latents_at_best = latent_train
                 print(f"best epoch is {best_epoch} !!!!!!!!!")
                 count = 0

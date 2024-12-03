@@ -19,7 +19,7 @@ def plot_graph(data, mode):
         parameter_names = f"tsne: perplex {perplex}"
     elif mode == "umap":
         n_neibogher = 20
-        min_dist=1
+        min_dist=0.05
         reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
         parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}"
