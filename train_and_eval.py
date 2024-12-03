@@ -476,6 +476,7 @@ def run_inductive(
     best_epoch, best_score_val, count = 0, 100, 0
     cb_at_best, train_latents_at_best = None, None
     latent_ind, latent_trans, latent_train = None, None, None
+    latent_train_list = []
     for epoch in range(1, conf["max_epoch"] + 1):
         # print(f"epoch {epoch}")
         # --------------------------------
