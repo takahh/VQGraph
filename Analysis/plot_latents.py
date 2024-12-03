@@ -40,7 +40,7 @@ def plot_graph(data, mode, epoch):
     plt.title(parameter_names)
     # Overlay scatter plot
     plt.scatter(embedding[:30, 0], embedding[:30, 1], s=5, c='red', alpha=1)
-    plt.savefig(f"/VQGraph/plot_epoch{epoch}")
+    plt.savefig(f"./plot_epoch{epoch}")
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
