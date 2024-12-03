@@ -52,7 +52,7 @@ def getdata(filename):
 def main():
     arr_list = []
     for epoch in range(1, 11):
-        namelist = [f"codebook_{epoch}.npz", f"latent_train_{epoch}.npz"]
+        namelist = [f"/VQGraph/codebook_{epoch}.npz", f"/VQGraph/latent_train_{epoch}.npz"]
         for names in namelist:
             print("################")
             print(names)
