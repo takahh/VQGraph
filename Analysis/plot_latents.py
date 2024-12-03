@@ -44,7 +44,7 @@ def plot_graph(data, mode, epoch):
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
-    arr = np.load(f"./{filename}")["arr_0"]
+    arr = np.load(f"{filename}")["arr_0"]
     arr = np.squeeze(arr)
     return arr
 
