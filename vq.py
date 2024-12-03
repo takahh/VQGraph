@@ -206,7 +206,7 @@ def orthogonal_loss_fn(t, min_distance=0.7):
 
     # """ pairwise distances loss """
     dist_matrix = torch.cdist(t, t, p=2)
-    pair_distance_loss = torch.sum(1 / (dist_matrix + 1e-6)) / 250000000
+    pair_distance_loss = torch.sum(log(dist_matrix + 1e-6))
 
     """ smoothed margin loss """
     smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
