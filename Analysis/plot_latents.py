@@ -18,8 +18,8 @@ def plot_graph(data, mode):
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}"
     elif mode == "umap":
-        n_neibougher = 20
-        reducer = umap.UMAP(n_neighbors=n_neibougher, metric='cosine', min_dist=0.1, n_components=2, random_state=42)
+        n_neibougher = 5
+        reducer = umap.UMAP(n_neighbors=n_neibougher, metric='cosine', min_dist=0.05, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
         parameter_names = f"umap: n_neiboughers {n_neibougher}"
 
@@ -27,8 +27,8 @@ def plot_graph(data, mode):
     # Define bin edges to control the size of the bins
     x_range = (-25, 25)  # Range for the x-axis
     y_range = (-25, 25)  # Range for the y-axis
-    # x_range = (10, 19)  # Range for the x-axis
-    # y_range = (6, 12)  # Range for the y-axis
+    # x_range = (5, 13)  # Range for the x-axis
+    # y_range = (-2, 8)  # Range for the y-axis
     n_bins = 50  # Number of bins for both axes
 
     plt.hist2d(
