@@ -648,7 +648,7 @@ class VectorQuantize(nn.Module):
                 rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
                 codebook = codebook[rand_ids]
 
-            margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+            margin_loss, spread_loss = orthogonal_loss_fn(codebook)
             # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
             # ---------------------------------
             # linearly combine losses !!!!
