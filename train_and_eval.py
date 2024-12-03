@@ -489,7 +489,7 @@ def run_inductive(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
             )
             # save codebook and vectors every epoch
-            np.savez(f"./codebook_{epoch}", cb_just_trained)
+            np.savez(f"./codebook_{epoch}", cb_just_trained.cpu().detach().numpy())
             np.savez(f"./latent_train_{epoch}", latent_train.cpu().detach().numpy())
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
