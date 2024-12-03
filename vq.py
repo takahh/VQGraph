@@ -621,47 +621,49 @@ class VectorQuantize(nn.Module):
         # calculate loss about codebook itself in training
         # --------------------------------------------------
         raw_commit_loss, margin_loss, spread_loss, pair_distance_loss = 0, 0, 0, 0
-        if self.training:
-            if self.commitment_weight > 0:  # 0.25 is assigned
-                detached_quantize = quantize.detach()
+        # if self.training:
+        if self.commitment_weight > 0:  # 0.25 is assigned
+            detached_quantize = quantize.detach()
 
-                if exists(mask):
-                    # with variable lengthed sequences
-                    commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
+            if exists(mask):
+                # with variable lengthed sequences
+                commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
-                    if is_multiheaded:
-                        mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
-                                      h=commit_loss.shape[1] // mask.shape[0])
+                if is_multiheaded:
+                    mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
+                                  h=commit_loss.shape[1] // mask.shape[0])
 
-                    commit_loss = commit_loss[mask].mean()
-                else:
-                    commit_loss = F.mse_loss(detached_quantize, x)
-                raw_commit_loss = commit_loss
-                loss = loss + commit_loss * self.commitment_weight
+                commit_loss = commit_loss[mask].mean()
+            else:
+                commit_loss = F.mse_loss(detached_quantize, x)
+            raw_commit_loss = commit_loss
+            loss = loss + commit_loss * self.commitment_weight
 
-            if self.margin_weight > 0:  # now skip because it is zero
-                codebook = self._codebook.embed
+        if self.margin_weight > 0:  # now skip because it is zero
+            codebook = self._codebook.embed
 
-                if self.orthogonal_reg_active_codes_only:
-                    # only calculate orthogonal loss for the activated codes for this batch
-                    unique_code_ids = torch.unique(embed_ind)
-                    codebook = torch.squeeze(codebook)
-                    codebook = codebook[unique_code_ids]
+            if self.orthogonal_reg_active_codes_only:
+                # only calculate orthogonal loss for the activated codes for this batch
+                unique_code_ids = torch.unique(embed_ind)
+                codebook = torch.squeeze(codebook)
+                codebook = codebook[unique_code_ids]
 
-                num_codes = codebook.shape[0]
-                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                    codebook = codebook[rand_ids]
-                # ---------------------------------
-                # Calculate Codebook Losses
-                # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
-                # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-                # ---------------------------------
-                # linearly combine losses !!!!
-                # ---------------------------------
+            num_codes = codebook.shape[0]
+            if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                codebook = codebook[rand_ids]
+            # ---------------------------------
+            # Calculate Codebook Losses
+            # ---------------------------------
+            margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+            # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+            # ---------------------------------
+            # linearly combine losses !!!!
+            # ---------------------------------
+            if self.training:
                 loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
-                # loss = loss + margin_loss * self.margin_weight + self.spread_weight * spread_loss
+            else:
+                pass
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
