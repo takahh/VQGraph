@@ -349,8 +349,8 @@ def run(args):
     """ Saving loss curve and model """
     # if args.save_results:
         # Loss curves
-    loss_and_score = np.array(loss_and_score)
-    np.savez(output_dir.joinpath("loss_and_score"), loss_and_score)
+    # loss_and_score = np.array(loss_and_score.cpu())
+    # np.savez(output_dir.joinpath("loss_and_score"), loss_and_score)
 
     # Model
     torch.save(model.state_dict(), output_dir.joinpath("model.pth"))
