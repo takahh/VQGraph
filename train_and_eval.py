@@ -46,6 +46,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Gradient accumulation
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
+            # h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss], x, detached_quantize
             _, logits, loss, _, cb, loss_list, latent_train, _ = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
@@ -176,7 +177,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
         #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind
-    return out, loss.item(), score, h_list, dist, codebook, loss_list, latent_vectors
+    return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors
 
 
 def evaluate_mini_batch(
