@@ -12,11 +12,12 @@ def plot_graph(data, mode, epoch):
     parameter_names = None
     if mode == "tsne":
         perplex = 50
-        tsne = TSNE(n_components=2, random_state=44, perplexity=perplex)
+        n_iter = 5000
+        tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         embedding = tsne.fit_transform(data)
-        parameter_names = f"tsne: perplex {perplex}, epoch {epoch}"
+        parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
     elif mode == "umap":
-        n_neibogher = 50
+        n_neibogher = 20
         min_dist=0.1
         reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
@@ -24,10 +25,10 @@ def plot_graph(data, mode, epoch):
 
     plt.figure()
     # Define bin edges to control the size of the bins
-    x_range = (-25, 25)  # Range for the x-axis
-    y_range = (-25, 25)  # Range for the y-axis
-    x_range = (-100, 100)  # Range for the x-axis
-    y_range = (-100, 100)  # Range for the y-axis
+    # x_range = (-25, 25)  # Range for the x-axis
+    # y_range = (-25, 25)  # Range for the y-axis
+    x_range = (-200, 200)  # Range for the x-axis
+    y_range = (-200, 200)  # Range for the y-axis
     n_bins = 50  # Number of bins for both axes
 
     plt.hist2d(
