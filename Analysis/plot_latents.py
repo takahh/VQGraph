@@ -63,8 +63,8 @@ def main():
                 arr = np.unique(arr, axis=0)
                 print("book")
             else:
-                arr = np.random.choice(arr.shape[0])
-                arr = arr[:20000]
+                random_indices = np.random.choice(arr.shape[0], 20000, replace=False)
+                arr = arr[random_indices]
             print(arr.shape)
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
