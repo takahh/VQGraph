@@ -626,7 +626,7 @@ class VectorQuantize(nn.Module):
         # --------------------------------------------------
         # calculate loss about codebook itself in training
         # --------------------------------------------------
-        raw_commit_loss, margin_loss, spread_loss, pair_distance_loss = 0, 0, 0, 0
+        raw_commit_loss, margin_loss, spread_loss, pair_distance_loss, detached_quantize = 0, 0, 0, 0, 0
         if self.training:
             if self.commitment_weight > 0:  # 0.25 is assigned
                 detached_quantize = quantize.detach()
