@@ -63,7 +63,7 @@ def main():
                 arr = np.unique(arr, axis=0)
                 print("book")
             else:
-                random_indices = np.random.choice(arr.shape[0], 20000, replace=False)
+                random_indices = np.random.choice(arr.shape[0], 20000, replace=True)
                 arr = arr[random_indices]
             print(arr.shape)
             arr_list.append(arr)
