@@ -3,8 +3,8 @@ import numpy as np
 import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
-# path = "/Users/taka/Documents/output_20241128/"
-MODE = "umap"
+path = "/Users/taka/Documents/output_20241128/"
+MODE = "tsne"
 
 
 def plot_graph(data, mode, epoch):
@@ -14,24 +14,24 @@ def plot_graph(data, mode, epoch):
         perplex = 50
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex)
         embedding = tsne.fit_transform(data)
-        parameter_names = f"tsne: perplex {perplex}"
+        parameter_names = f"tsne: perplex {perplex}, epoch {epoch}"
     elif mode == "umap":
-        n_neibogher = 20
-        min_dist=0.05
+        n_neibogher = 50
+        min_dist=0.1
         reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
-        parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}"
+        parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}"
 
     plt.figure()
     # Define bin edges to control the size of the bins
     x_range = (-25, 25)  # Range for the x-axis
     y_range = (-25, 25)  # Range for the y-axis
-    # x_range = (5, 13)  # Range for the x-axis
-    # y_range = (-2, 8)  # Range for the y-axis
+    x_range = (-100, 100)  # Range for the x-axis
+    y_range = (-100, 100)  # Range for the y-axis
     n_bins = 50  # Number of bins for both axes
 
     plt.hist2d(
-        embedding[30:, 0], embedding[30:, 1],
+        embedding[50:, 0], embedding[50:, 1],
         bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
         cmap='viridis'
     )
@@ -39,8 +39,9 @@ def plot_graph(data, mode, epoch):
     plt.colorbar(label='Density')
     plt.title(parameter_names)
     # Overlay scatter plot
-    plt.scatter(embedding[:30, 0], embedding[:30, 1], s=5, c='red', alpha=1)
-    plt.savefig(f"./plot_epoch{epoch}")
+    plt.scatter(embedding[:50, 0], embedding[:50, 1], s=5, c='red', alpha=1)
+    plt.show()
+    # plt.savefig(f"./plot_epoch{epoch}")
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -52,9 +53,11 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for epoch in range(1, 11):
+    for epoch in range(1, 7):
+        # if epoch != 5:
+        #     continue
         print(f"epoch {epoch}")
-        namelist = [f"/VQGraph/codebook_{epoch}.npz", f"/VQGraph/latent_train_{epoch}.npz"]
+        namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:
             print("################")
             print(names)
