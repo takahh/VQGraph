@@ -626,7 +626,11 @@ class VectorQuantize(nn.Module):
         # --------------------------------------------------
         # calculate loss about codebook itself in training
         # --------------------------------------------------
-        raw_commit_loss, margin_loss, spread_loss, pair_distance_loss, detached_quantize = None, None, None, None, None
+        raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        margin_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        spread_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        pair_distance_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        detached_quantize = torch.tensor([0.], device=device, requires_grad=self.training)
         if self.training:
             if self.commitment_weight > 0:  # 0.25 is assigned
                 detached_quantize = quantize.detach()
