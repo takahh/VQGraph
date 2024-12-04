@@ -17,18 +17,19 @@ def plot_graph(data, mode, epoch):
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
     elif mode == "umap":
-        n_neibogher = 20
-        min_dist=0.1
+        n_neibogher = 50
+        min_dist = 0.01
         n_epochs = 5000
-        reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
+        # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
+        reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
-        parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}"
+        parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
 
     plt.figure()
-    limit_value = 50
+    limit_value = 40
     # Define bin edges to control the size of the bins
-    # x_range = (-25, 25)  # Range for the x-axis
-    # y_range = (-25, 25)  # Range for the y-axis
+    x_range = (-5, 25)  # Range for the x-axis
+    y_range = (-15, 15)  # Range for the y-axis
     x_range = (-limit_value, limit_value)  # Range for the x-axis
     y_range = (-limit_value, limit_value)  # Range for the y-axis
     n_bins = 50  # Number of bins for both axes
@@ -57,8 +58,8 @@ def main():
     print(f"plot start...")
     arr_list = []
     for epoch in range(1, 7):
-        # if epoch != 5:
-        #     continue
+        if epoch != 5:
+            continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:
