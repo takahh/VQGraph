@@ -50,8 +50,10 @@ def getdata(filename):
 
 
 def main():
+    print(f"plot start...")
     arr_list = []
     for epoch in range(1, 11):
+        print(f"epoch {epoch}")
         namelist = [f"/VQGraph/codebook_{epoch}.npz", f"/VQGraph/latent_train_{epoch}.npz"]
         for names in namelist:
             print("################")
@@ -60,6 +62,9 @@ def main():
             if "book" in names:
                 arr = np.unique(arr, axis=0)
                 print("book")
+            else:
+                arr = np.random.choice(arr.shape[0])
+                arr = arr[:20000]
             print(arr.shape)
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
