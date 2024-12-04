@@ -600,8 +600,8 @@ def run_inductive(
             else:
                 count += 1
 
-        # if count == conf["patience"] or epoch == conf["max_epoch"]:
-        #     break
+            if count == conf["patience"] or epoch == conf["max_epoch"]:
+                break
 
     model.load_state_dict(state)
     # if "MLP" in model.model_name:
