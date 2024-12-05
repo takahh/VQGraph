@@ -7,18 +7,18 @@ path = "/Users/taka/Documents/output_20241128/"
 MODE = "umap"
 
 
-def plot_graph(data, mode, epoch):
+def plot_graph(data, mode, epoch, param):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
     if mode == "tsne":
-        perplex = 10
+        perplex = param
         n_iter = 5000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
     elif mode == "umap":
-        n_neibogher = 50
-        min_dist = 0.01
+        n_neibogher = param
+        min_dist = 0.1
         n_epochs = 5000
         # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
         reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
@@ -28,11 +28,11 @@ def plot_graph(data, mode, epoch):
     plt.figure()
     limit_value = 40
     # Define bin edges to control the size of the bins
-    x_range = (-5, 25)  # Range for the x-axis
-    y_range = (-15, 15)  # Range for the y-axis
-    x_range = (-limit_value, limit_value)  # Range for the x-axis
-    y_range = (-limit_value, limit_value)  # Range for the y-axis
-    n_bins = 50  # Number of bins for both axes
+    x_range = (-20, 30)  # Range for the x-axis
+    y_range = (-32, 40)  # Range for the y-axis
+    # x_range = (-limit_value, limit_value)  # Range for the x-axis
+    # y_range = (-limit_value, limit_value)  # Range for the y-axis
+    n_bins = 100  # Number of bins for both axes
 
     plt.hist2d(
         embedding[50:, 0], embedding[50:, 1],
@@ -58,7 +58,7 @@ def main():
     print(f"plot start...")
     arr_list = []
     for epoch in range(1, 7):
-        if epoch != 5:
+        if epoch != 6:
             continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
@@ -76,7 +76,8 @@ def main():
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
         print(arr_combined.shape)
-        plot_graph(arr_combined, MODE, epoch)
+        for param in [5, 10, 20, 30, 40, 50]:
+            plot_graph(arr_combined, MODE, epoch, param)
 
 
 if __name__ == '__main__':
