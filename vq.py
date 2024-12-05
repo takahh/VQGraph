@@ -210,7 +210,7 @@ def orthogonal_loss_fn(t, min_distance=0.1):
     # Smoothed margin loss
     smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
     margin_loss = torch.sum(smooth_penalty)  # No squaring to avoid runaway gradients
-    margin_loss = margin_loss / (margin_loss.detach().mean() + 1e-6)
+    margin_loss = margin_loss / 200
 
     # Spread loss
     spread_loss = torch.var(t)
