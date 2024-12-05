@@ -3,8 +3,10 @@ import numpy as np
 import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+np.set_printoptions(threshold=np.inf)
+
 path = "/Users/taka/Documents/output_20241128/"
-MODE = "umap"
+MODE = "tsne"
 
 
 def plot_graph(data, mode, epoch, param):
@@ -26,7 +28,7 @@ def plot_graph(data, mode, epoch, param):
         parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
 
     plt.figure()
-    limit_value = 30
+    limit_value = 130
     # Define bin edges to control the size of the bins
     x_range = (-10, 30)  # Range for the x-axis
     y_range = (0, 30)  # Range for the y-axis
@@ -35,7 +37,7 @@ def plot_graph(data, mode, epoch, param):
     n_bins = 100  # Number of bins for both axes
 
     plt.hist2d(
-        embedding[50:, 0], embedding[50:, 1],
+        embedding[114:, 0], embedding[114:, 1],
         bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
         cmap='viridis'
     )
@@ -43,7 +45,7 @@ def plot_graph(data, mode, epoch, param):
     plt.colorbar(label='Density')
     plt.title(parameter_names)
     # Overlay scatter plot
-    plt.scatter(embedding[:50, 0], embedding[:50, 1], s=5, c='red', alpha=1)
+    plt.scatter(embedding[:114, 0], embedding[:114, 1], s=5, c='red', alpha=1)
     plt.show()
     # plt.savefig(f"./plot_epoch{epoch}")
 
@@ -57,9 +59,9 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for epoch in range(1, 5):
-        # if epoch != 5:
-        #     continue
+    for epoch in range(1, 11):
+        if epoch != 10:
+            continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:
@@ -77,7 +79,7 @@ def main():
         arr_combined = np.vstack(arr_list)
         print(arr_combined.shape)
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [50]:
+        for param in [90, 100, 110]:
             plot_graph(arr_combined, MODE, epoch, param)
 
 
