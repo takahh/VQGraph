@@ -200,6 +200,7 @@ def batched_embedding(indices, embeds):
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
     return embeds.gather(2, indices)
 
+
 def orthogonal_loss_fn(t, min_distance=0.4):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
@@ -439,33 +440,23 @@ class CosineSimCodebook(nn.Module):
     @autocast(enabled=False)
     def forward(self, x):
         needs_codebook_dim = x.ndim < 4
-
         x = x.float()
-
         if needs_codebook_dim:
             x = rearrange(x, '... -> 1 ...')
-
         shape, dtype = x.shape, x.dtype
-
         flatten = rearrange(x, 'h ... d -> h (...) d')
         flatten = l2norm(flatten)
         # -----------------------
         # initialize codebook
         # optimization done here
         # -----------------------
-        # print(f"{self.cluster_size} before")
         self.init_embed_(flatten)
-        # print(f"{self.cluster_size} after")
-        # print(f"{self.embed.shape} embed")
-
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
         embed = l2norm(embed)
-
         dist = einsum('h n d, h c d -> h n c', flatten, embed)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.view(*shape[:-1])
-
         quantize = batched_embedding(embed_ind, self.embed)
 
         if self.training:
@@ -521,7 +512,7 @@ class VectorQuantize(nn.Module):
             margin_weight=0.8,
             spread_weight=0.2,
             pair_weight=0.01,
-            orthogonal_reg_active_codes_only=True,
+            orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
             sync_codebook=False

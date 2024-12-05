@@ -28,6 +28,7 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     optimizer.step()
     return loss_val, loss_list
 
+
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     """
     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
@@ -47,7 +48,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Gradient accumulation
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             # h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss], x, detached_quantize
-            _, logits, loss, _, cb, loss_list, latent_train, _ = model(blocks, batch_feats)
+            _, logits, loss, _, cb, loss_list, latent_train, cb2 = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
@@ -80,7 +81,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
-    return avg_loss, loss_list, latent_list, cb
+    return avg_loss, loss_list, latent_list, cb2
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):

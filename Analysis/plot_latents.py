@@ -4,7 +4,7 @@ import umap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 path = "/Users/taka/Documents/output_20241128/"
-MODE = "tsne"
+MODE = "umap"
 
 
 def plot_graph(data, mode, epoch, param):
@@ -26,7 +26,7 @@ def plot_graph(data, mode, epoch, param):
         parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
 
     plt.figure()
-    limit_value = 300
+    limit_value = 30
     # Define bin edges to control the size of the bins
     x_range = (-10, 30)  # Range for the x-axis
     y_range = (0, 30)  # Range for the y-axis
