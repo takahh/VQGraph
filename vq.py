@@ -200,22 +200,21 @@ def batched_embedding(indices, embeds):
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
     return embeds.gather(2, indices)
 
-
 def orthogonal_loss_fn(t, min_distance=0.1):
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
-    # """ pairwise distances loss """
-    dist_matrix = torch.cdist(t, t, p=2)
-    pair_distance_loss = torch.sum(log(dist_matrix + 1e-6))
+    # Pairwise distances loss
+    dist_matrix = torch.cdist(t, t, p=2) + 1e-6  # Avoid zero distances
+    pair_distance_loss = torch.sum(torch.log(dist_matrix))
 
-    """ smoothed margin loss """
+    # Smoothed margin loss
     smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
-    margin_loss = torch.sum(smooth_penalty ** 2)  # Square for stronger gradients
+    margin_loss = torch.sum(smooth_penalty)  # No squaring to avoid runaway gradients
 
-    """ spread loss """
-    spread_loss = torch.var(t)  # Small weight for spread regularization
+    # Spread loss
+    spread_loss = torch.var(t)
+
     return [margin_loss, spread_loss, pair_distance_loss]
-    # return [margin_loss, spread_loss]
 
 
 # distance types
