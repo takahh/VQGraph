@@ -26,12 +26,12 @@ def plot_graph(data, mode, epoch, param):
         parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
 
     plt.figure()
-    limit_value = 40
+    limit_value = 50
     # Define bin edges to control the size of the bins
-    x_range = (-20, 30)  # Range for the x-axis
+    x_range = (-20, 40)  # Range for the x-axis
     y_range = (-32, 40)  # Range for the y-axis
-    # x_range = (-limit_value, limit_value)  # Range for the x-axis
-    # y_range = (-limit_value, limit_value)  # Range for the y-axis
+    x_range = (-limit_value, limit_value)  # Range for the x-axis
+    y_range = (-limit_value, limit_value)  # Range for the y-axis
     n_bins = 100  # Number of bins for both axes
 
     plt.hist2d(

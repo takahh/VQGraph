@@ -207,6 +207,8 @@ def orthogonal_loss_fn(t, min_distance=0.1):
 
     # Pairwise distances
     dist_matrix = torch.cdist(t, t, p=2) + 1e-6
+    print(f"Min distance: {dist_matrix.min().item()}, Max distance: {dist_matrix.max().item()}")
+    print(f"Mean distance: {dist_matrix.mean().item()}")
 
     # Remove diagonal (self-distances)
     mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
