@@ -203,9 +203,9 @@ def batched_embedding(indices, embeds):
 def orthogonal_loss_fn(t, min_distance=0.1):
     t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
 
-    # Pairwise distances loss
-    dist_matrix = torch.cdist(t, t, p=2) + 1e-6  # Avoid zero distances
-    pair_distance_loss = torch.sum(torch.log(dist_matrix))
+    dist_matrix = torch.cdist(t, t, p=2) + 1e-6  # Compute pairwise distances
+    dist_matrix = dist_matrix.fill_diagonal_(0)  # Set diagonal to zero
+    pair_distance_loss = torch.sum(torch.log(dist_matrix[dist_matrix > 0]))
 
     # Smoothed margin loss
     smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
