@@ -201,21 +201,29 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 def orthogonal_loss_fn(t, min_distance=0.1):
-    t = t / (torch.norm(t, dim=1, keepdim=True) + 1e-6)
+    # Normalize t if necessary (remove if not strictly required)
+    t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
+    t = t / t_norm
 
-    dist_matrix = torch.cdist(t, t, p=2) + 1e-6  # Compute pairwise distances
-    dist_matrix = dist_matrix.fill_diagonal_(0)  # Set diagonal to zero
-    pair_distance_loss = torch.sum(torch.log(dist_matrix[dist_matrix > 0]))
+    # Pairwise distances
+    dist_matrix = torch.cdist(t, t, p=2) + 1e-6
 
-    # Smoothed margin loss
-    smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix)
-    margin_loss = torch.sum(smooth_penalty)  # No squaring to avoid runaway gradients
-    margin_loss = margin_loss / 200
+    # Remove diagonal (self-distances)
+    mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
+    dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
 
-    # Spread loss
+    # Margin loss: Encourage distances >= min_distance
+    smooth_penalty = torch.nn.functional.softplus(min_distance - dist_matrix_no_diag)
+    margin_loss = torch.mean(smooth_penalty)  # Use mean instead of sum for better scaling
+
+    # Spread loss: Encourage diversity
     spread_loss = torch.var(t)
 
-    return [margin_loss, spread_loss, pair_distance_loss]
+    # Pair distance loss: Regularize distances
+    pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag + 1e-6))
+
+    return margin_loss, spread_loss, pair_distance_loss
+
 
 
 # distance types
