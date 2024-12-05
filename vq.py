@@ -210,7 +210,7 @@ def orthogonal_loss_fn(t, min_distance=0.4):
     dist_matrix = torch.cdist(t, t, p=2) + 1e-6  # Avoid zero distances
 
     # Remove diagonal
-    mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
+    mask = ~torch.eye(dist_matrix.size(1), dtype=bool, device=dist_matrix.device)
     dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
 
     # Debug: Log distance statistics
