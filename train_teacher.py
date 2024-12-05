@@ -211,7 +211,7 @@ def run(args):
     args.output_dir = output_dir
 
     check_writable(output_dir, overwrite=False)
-    logger = get_logger(base_dir.joinpath("log"), args.console_log, args.log_level)
+    logger = get_logger(output_dir.joinpath("log"), args.console_log, args.log_level)
     logger.info(f"output_dir: {output_dir}")
 
     """ Load data """
