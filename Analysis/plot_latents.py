@@ -58,7 +58,7 @@ def main():
     print(f"plot start...")
     arr_list = []
     for epoch in range(1, 7):
-        if epoch != 6:
+        if epoch != 5:
             continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
@@ -76,7 +76,7 @@ def main():
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
         print(arr_combined.shape)
-        for param in [5, 10, 20, 30, 40, 50]:
+        for param in [40, 50]:
             plot_graph(arr_combined, MODE, epoch, param)
 
 
