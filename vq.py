@@ -200,7 +200,7 @@ def batched_embedding(indices, embeds):
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
     return embeds.gather(2, indices)
 
-def orthogonal_loss_fn(t, min_distance=0.1):
+def orthogonal_loss_fn(t, min_distance=0.4):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
     t = t / t_norm
