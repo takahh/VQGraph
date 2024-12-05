@@ -509,7 +509,7 @@ class VectorQuantize(nn.Module):
             channel_last=True,
             accept_image_fmap=False,
             commitment_weight=0.003,
-            margin_weight=0.8,
+            margin_weight=100,
             spread_weight=0.2,
             pair_weight=0.01,
             orthogonal_reg_active_codes_only=False,
