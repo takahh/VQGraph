@@ -28,11 +28,11 @@ def plot_graph(data, mode, epoch, param):
     plt.figure()
     limit_value = 50
     # Define bin edges to control the size of the bins
-    x_range = (-20, 40)  # Range for the x-axis
-    y_range = (-32, 40)  # Range for the y-axis
-    x_range = (-limit_value, limit_value)  # Range for the x-axis
-    y_range = (-limit_value, limit_value)  # Range for the y-axis
-    n_bins = 100  # Number of bins for both axes
+    x_range = (0, 20)  # Range for the x-axis
+    y_range = (3, 23)  # Range for the y-axis
+    # x_range = (-limit_value, limit_value)  # Range for the x-axis
+    # y_range = (-limit_value, limit_value)  # Range for the y-axis
+    n_bins = 50  # Number of bins for both axes
 
     plt.hist2d(
         embedding[50:, 0], embedding[50:, 1],
