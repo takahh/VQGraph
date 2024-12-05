@@ -204,19 +204,14 @@ def run(args):
         )
     elif args.exp_setting == "ind":
         output_dir = Path.cwd().joinpath(
-            args.output_path,
-            "inductive",
-            f"split_rate_{args.split_rate}",
-            args.dataset,
-            args.teacher,
-            f"seed_{args.seed}",
+            args.output_path
         )
     else:
         raise ValueError(f"Unknown experiment setting! {args.exp_setting}")
     args.output_dir = output_dir
 
     check_writable(output_dir, overwrite=False)
-    logger = get_logger(output_dir.joinpath("log"), args.console_log, args.log_level)
+    logger = get_logger(base_dir.joinpath("log"), args.console_log, args.log_level)
     logger.info(f"output_dir: {output_dir}")
 
     """ Load data """
