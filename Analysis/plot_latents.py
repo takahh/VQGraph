@@ -60,7 +60,7 @@ def main():
     print(f"plot start...")
     arr_list = []
     for epoch in range(1, 11):
-        if epoch != 2:
+        if epoch != 9:
             continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
