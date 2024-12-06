@@ -59,8 +59,8 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for epoch in range(1, 11):
-        if epoch != 9:
+    for epoch in range(1, 18):
+        if epoch != 17:
             continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
