@@ -35,7 +35,7 @@ def plot_graph(data, mode, epoch, param):
     x_range = (-limit_value, limit_value)  # Range for the x-axis
     y_range = (-limit_value, limit_value)  # Range for the y-axis
     n_bins = 100  # Number of bins for both axes
-    cb_size = 247
+    cb_size = 1067
     plt.hist2d(
         embedding[cb_size:, 0], embedding[cb_size:, 1],
         bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
