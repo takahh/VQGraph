@@ -35,9 +35,9 @@ def plot_graph(data, mode, epoch, param):
     x_range = (-limit_value, limit_value)  # Range for the x-axis
     y_range = (-limit_value, limit_value)  # Range for the y-axis
     n_bins = 100  # Number of bins for both axes
-
+    cb_size = 167
     plt.hist2d(
-        embedding[114:, 0], embedding[114:, 1],
+        embedding[cb_size:, 0], embedding[cb_size:, 1],
         bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
         cmap='viridis'
     )
@@ -45,7 +45,7 @@ def plot_graph(data, mode, epoch, param):
     plt.colorbar(label='Density')
     plt.title(parameter_names)
     # Overlay scatter plot
-    plt.scatter(embedding[:114, 0], embedding[:114, 1], s=5, c='red', alpha=1)
+    plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=5, c='red', alpha=1)
     plt.show()
     # plt.savefig(f"./plot_epoch{epoch}")
 
@@ -60,7 +60,7 @@ def main():
     print(f"plot start...")
     arr_list = []
     for epoch in range(1, 18):
-        if epoch != 10:
+        if epoch != 5:
             continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
