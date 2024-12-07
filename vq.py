@@ -139,7 +139,7 @@ def batched_bincount(x, *, minlength):
 def kmeans(
         samples,
         num_clusters,
-        num_iters=10,
+        num_iters=50,
         use_cosine_sim=False,
         sample_fn=None,  # Updated: Optional sampling function
         all_reduce_fn=lambda x: x  # No-op by default
