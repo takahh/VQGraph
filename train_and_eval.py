@@ -49,6 +49,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             # h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss], x, detached_quantize
             _, logits, loss, _, cb, loss_list, latent_train, cb2 = model(blocks, batch_feats)
+            # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
@@ -595,9 +596,12 @@ def run_inductive(
                 ]
             ]
             print(f"loss_total {loss_total:4f}, best_score_val {best_score_val: 5f}")
-            if loss_total < best_score_val:
+            # --------------------------------
+            # check if edge loss is decreasing
+            # --------------------------------
+            if loss_list[1].item() < best_score_val:
                 best_epoch = epoch
-                best_score_val = loss_total
+                best_score_val = loss_list[1].item()
                 state = copy.deepcopy(model.state_dict())
                 cb_at_best = cb_just_trained
                 train_latents_at_best = latent_train

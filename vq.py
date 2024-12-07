@@ -359,7 +359,7 @@ class CosineSimCodebook(nn.Module):
             codebook_size,
             num_codebooks=1,
             kmeans_init=False,
-            kmeans_iters=10,
+            kmeans_iters=50,
             sync_kmeans=True,
             decay=0.8,
             eps=1e-5,
@@ -673,7 +673,7 @@ class VectorQuantize(nn.Module):
                 # linearly combine losses !!!!
                 # ---------------------------------
                 loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
-                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
+                # loss = loss
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
