@@ -359,7 +359,7 @@ class CosineSimCodebook(nn.Module):
             codebook_size,
             num_codebooks=1,
             kmeans_init=False,
-            kmeans_iters=50,
+            kmeans_iters=100,
             sync_kmeans=True,
             decay=0.8,
             eps=1e-5,
