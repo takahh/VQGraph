@@ -28,7 +28,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
         parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
 
     plt.figure()
-    limit_value = 100
+    limit_value = 120
     # Define bin edges to control the size of the bins
     x_range = (-10, 30)  # Range for the x-axis
     y_range = (0, 30)  # Range for the y-axis
@@ -45,7 +45,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
     plt.colorbar(label='Density')
     plt.title(f"{parameter_names}, cb {cb_size}")
     # Overlay scatter plot
-    plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=5, c='red', alpha=1)
+    plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='red', alpha=1)
     plt.show()
     # plt.savefig(f"./plot_epoch{epoch}")
 
@@ -59,9 +59,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for epoch in range(1, 50):
-        if epoch != 12:
-            continue
+    for epoch in range(5, 85, 5):
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:
@@ -80,7 +78,7 @@ def main():
         arr_combined = np.vstack(arr_list)
         print(arr_combined.shape)
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [110]:
+        for param in [100]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
