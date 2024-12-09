@@ -148,7 +148,7 @@ class SAGE(nn.Module):
         self.linear = nn.Linear(hidden_dim, output_dim)
         self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
         self.codebook_size = codebook_size
-        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8,commitment_weight=0.9, use_cosine_sim=True)
+        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=True)
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
 
