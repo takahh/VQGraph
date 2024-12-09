@@ -12,6 +12,7 @@ MODE = "tsne"
 def plot_graph(data, mode, epoch, param, cb_size):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
+    embedding = None
     if mode == "tsne":
         perplex = param
         n_iter = 5000
@@ -28,12 +29,9 @@ def plot_graph(data, mode, epoch, param, cb_size):
         parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
 
     plt.figure()
-    limit_value = 120
     # Define bin edges to control the size of the bins
-    x_range = (-10, 30)  # Range for the x-axis
-    y_range = (0, 30)  # Range for the y-axis
-    x_range = (-limit_value, limit_value)  # Range for the x-axis
-    y_range = (-limit_value, limit_value)  # Range for the y-axis
+    x_range = (min(embedding[cb_size:, 0]), max(embedding[cb_size:, 0]))  # Range for the x-axis
+    y_range = (min(embedding[cb_size:, 1]), max(embedding[cb_size:, 1]))  # Range for the y-axis
     n_bins = 100  # Number of bins for both axes
     # cb_size = 1201
     plt.hist2d(
@@ -59,7 +57,9 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for epoch in range(5, 85, 5):
+    for epoch in range(1, 100, 5):
+        # if epoch != 28:
+        #     continue
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:

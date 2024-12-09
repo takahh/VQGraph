@@ -6,6 +6,7 @@ from torch import nn, einsum
 from torch.cuda.amp import autocast
 from torch.onnx.symbolic_opset9 import pairwise_distance
 from einops import rearrange, repeat
+from torch.distributions.multivariate_normal import MultivariateNormal
 
 
 def exists(val):
@@ -134,6 +135,60 @@ def batched_bincount(x, *, minlength):
     values = torch.ones_like(x)
     target.scatter_add_(-1, x, values)
     return target
+
+
+def gmm(
+        samples,
+        num_clusters,
+        num_iters=100,
+        sample_fn=None,  # Optional sampling function
+        all_reduce_fn=lambda x: x  # No-op by default
+):
+    num_codebooks, num_samples, dim = samples.shape
+
+    # Initialize means using k-means++ logic
+    means = torch.empty(num_codebooks, num_clusters, dim, dtype=samples.dtype, device=samples.device)
+    for h in range(num_codebooks):
+        means[h, 0] = samples[h][torch.randint(0, num_samples, (1,))]
+        for k in range(1, num_clusters):
+            dists = torch.cdist(samples[h], means[h, :k], p=2) ** 2
+            min_dists, _ = torch.min(dists, dim=1)
+            prob = min_dists / min_dists.sum()
+            chosen_idx = torch.multinomial(prob, 1)
+            means[h, k] = samples[h, chosen_idx]
+
+    # Initialize covariances and weights
+    covariances = torch.eye(dim, device=samples.device).unsqueeze(0).repeat(num_codebooks, num_clusters, 1, 1)
+    weights = torch.ones(num_codebooks, num_clusters, device=samples.device) / num_clusters
+
+    for _ in range(num_iters):
+        # E-step: Compute responsibilities
+        responsibilities = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
+        for h in range(num_codebooks):
+            for k in range(num_clusters):
+                mvn = MultivariateNormal(means[h, k], covariance_matrix=covariances[h, k])
+                responsibilities[h, :, k] = weights[h, k] * mvn.log_prob(samples[h]).exp()
+
+        responsibilities_sum = responsibilities.sum(dim=-1, keepdim=True)
+        responsibilities = responsibilities / responsibilities_sum  # Normalize responsibilities
+
+        # M-step: Update means, covariances, and weights
+        for h in range(num_codebooks):
+            for k in range(num_clusters):
+                resp_k = responsibilities[h, :, k]
+                N_k = resp_k.sum()
+                if N_k > 0:
+                    means[h, k] = (resp_k.unsqueeze(-1) * samples[h]).sum(dim=0) / N_k
+                    diff = samples[h] - means[h, k]
+                    covariances[h, k] = (resp_k.unsqueeze(-1).unsqueeze(-1) * (diff.unsqueeze(-1) * diff.unsqueeze(-2))).sum(dim=0) / N_k
+                    weights[h, k] = N_k / num_samples
+
+        all_reduce_fn(means)
+
+    # Compute final bins (assignments)
+    bins = torch.argmax(responsibilities, dim=-1)
+
+    return means, bins
 
 
 def kmeans(
@@ -402,7 +457,7 @@ class CosineSimCodebook(nn.Module):
     def init_embed_(self, data):
         if self.initted:
             return
-        embed, cluster_size = kmeans(
+        embed, cluster_size = gmm(
             data,
             self.codebook_size,
             self.kmeans_iters,
@@ -410,6 +465,14 @@ class CosineSimCodebook(nn.Module):
             sample_fn=self.sample_fn,
             all_reduce_fn=self.kmeans_all_reduce_fn
         )
+        # embed, cluster_size = kmeans(
+        #     data,
+        #     self.codebook_size,
+        #     self.kmeans_iters,
+        #     use_cosine_sim=True,
+        #     sample_fn=self.sample_fn,
+        #     all_reduce_fn=self.kmeans_all_reduce_fn
+        # )
         self.embed.data.copy_(embed)
         self.cluster_size.data.copy_(cluster_size)
         self.initted.data.copy_(torch.Tensor([True]))
