@@ -279,7 +279,7 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     spread_loss = torch.var(t)
 
     # Pair distance loss: Regularize distances
-    pair_distance_loss = torch.mean(dist_matrix_no_diag ** 2)
+    pair_distance_loss = -torch.mean(torch.log(dist_matrix_no_diag + 10e-6) ** 2)
 
     return margin_loss, spread_loss, pair_distance_loss
 
