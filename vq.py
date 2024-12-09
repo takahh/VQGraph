@@ -194,7 +194,7 @@ def gmm(
 def kmeans(
         samples,
         num_clusters,
-        num_iters=100,
+        num_iters=50,
         use_cosine_sim=False,
         sample_fn=None,  # Updated: Optional sampling function
         all_reduce_fn=lambda x: x  # No-op by default
@@ -760,5 +760,5 @@ class VectorQuantize(nn.Module):
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         # if self.training:
         #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
-            # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors
+            # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x
         return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x
