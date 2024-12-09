@@ -256,7 +256,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=1):
+def orthogonal_loss_fn(t, min_distance=0.6):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
     t = t / t_norm
@@ -414,7 +414,7 @@ class CosineSimCodebook(nn.Module):
             codebook_size,
             num_codebooks=1,
             kmeans_init=False,
-            kmeans_iters=100,
+            kmeans_iters=10,
             sync_kmeans=True,
             decay=0.8,
             eps=1e-5,
@@ -566,16 +566,16 @@ class VectorQuantize(nn.Module):
             decay=0.8,
             eps=1e-5,
             kmeans_init=False,
-            kmeans_iters=50,
+            kmeans_iters=20,
             sync_kmeans=True,
             use_cosine_sim=False,
             threshold_ema_dead_code=0,
             channel_last=True,
             accept_image_fmap=False,
             commitment_weight=0.003,
-            margin_weight=1,
-            spread_weight=0.00002,
-            pair_weight=0.0001,
+            margin_weight=100,
+            spread_weight=0.2,
+            pair_weight=0.01,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
