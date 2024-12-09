@@ -478,15 +478,7 @@ class CosineSimCodebook(nn.Module):
     def init_embed_(self, data):
         if self.initted:
             return
-        embed, cluster_size = gmm(
-            data,
-            self.codebook_size,
-            self.kmeans_iters,
-            use_cosine_sim=True,
-            sample_fn=self.sample_fn,
-            all_reduce_fn=self.kmeans_all_reduce_fn
-        )
-        # embed, cluster_size = kmeans(
+        # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
         #     self.kmeans_iters,
@@ -494,6 +486,14 @@ class CosineSimCodebook(nn.Module):
         #     sample_fn=self.sample_fn,
         #     all_reduce_fn=self.kmeans_all_reduce_fn
         # )
+        embed, cluster_size = kmeans(
+            data,
+            self.codebook_size,
+            self.kmeans_iters,
+            use_cosine_sim=True,
+            sample_fn=self.sample_fn,
+            all_reduce_fn=self.kmeans_all_reduce_fn
+        )
         self.embed.data.copy_(embed)
         self.cluster_size.data.copy_(cluster_size)
         self.initted.data.copy_(torch.Tensor([True]))
