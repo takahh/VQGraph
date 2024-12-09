@@ -57,7 +57,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for epoch in range(1, 100, 5):
+    for epoch in range(25, 26):
         # if epoch != 28:
         #     continue
         print(f"epoch {epoch}")

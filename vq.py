@@ -194,7 +194,7 @@ def gmm(
 def kmeans(
         samples,
         num_clusters,
-        num_iters=10,
+        num_iters=50,
         use_cosine_sim=False,
         sample_fn=None,  # Updated: Optional sampling function
         all_reduce_fn=lambda x: x  # No-op by default
@@ -414,7 +414,7 @@ class CosineSimCodebook(nn.Module):
             codebook_size,
             num_codebooks=1,
             kmeans_init=False,
-            kmeans_iters=10,
+            kmeans_iters=50,
             sync_kmeans=True,
             decay=0.8,
             eps=1e-5,
@@ -566,7 +566,7 @@ class VectorQuantize(nn.Module):
             decay=0.8,
             eps=1e-5,
             kmeans_init=False,
-            kmeans_iters=20,
+            kmeans_iters=50,
             sync_kmeans=True,
             use_cosine_sim=False,
             threshold_ema_dead_code=0,
