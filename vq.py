@@ -272,14 +272,14 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
 
     # Margin loss: Encourage distances >= min_distance
-    smooth_penalty = torch.nn.functional.relu(min_distance - dist_matrix_no_diag)
+    smooth_penalty = torch.nn.functional.relu((min_distance - dist_matrix_no_diag) ** 2)
     margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
 
     # Spread loss: Encourage diversity
     spread_loss = torch.var(t)
 
     # Pair distance loss: Regularize distances
-    pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
+    pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag) ** 2)
 
     return margin_loss, spread_loss, pair_distance_loss
 
