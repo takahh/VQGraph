@@ -196,44 +196,42 @@ def kmeans(
         num_clusters,
         num_iters=50,
         use_cosine_sim=False,
-        sample_fn=None,  # Updated: Optional sampling function
+        sample_fn=None,  # Optional sampling function
         all_reduce_fn=lambda x: x  # No-op by default
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
 
     # Initialize means using k-means++ logic
     means = torch.empty(num_codebooks, num_clusters, dim, dtype=dtype, device=device)
-
-    for h in range(num_codebooks):  # For each codebook
+    for h in range(num_codebooks):
         # Choose the first centroid randomly
-        means[h, 0] = samples[h][torch.randint(0, samples.shape[1], (1,))]
-
-        # Select remaining centroids
-        for k in range(1, num_clusters):
-            # Compute distances from current centroids
-            dists = torch.cdist(samples[h], means[h, :k], p=2) ** 2
-            min_dists, _ = torch.min(dists, dim=1)  # Minimum distance to any centroid
-
-            # Probabilistic selection based on distances
-            prob = min_dists / min_dists.sum()
-            chosen_idx = torch.multinomial(prob, 1)
-            means[h, k] = samples[h, chosen_idx]
+        indices = torch.randperm(samples[h].shape[0])
+        means[h, 0] = samples[h, indices[0]]
+        # Choose remaining centroids based on distance
+        for i in range(1, num_clusters):
+            distances = torch.cdist(samples[h], means[h, :i], p=2).min(dim=1).values
+            probabilities = distances / distances.sum()
+            chosen = torch.multinomial(probabilities, 1).item()
+            means[h, i] = samples[h, chosen]
 
     for _ in range(num_iters):
+        # Compute distances
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
         else:
             dists = -torch.cdist(samples, means, p=2)
 
+        # Assign samples to nearest cluster
         buckets = torch.argmax(dists, dim=-1)
         bins = batched_bincount(buckets, minlength=num_clusters)
         all_reduce_fn(bins)
 
+        # Prevent division by zero
         zero_mask = bins == 0
         bins_min_clamped = bins.masked_fill(zero_mask, 1)
 
+        # Update means
         new_means = buckets.new_zeros(num_codebooks, num_clusters, dim, dtype=dtype)
-
         new_means.scatter_add_(1, repeat(buckets, 'h n -> h n d', d=dim), samples)
         new_means = new_means / rearrange(bins_min_clamped, '... -> ... 1')
         all_reduce_fn(new_means)
@@ -247,27 +245,17 @@ def kmeans(
             new_means
         )
 
-        # Handle repeated centroids
+        # Handle duplicate centroids
         for h in range(num_codebooks):
-            # Find unique centroids and their indices
             unique_means, inverse_indices = torch.unique(means[h], dim=0, return_inverse=True)
-
-            if unique_means.size(0) < num_clusters:  # Check if duplicates exist
+            if unique_means.size(0) < num_clusters:
                 num_duplicates = num_clusters - unique_means.size(0)
-
-                # Find new unique centroids to replace duplicates
-                new_centroids = samples[h][torch.randperm(samples.shape[1])[:num_duplicates]]
-                while torch.any((unique_means.unsqueeze(1) == new_centroids.unsqueeze(0)).all(-1)):
-                    new_centroids = samples[h][torch.randperm(samples.shape[1])[:num_duplicates]]
-
-                # Add the new unique centroids
+                sampled_indices = torch.randperm(samples[h].shape[0])[:num_duplicates]
+                new_centroids = samples[h, sampled_indices]
                 unique_means = torch.cat((unique_means, new_centroids), dim=0)
+            means[h] = unique_means[:num_clusters]
 
-            # Update means with unique centroids
-            means[h] = unique_means
-
-    # bins is a list of data count for each cluster
-    return means, bins
+    return means, bins,
 
 
 def batched_embedding(indices, embeds):
