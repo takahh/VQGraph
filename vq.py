@@ -246,6 +246,27 @@ def kmeans(
             means,
             new_means
         )
+
+        # Handle repeated centroids
+        for h in range(num_codebooks):
+            # Find unique centroids and their indices
+            unique_means, inverse_indices = torch.unique(means[h], dim=0, return_inverse=True)
+
+            if unique_means.size(0) < num_clusters:  # Check if duplicates exist
+                num_duplicates = num_clusters - unique_means.size(0)
+
+                # Find new unique centroids to replace duplicates
+                new_centroids = samples[h][torch.randperm(samples.shape[1])[:num_duplicates]]
+                while torch.any((unique_means.unsqueeze(1) == new_centroids.unsqueeze(0)).all(-1)):
+                    new_centroids = samples[h][torch.randperm(samples.shape[1])[:num_duplicates]]
+
+                # Add the new unique centroids
+                unique_means = torch.cat((unique_means, new_centroids), dim=0)
+
+            # Update means with unique centroids
+            means[h] = unique_means
+
+    # bins is a list of data count for each cluster
     return means, bins
 
 
