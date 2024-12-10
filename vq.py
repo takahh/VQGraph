@@ -194,7 +194,7 @@ def gmm(
 def kmeans(
         samples,
         num_clusters,
-        num_iters=300,
+        num_iters=500,
         use_cosine_sim=False,
         sample_fn=batched_sample_vectors,
         all_reduce_fn=noop
