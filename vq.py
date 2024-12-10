@@ -194,30 +194,14 @@ def gmm(
 def kmeans(
         samples,
         num_clusters,
-        num_iters=50,
+        num_iters=10,
         use_cosine_sim=False,
-        sample_fn=None,  # Updated: Optional sampling function
-        all_reduce_fn=lambda x: x  # No-op by default
+        sample_fn=batched_sample_vectors,
+        all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
 
-    # Initialize means using k-means++ logic
-    means = torch.empty(num_codebooks, num_clusters, dim, dtype=dtype, device=device)
-
-    for h in range(num_codebooks):  # For each codebook
-        # Choose the first centroid randomly
-        means[h, 0] = samples[h][torch.randint(0, samples.shape[1], (1,))]
-
-        # Select remaining centroids
-        for k in range(1, num_clusters):
-            # Compute distances from current centroids
-            dists = torch.cdist(samples[h], means[h, :k], p=2) ** 2
-            min_dists, _ = torch.min(dists, dim=1)  # Minimum distance to any centroid
-
-            # Probabilistic selection based on distances
-            prob = min_dists / min_dists.sum()
-            chosen_idx = torch.multinomial(prob, 1)
-            means[h, k] = samples[h, chosen_idx]
+    means = sample_fn(samples, num_clusters)
 
     for _ in range(num_iters):
         if use_cosine_sim:
@@ -246,6 +230,7 @@ def kmeans(
             means,
             new_means
         )
+
     return means, bins
 
 
