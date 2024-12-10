@@ -272,7 +272,8 @@ def orthogonal_loss_fn(t, min_distance=1):
     # ------------------
     # Spread loss: Encourage diversity
     # ------------------
-    spread_loss = torch.var(t)
+    t_norm = (t - t.mean(dim=0)) / (t.std(dim=0) + 1e-8)
+    spread_loss = torch.var(t_norm)
     # spread_loss = margin_loss
 
     # ------------------
