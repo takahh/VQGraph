@@ -272,7 +272,7 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
 
     # Margin loss: Encourage distances >= min_distance
-    smooth_penalty = torch.nn.functional.relu((min_distance - dist_matrix_no_diag) ** 2)
+    smooth_penalty = (min_distance - dist_matrix_no_diag) ** 2
     margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
 
     # Spread loss: Encourage diversity
@@ -718,16 +718,16 @@ class VectorQuantize(nn.Module):
             if self.margin_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
 
-                if self.orthogonal_reg_active_codes_only:
-                    # only calculate orthogonal loss for the activated codes for this batch
-                    unique_code_ids = torch.unique(embed_ind)
-                    codebook = torch.squeeze(codebook)
-                    codebook = codebook[unique_code_ids]
-
-                num_codes = codebook.shape[0]
-                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                    codebook = codebook[rand_ids]
+                # if self.orthogonal_reg_active_codes_only:
+                #     # only calculate orthogonal loss for the activated codes for this batch
+                #     unique_code_ids = torch.unique(embed_ind)
+                #     codebook = torch.squeeze(codebook)
+                #     codebook = codebook[unique_code_ids]
+                #
+                # num_codes = codebook.shape[0]
+                # if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                #     rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                #     codebook = codebook[rand_ids]
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
@@ -759,7 +759,7 @@ class VectorQuantize(nn.Module):
         if only_one:
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
-        # if self.training:
-        #     print("$$$$$$$   torch.unique(embed_ind).shape[0]")  # this value is 8 at the beginning
-            # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x
+        # --------------------------------------------------
+        # self._codebook.embed and x will be saved later....
+        # --------------------------------------------------
         return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x
