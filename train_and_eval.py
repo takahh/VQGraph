@@ -82,7 +82,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
-    return avg_loss, loss_list, latent_list, cb
+    return avg_loss, loss_list, latent_list, cb2
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):

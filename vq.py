@@ -261,25 +261,35 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
     t = t / t_norm
 
-    # Pairwise distances
-    dist_matrix = torch.squeeze(torch.cdist(t, t, p=2) + 1e-6)  # Avoid zero distances
-
+    # ------------------
+    # Prepare Pairwise distances
+    # ------------------
+    dist_matrix = torch.squeeze(torch.cdist(t, t, p=2) + 1e-10)  # Avoid zero distances
+    print(f"dist_matrix.shape {dist_matrix.shape}")
     # Remove diagonal
     mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
+    print(f"mask {mask}")
+    print(f"mask shape {mask.shape}")
     dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
-
+    print(f"dist_matrix_no_diag {dist_matrix_no_diag}")
     # Debug: Log distance statistics
-    # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
+    print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
 
+    # ------------------
     # Margin loss: Encourage distances >= min_distance
-    smooth_penalty = (min_distance - dist_matrix_no_diag) ** 2
+    # ------------------
+    smooth_penalty = 1/(min_distance - dist_matrix_no_diag)
     margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
 
+    # ------------------
     # Spread loss: Encourage diversity
+    # ------------------
     spread_loss = torch.var(t)
 
+    # ------------------
     # Pair distance loss: Regularize distances
-    pair_distance_loss = -torch.mean(torch.log(dist_matrix_no_diag + 10e-6) ** 2)
+    # ------------------
+    pair_distance_loss = torch.mean(1/dist_matrix_no_diag)
 
     return margin_loss, spread_loss, pair_distance_loss
 
