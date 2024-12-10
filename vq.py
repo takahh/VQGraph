@@ -191,6 +191,10 @@ def gmm(
     return means, bins
 
 
+import torch
+from einops import rearrange, repeat
+
+
 def kmeans(
         samples,
         num_clusters,
@@ -201,7 +205,28 @@ def kmeans(
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
 
-    means = sample_fn(samples, num_clusters)
+    # K-means++ initialization
+    means = []
+    # Step 1: Choose the first centroid randomly
+    first_mean_idx = torch.randint(0, samples.shape[1], (num_codebooks,), device=device)
+    means.append(samples[:, first_mean_idx, :])
+
+    for _ in range(1, num_clusters):
+        # Compute distances to the closest centroid for each point
+        current_means = torch.cat(means, dim=1)
+        if use_cosine_sim:
+            dists = 1 - (samples @ rearrange(current_means, 'h n d -> h d n'))  # 1 - cosine similarity
+        else:
+            dists = torch.cdist(samples, current_means, p=2) ** 2  # Squared Euclidean distances
+
+        closest_dists, _ = torch.min(dists, dim=-1)  # Distance to the nearest centroid
+
+        # Select the next centroid with probability proportional to distance^2
+        prob = closest_dists / closest_dists.sum(dim=-1, keepdim=True)
+        next_mean_idx = torch.multinomial(prob, 1).squeeze(-1)
+        means.append(samples[:, next_mean_idx, :])
+
+    means = torch.cat(means, dim=1)  # Combine all selected means
 
     for _ in range(num_iters):
         if use_cosine_sim:
