@@ -281,7 +281,7 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     # ------------------
     # Margin loss: Encourage distances >= min_distance
     # ------------------
-    smooth_penalty = 1/(min_distance - dist_matrix_no_diag)
+    smooth_penalty = 1/((min_distance - dist_matrix_no_diag) ** 2)
     margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
 
     # ------------------
