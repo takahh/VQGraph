@@ -8,7 +8,6 @@ np.set_printoptions(threshold=np.inf)
 # path = "/Users/mac/Documents/vq-data/"
 path = "/Users/taka/Downloads/"
 MODE = "tsne"
-# MODE = "umap"
 
 
 def plot_graph(data, mode, epoch, param, cb_size):
@@ -24,7 +23,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
     elif mode == "umap":
         n_neibogher = param
         min_dist = 0.1
-        n_epochs = 2000
+        n_epochs = 5000
         # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
         reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
         embedding = reducer.fit_transform(data)
@@ -34,13 +33,12 @@ def plot_graph(data, mode, epoch, param, cb_size):
     # Define bin edges to control the size of the bins
     x_range = (min(embedding[:, 0]), max(embedding[:, 0]))  # Range for the x-axis
     y_range = (min(embedding[:, 1]), max(embedding[:, 1]))  # Range for the y-axis
-    n_bins = 50  # Number of bins for both axes
+    n_bins = 100  # Number of bins for both axes
     # cb_size = 1201
     plt.hist2d(
         embedding[cb_size:, 0], embedding[cb_size:, 1],
         bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
-        cmap=plt.get_cmap("Blues"),
-        # cmap='viridis'
+        cmap='viridis'
     )
 
     plt.colorbar(label='Density')
@@ -60,7 +58,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 21
+    target = 4
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -78,7 +76,7 @@ def main():
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [1000]:
+        for param in [100]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 

@@ -703,11 +703,6 @@ class VectorQuantize(nn.Module):
         # quantize here
         # --------------------------------------------------
         quantize, embed_ind, dist, embed, latents = self._codebook(x)
-        # quantize
-        # embed_ind
-        # dist
-        # embed
-        # latents
 
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
