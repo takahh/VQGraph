@@ -39,6 +39,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     model.train()
     total_loss = 0
     loss_list, latent_list = [], []
+    cb_list = []
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
@@ -70,6 +71,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Append latent_train to CPU to avoid GPU memory growth
         latent_list.append(latent_train.detach().cpu())
+        cb_list.append(cb.detach().cpu())
 
         # Move loss_list to CPU and release memory
         loss_list = [l.detach().cpu() for l in loss_list]
@@ -82,7 +84,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
-    return avg_loss, loss_list, latent_list, cb2
+    return avg_loss, loss_list, latent_list, cb_list
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
@@ -494,10 +496,10 @@ def run_inductive(
             # save codebook and vectors every epoch
 
             np.savez(f"./codebook_{epoch}", cb_just_trained.cpu().detach().numpy())
-            latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
-            random_indices = np.random.choice(latent_train.shape[0], 10000, replace=False)
-            latent_train = latent_train[random_indices]
-            np.savez(f"./latent_train_{epoch}", latent_train.numpy())
+            # latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
+            # random_indices = np.random.choice(latent_train.shape[0], 10000, replace=False)
+            # latent_train = latent_train[random_indices]
+            np.savez(f"./latent_train_{epoch}", latent_train[-1])
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
