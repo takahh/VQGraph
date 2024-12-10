@@ -266,7 +266,7 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     # Prepare Pairwise Distances
     # ------------------
     dist_matrix = torch.cdist(t, t, p=2) + 1e-10  # Avoid zero distances
-    print(f"dist_matrix.shape: {dist_matrix.shape}")
+    # print(f"dist_matrix.shape: {dist_matrix.shape}")
 
     # Create mask to exclude diagonal elements
     mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
@@ -274,9 +274,9 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     # Exclude diagonal elements
     dist_matrix_no_diag = dist_matrix.clone()
     dist_matrix_no_diag[~mask] = float('inf')  # Set diagonal elements to infinity
-    print(f"dist_matrix_no_diag {dist_matrix_no_diag}")
+    # print(f"dist_matrix_no_diag {dist_matrix_no_diag}")
     # Debug: Log distance statistics
-    print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
+    # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
 
     # ------------------
     # Margin loss: Encourage distances >= min_distance
