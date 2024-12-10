@@ -287,8 +287,8 @@ def orthogonal_loss_fn(t, min_distance=0.6):
     # ------------------
     # Spread loss: Encourage diversity
     # ------------------
-    # spread_loss = torch.var(t)
-    spread_loss = margin_loss
+    spread_loss = torch.var(t)
+    # spread_loss = margin_loss
 
     # ------------------
     # Pair distance loss: Regularize distances
@@ -750,7 +750,8 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
+                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
+                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
                 # loss = loss
 
         if is_multiheaded:
