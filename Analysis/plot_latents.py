@@ -77,7 +77,7 @@ def main():
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [100]:
+        for param in [1000]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
