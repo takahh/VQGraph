@@ -58,7 +58,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 4
+    target = 55
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -71,6 +71,7 @@ def main():
             else:
                 random_indices = np.random.choice(arr.shape[0], 10000, replace=True)
                 arr = arr[random_indices]
+                # arr = arr[-10000:]
             print(f"{names.split('/')[-1]} - {arr.shape}")
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
