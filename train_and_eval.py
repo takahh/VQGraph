@@ -499,7 +499,7 @@ def run_inductive(
             # latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
             # random_indices = np.random.choice(latent_train.shape[0], 10000, replace=False)
             # latent_train = latent_train[random_indices]
-            np.savez(f"./latent_train_{epoch}", latent_train[-1])
+            np.savez(f"./latent_train_{epoch}", latent_train)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer

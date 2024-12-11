@@ -16,7 +16,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
     embedding = None
     if mode == "tsne":
         perplex = param
-        n_iter = 5000
+        n_iter = 500
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
@@ -69,7 +69,8 @@ def main():
                 arr = np.unique(arr, axis=0)
                 cb_size = arr.shape[0]
             else:
-                random_indices = np.random.choice(arr.shape[0], 10000, replace=True)
+                print(f"original {arr.shape}")
+                random_indices = np.random.choice(arr.shape[0], 1000, replace=False)
                 arr = arr[random_indices]
                 # arr = arr[-10000:]
             print(f"{names.split('/')[-1]} - {arr.shape}")
@@ -77,7 +78,7 @@ def main():
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [1000, 1500, 2000]:
+        for param in [1000]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
