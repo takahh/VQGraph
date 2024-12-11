@@ -16,7 +16,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
     embedding = None
     if mode == "tsne":
         perplex = param
-        n_iter = 500
+        n_iter = 3000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
@@ -58,7 +58,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 12
+    target = 11
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -78,7 +78,7 @@ def main():
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [1000]:
+        for param in [3]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
