@@ -83,7 +83,7 @@ def get_args():
     # --------------
     # VQ
     # --------------
-    parser.add_argument("--codebook_size", type=int, default=100, help="Codebook size of VQGraph")
+    parser.add_argument("--codebook_size", type=int, default=500, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_node", type=float, default=0.008)  # default=0.001)
     parser.add_argument("--lamb_edge",  type=float, default=0.06)  # default=0.03)
 
@@ -122,7 +122,7 @@ def get_args():
 
     """Optimization"""
     parser.add_argument("--accumulation_steps", type=int, default=30) # default=0.0001)
-    parser.add_argument("--learning_rate", type=float, default=0.0001) # default=0.0001)
+    parser.add_argument("--learning_rate", type=float, default=0.00005) # default=0.0001)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument(
         "--max_epoch", type=int, default=5, help="Evaluate once per how many epochs"
