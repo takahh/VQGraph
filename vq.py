@@ -502,7 +502,7 @@ class VectorQuantize(nn.Module):
             decay=0.8,
             eps=1e-5,
             kmeans_init=False,
-            kmeans_iters=300,
+            kmeans_iters=30,
             sync_kmeans=True,
             use_cosine_sim=False,
             threshold_ema_dead_code=0,
