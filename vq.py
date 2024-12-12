@@ -332,7 +332,7 @@ class EuclideanCodebook(nn.Module):
 
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
-        return quantize, embed_ind, dist, self.embed
+        return quantize, embed_ind, dist, self.embed, flatten
 
 
 class CosineSimCodebook(nn.Module):
