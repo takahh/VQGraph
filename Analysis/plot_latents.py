@@ -70,8 +70,8 @@ def main():
                 cb_size = arr.shape[0]
             else:
                 print(f"original {arr.shape}")
-                random_indices = np.random.choice(arr.shape[0], 10000, replace=False)
-                arr = arr[random_indices]
+                # random_indices = np.random.choice(arr.shape[0], 10000, replace=False)
+                # arr = arr[random_indices]
                 # arr = arr[-10000:]
             print(f"{names.split('/')[-1]} - {arr.shape}")
             arr_list.append(arr)
