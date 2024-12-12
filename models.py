@@ -194,9 +194,7 @@ class SAGE(nn.Module):
         # ----------------------------
         # Edge recon loss
         # ----------------------------
-        # raw_edge_rec_loss = torch.sqrt(F.mse_loss(torch.log1p(adj), torch.log1p(adj_quantized)))
-        # raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
-        raw_edge_rec_loss = torch.sqrt(F.huber_loss(adj, adj_quantized))
+        raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
         edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
         # -------------------------
         # adjust variables to pass
