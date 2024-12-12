@@ -502,7 +502,7 @@ class VectorQuantize(nn.Module):
             decay=0.8,
             eps=1e-5,
             kmeans_init=False,
-            kmeans_iters=80,
+            kmeans_iters=300,
             sync_kmeans=True,
             use_cosine_sim=False,
             threshold_ema_dead_code=0,
@@ -667,12 +667,12 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+                # margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
+                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
                 # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
