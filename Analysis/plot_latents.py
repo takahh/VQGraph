@@ -59,7 +59,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 7
+    target = 28
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -79,7 +79,7 @@ def main():
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [5, 10, 20]:
+        for param in [50, 100, 200]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
