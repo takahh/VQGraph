@@ -8,7 +8,7 @@ np.set_printoptions(threshold=np.inf)
 # path = "/Users/mac/Documents/vq-data/"
 path = "/Users/taka/Downloads/"
 MODE = "tsne"
-MODE = "umap"
+# MODE = "umap"
 
 
 def plot_graph(data, mode, epoch, param, cb_size):
@@ -17,7 +17,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
     embedding = None
     if mode == "tsne":
         perplex = param
-        n_iter = 5000
+        n_iter = 1000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
@@ -59,7 +59,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 28
+    target = 11
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -73,13 +73,14 @@ def main():
                 print(f"original {arr.shape}")
                 # random_indices = np.random.choice(arr.shape[0], 4000, replace=False)
                 # arr = arr[random_indices]
-                arr = arr[-4000:]
+                # arr = arr[-4000:]
             print(f"{names.split('/')[-1]} - {arr.shape}")
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
-        for param in [50, 100, 200]:
+        # for param in [5, 10, 20, 50, 100]:
+        for param in [80]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
