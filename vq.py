@@ -6,6 +6,7 @@ from torch import nn, einsum
 from torch.cuda.amp import autocast
 from torch.onnx.symbolic_opset9 import pairwise_distance
 from einops import rearrange, repeat
+from torch.distributions import MultivariateNormal
 
 
 def exists(val):
@@ -139,7 +140,7 @@ def batched_bincount(x, *, minlength):
 def gmm(
         samples,
         num_clusters,
-        num_iters=100,
+        num_iters=50,
         sample_fn=None,  # Optional sampling function
         all_reduce_fn=lambda x: x  # No-op by default
 ):
@@ -680,6 +681,7 @@ class VectorQuantize(nn.Module):
 
                 if exists(mask):
                     # with variable lengthed sequences
+                    print(f"quantized {detached_quantize.shape}, latents {x.shape}")
                     commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
                     if is_multiheaded:
