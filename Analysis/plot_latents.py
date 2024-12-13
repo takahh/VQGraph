@@ -80,7 +80,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 18
+    target = 51
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
