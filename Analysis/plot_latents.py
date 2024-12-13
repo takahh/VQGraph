@@ -43,7 +43,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
 
     elif mode == "umap":
         n_neibogher = param
-        min_dist = 0.01
+        min_dist = 0.1
         n_epochs = 5000
         # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
         reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42).fit(data[cb_size:])
@@ -80,7 +80,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for target in [5]:
+    for target in [10]:
         for epoch in range(target, target + 1):
             arr = None
             print(f"epoch {epoch}")
@@ -90,6 +90,7 @@ def main():
                 if "book" in names:
                     arr = np.unique(arr, axis=0)
                     cb_size = arr.shape[0]
+                    print(f"cb_size {cb_size}")
                 else:
                     print(f"original {arr.shape}")
                     # random_indices = np.random.choice(arr.shape[0], 4000, replace=False)
@@ -101,7 +102,7 @@ def main():
             print(f"combined - {arr_combined.shape}")
             # for param in [5, 10, 20, 30, 40, 50]:
             # for param in [5, 10, 20, 50, 100]:
-            for param in [200]:
+            for param in [100]:
                 plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
