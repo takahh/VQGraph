@@ -43,8 +43,8 @@ def plot_graph(data, mode, epoch, param, cb_size):
 
     elif mode == "umap":
         n_neibogher = param
-        min_dist = 0.01
-        n_epochs = 1000
+        min_dist = 0.1
+        n_epochs = 5000
         # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
         reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42).fit(data[cb_size:])
         embedding_latent = reducer.transform(data[cb_size:])
@@ -80,7 +80,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 51
+    target = 21
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -101,7 +101,7 @@ def main():
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
         # for param in [5, 10, 20, 50, 100]:
-        for param in [10, 50]:
+        for param in [100]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
