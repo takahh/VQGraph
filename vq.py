@@ -136,6 +136,64 @@ def batched_bincount(x, *, minlength):
     return target
 
 
+def gmm(
+        samples,
+        num_clusters,
+        num_iters=100,
+        sample_fn=None,  # Optional sampling function
+        all_reduce_fn=lambda x: x  # No-op by default
+):
+    num_codebooks, num_samples, dim = samples.shape
+
+    # Initialize means using k-means++ logic
+    means = torch.empty(num_codebooks, num_clusters, dim, dtype=samples.dtype, device=samples.device)
+    for h in range(num_codebooks):
+        means[h, 0] = samples[h][torch.randint(0, num_samples, (1,))]
+        for k in range(1, num_clusters):
+            dists = torch.cdist(samples[h], means[h, :k], p=2) ** 2
+            min_dists, _ = torch.min(dists, dim=1)
+            prob = min_dists / min_dists.sum()
+            chosen_idx = torch.multinomial(prob, 1)
+            means[h, k] = samples[h, chosen_idx]
+
+    # Initialize covariances and weights
+    covariances = torch.eye(dim, device=samples.device).unsqueeze(0).repeat(num_codebooks, num_clusters, 1, 1)
+    weights = torch.ones(num_codebooks, num_clusters, device=samples.device) / num_clusters
+
+    for _ in range(num_iters):
+        # E-step: Compute responsibilities
+        responsibilities = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
+        for h in range(num_codebooks):
+            for k in range(num_clusters):
+                mvn = MultivariateNormal(means[h, k], covariance_matrix=covariances[h, k])
+                responsibilities[h, :, k] = weights[h, k] * mvn.log_prob(samples[h]).exp()
+
+        responsibilities_sum = responsibilities.sum(dim=-1, keepdim=True)
+        responsibilities = responsibilities / responsibilities_sum  # Normalize responsibilities
+
+        # M-step: Update means, covariances, and weights
+        for h in range(num_codebooks):
+            for k in range(num_clusters):
+                resp_k = responsibilities[h, :, k]
+                N_k = resp_k.sum()
+                if N_k > 0:
+                    means[h, k] = (resp_k.unsqueeze(-1) * samples[h]).sum(dim=0) / N_k
+                    diff = samples[h] - means[h, k]
+                    covariances[h, k] = (resp_k.unsqueeze(-1).unsqueeze(-1) * (diff.unsqueeze(-1) * diff.unsqueeze(-2))).sum(dim=0) / N_k
+                    weights[h, k] = N_k / num_samples
+
+        all_reduce_fn(means)
+
+    # Compute final bins (assignments)
+    bins = torch.argmax(responsibilities, dim=-1)
+
+    return means, bins
+
+
+import torch
+from einops import rearrange, repeat
+
+
 def kmeans(
         samples,
         num_clusters,
@@ -146,7 +204,29 @@ def kmeans(
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
 
-    means = sample_fn(samples, num_clusters)
+    # K-means++ initialization
+    means = []
+    # Step 1: Choose the first centroid randomly
+    first_mean_idx = torch.randint(0, samples.shape[1], (num_codebooks,), device=device)
+    means.append(samples[:, first_mean_idx, :])
+
+    for _ in range(1, num_clusters):
+        # Compute distances to the closest centroid for each point
+        current_means = torch.cat(means, dim=1)
+        if use_cosine_sim:
+            dists = 1 - (samples @ rearrange(current_means, 'h n d -> h d n'))  # 1 - cosine similarity
+        else:
+            dists = torch.cdist(samples, current_means, p=2) ** 2  # Squared Euclidean distances
+
+        closest_dists, _ = torch.min(dists, dim=-1)  # Distance to the nearest centroid
+
+        # Select the next centroid with probability proportional to distance^2
+        prob = closest_dists / closest_dists.sum(dim=-1, keepdim=True)
+        next_mean_idx = torch.multinomial(prob, 1).squeeze(-1)
+        means.append(samples[:, next_mean_idx, :])
+
+    means = torch.cat(means, dim=1)  # Combine all selected means
+
     for _ in range(num_iters):
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
