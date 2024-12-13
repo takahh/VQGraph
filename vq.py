@@ -280,8 +280,8 @@ class EuclideanCodebook(nn.Module):
             dim,
             codebook_size,
             num_codebooks=1,
-            kmeans_init=False,
-            kmeans_iters=10,
+            kmeans_init=True,
+            kmeans_iters=300,
             sync_kmeans=True,
             decay=0.8,
             eps=1e-5,
@@ -290,6 +290,7 @@ class EuclideanCodebook(nn.Module):
             learnable_codebook=False,
             sample_codebook_temp=0
     ):
+        print(f"Using EuclidCodebook {num_codebooks}")
         super().__init__()
         self.decay = decay
         init_fn = uniform_init if not kmeans_init else torch.zeros
