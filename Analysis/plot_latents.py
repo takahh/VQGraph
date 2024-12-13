@@ -7,8 +7,8 @@ np.set_printoptions(threshold=np.inf)
 
 # path = "/Users/mac/Documents/vq-data/"
 path = "/Users/taka/Downloads/"
-# MODE = "tsne"
-MODE = "umap"
+MODE = "tsne"
+# MODE = "umap"
 
 
 def plot_graph(data, mode, epoch, param, cb_size):
@@ -80,7 +80,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for target in [10]:
+    for target in [6]:
         for epoch in range(target, target + 1):
             arr = None
             print(f"epoch {epoch}")
