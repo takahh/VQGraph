@@ -17,7 +17,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
     embedding = None
     if mode == "tsne":
         perplex = param
-        n_iter = 1000
+        n_iter = 5000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         embedding = tsne.fit_transform(data)
         parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
@@ -43,7 +43,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
 
     elif mode == "umap":
         n_neibogher = param
-        min_dist = 0.1
+        min_dist = 0.01
         n_epochs = 5000
         # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
         reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42).fit(data[cb_size:])
@@ -80,7 +80,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    for target in [2, 3, 4, 5, 6, 7, 8, 9]:
+    for target in [5]:
         for epoch in range(target, target + 1):
             arr = None
             print(f"epoch {epoch}")
@@ -101,7 +101,7 @@ def main():
             print(f"combined - {arr_combined.shape}")
             # for param in [5, 10, 20, 30, 40, 50]:
             # for param in [5, 10, 20, 50, 100]:
-            for param in [100]:
+            for param in [200]:
                 plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
