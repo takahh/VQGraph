@@ -499,9 +499,10 @@ class CosineSimCodebook(nn.Module):
         flatten = l2norm(flatten)
         # -----------------------
         # initialize codebook
-        # optimization done here
+        # optimization of codebook done here
         # -----------------------
         self.init_embed_(flatten)
+
         embed = self.embed if not self.learnable_codebook else self.embed.detach()
         embed = l2norm(embed)
         dist = einsum('h n d, h c d -> h n c', flatten, embed)
