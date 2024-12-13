@@ -59,7 +59,7 @@ def getdata(filename):
 def main():
     print(f"plot start...")
     arr_list = []
-    target = 3
+    target = 5
     for epoch in range(target, target + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -80,7 +80,7 @@ def main():
         print(f"combined - {arr_combined.shape}")
         # for param in [5, 10, 20, 30, 40, 50]:
         # for param in [5, 10, 20, 50, 100]:
-        for param in [120]:
+        for param in [50, 100]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
