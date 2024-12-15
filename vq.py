@@ -584,6 +584,8 @@ class VectorQuantize(nn.Module):
         self.commitment_weight = commitment_weight
 
         has_codebook_orthogonal_loss = margin_weight > 0
+        has_codebook_orthogonal_loss = False
+
         self.margin_weight = margin_weight
         self.spread_weight = spread_weight
         self.pair_weight = pair_weight
