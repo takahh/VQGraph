@@ -378,7 +378,7 @@ class EuclideanCodebook(nn.Module):
         flatten = rearrange(x, 'h ... d -> h (...) d')
         self.init_embed_(flatten)
 
-        embed = self.embed if not self.learnable_codebook else self.embed.detach()
+        embed = self.embed if self.learnable_codebook else self.embed.detach()
         dist = -torch.cdist(flatten, embed, p=2)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
@@ -584,7 +584,6 @@ class VectorQuantize(nn.Module):
         self.commitment_weight = commitment_weight
 
         has_codebook_orthogonal_loss = margin_weight > 0
-        has_codebook_orthogonal_loss = False
 
         self.margin_weight = margin_weight
         self.spread_weight = spread_weight
