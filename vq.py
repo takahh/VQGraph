@@ -392,19 +392,19 @@ class EuclideanCodebook(nn.Module):
         # -----------------------------------------------------------------------------
         # Update centroids in an ML friendly way
         # -----------------------------------------------------------------------------
-        # if self.training:
-        #     cluster_size = embed_onehot.sum(dim=1)
-        #     self.all_reduce_fn(cluster_size)
-        #     self.cluster_size.data.lerp_(cluster_size, 1 - self.decay)
-        #
-        #     embed_sum = einsum('h n d, h n c -> h c d', flatten, embed_onehot)
-        #     self.all_reduce_fn(embed_sum.contiguous())
-        #     self.embed_avg.data.lerp_(embed_sum, 1 - self.decay)
-        #
-        #     cluster_size = laplace_smoothing(self.cluster_size, self.codebook_size, self.eps) * self.cluster_size.sum()
-        #     embed_normalized = self.embed_avg / rearrange(cluster_size, '... -> ... 1')
-        #     self.embed.data.copy_(embed_normalized)
-        #     self.expire_codes_(x)
+        if self.training:
+            cluster_size = embed_onehot.sum(dim=1)
+            self.all_reduce_fn(cluster_size)
+            self.cluster_size.data.lerp_(cluster_size, 1 - self.decay)
+
+            embed_sum = einsum('h n d, h n c -> h c d', flatten, embed_onehot)
+            self.all_reduce_fn(embed_sum.contiguous())
+            self.embed_avg.data.lerp_(embed_sum, 1 - self.decay)
+
+            cluster_size = laplace_smoothing(self.cluster_size, self.codebook_size, self.eps) * self.cluster_size.sum()
+            embed_normalized = self.embed_avg / rearrange(cluster_size, '... -> ... 1')
+            self.embed.data.copy_(embed_normalized)
+            self.expire_codes_(x)
 
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
