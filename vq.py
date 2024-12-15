@@ -325,21 +325,21 @@ class EuclideanCodebook(nn.Module):
         if self.initted:
             return
 
-        embed, cluster_size = gmm(
-            data,
-            self.codebook_size,
-            self.kmeans_iters,
-            use_cosine_sim=True,
-            sample_fn=self.sample_fn,
-            all_reduce_fn=self.kmeans_all_reduce_fn
-        )
-        # embed, cluster_size = kmeans(
+        # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
         #     self.kmeans_iters,
+        #     use_cosine_sim=True,
         #     sample_fn=self.sample_fn,
         #     all_reduce_fn=self.kmeans_all_reduce_fn
         # )
+        embed, cluster_size = kmeans(
+            data,
+            self.codebook_size,
+            self.kmeans_iters,
+            sample_fn=self.sample_fn,
+            all_reduce_fn=self.kmeans_all_reduce_fn
+        )
 
         self.embed.data.copy_(embed)
         self.embed_avg.data.copy_(embed.clone())
@@ -376,14 +376,22 @@ class EuclideanCodebook(nn.Module):
 
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
+        # -----------------------------------------------------------------------------
+        # run simple k-means
+        # -----------------------------------------------------------------------------
         self.init_embed_(flatten)
-
+        # -----------------------------------------------------------------------------
+        # prepare for updating centroids
+        # -----------------------------------------------------------------------------
         embed = self.embed if self.learnable_codebook else self.embed.detach()
         dist = -torch.cdist(flatten, embed, p=2)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
+        # -----------------------------------------------------------------------------
+        # Update centroids in an ML friendly way
+        # -----------------------------------------------------------------------------
         if self.training:
             cluster_size = embed_onehot.sum(dim=1)
             self.all_reduce_fn(cluster_size)
@@ -400,6 +408,7 @@ class EuclideanCodebook(nn.Module):
 
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
+            # quantize, embed_ind, dist, embed, latents
         return quantize, embed_ind, dist, self.embed, flatten
 
 
@@ -692,7 +701,6 @@ class VectorQuantize(nn.Module):
 
                 if exists(mask):
                     # with variable lengthed sequences
-                    print(f"quantized {detached_quantize.shape}, latents {x.shape}")
                     commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
                     if is_multiheaded:

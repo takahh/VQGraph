@@ -71,7 +71,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Append latent_train to CPU to avoid GPU memory growth
         latent_list.append(latent_train.detach().cpu())
-        cb_list.append(cb2.detach().cpu())
+        cb_list.append(cb.detach().cpu())
 
         # Move loss_list to CPU and release memory
         loss_list = [l.detach().cpu() for l in loss_list]
