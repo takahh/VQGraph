@@ -404,7 +404,7 @@ class EuclideanCodebook(nn.Module):
 
             cluster_size = laplace_smoothing(self.cluster_size, self.codebook_size, self.eps) * self.cluster_size.sum()
             embed_normalized = self.embed_avg / rearrange(cluster_size, '... -> ... 1')
-            self.embed = embed_normalized
+            self.embed = torch.nn.Parameter(embed_normalized)
             self.expire_codes_(x)
 
         if needs_codebook_dim:
