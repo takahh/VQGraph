@@ -315,7 +315,7 @@ class EuclideanCodebook(nn.Module):
         self.codebook_size = codebook_size
         self.num_codebooks = num_codebooks
 
-        self.kmeans_iters = 300
+        self.kmeans_iters = 600
         self.eps = eps
         self.threshold_ema_dead_code = threshold_ema_dead_code
         self.sample_codebook_temp = sample_codebook_temp
@@ -580,7 +580,7 @@ class VectorQuantize(nn.Module):
             separate_codebook_per_head=False,
             decay=0.8,
             eps=1e-5,
-            kmeans_init=False,
+            kmeans_init=True,
             kmeans_iters=300,
             sync_kmeans=True,
             use_cosine_sim=False,
@@ -594,7 +594,7 @@ class VectorQuantize(nn.Module):
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
-            sync_codebook=False
+            sync_codebook=True
     ):
         super().__init__()
         self.dim = dim
