@@ -741,16 +741,16 @@ class VectorQuantize(nn.Module):
             if self.margin_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
 
-                # if self.orthogonal_reg_active_codes_only:
-                #     # only calculate orthogonal loss for the activated codes for this batch
-                #     unique_code_ids = torch.unique(embed_ind)
-                #     codebook = torch.squeeze(codebook)
-                #     codebook = codebook[unique_code_ids]
+                if self.orthogonal_reg_active_codes_only:
+                    # only calculate orthogonal loss for the activated codes for this batch
+                    unique_code_ids = torch.unique(embed_ind)
+                    codebook = torch.squeeze(codebook)
+                    codebook = codebook[unique_code_ids]
 
-                # num_codes = codebook.shape[0]
-                # if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                #     rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                #     codebook = codebook[rand_ids]
+                num_codes = codebook.shape[0]
+                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                    codebook = codebook[rand_ids]
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
@@ -759,8 +759,8 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                loss = loss + margin_loss * self.margin_weight
-                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
+                # loss = loss + margin_loss * self.margin_weight
+                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
