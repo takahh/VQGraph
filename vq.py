@@ -575,7 +575,7 @@ class VectorQuantize(nn.Module):
             pair_weight=0.01,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
-            sample_codebook_temp=1.,
+            sample_codebook_temp=0.,
             sync_codebook=False
     ):
         super().__init__()
@@ -717,11 +717,11 @@ class VectorQuantize(nn.Module):
             if self.margin_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
 
-                if self.orthogonal_reg_active_codes_only:
-                    # only calculate orthogonal loss for the activated codes for this batch
-                    unique_code_ids = torch.unique(embed_ind)
-                    codebook = torch.squeeze(codebook)
-                    codebook = codebook[unique_code_ids]
+                # if self.orthogonal_reg_active_codes_only:
+                #     # only calculate orthogonal loss for the activated codes for this batch
+                #     unique_code_ids = torch.unique(embed_ind)
+                #     codebook = torch.squeeze(codebook)
+                #     codebook = codebook[unique_code_ids]
 
                 num_codes = codebook.shape[0]
                 if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
