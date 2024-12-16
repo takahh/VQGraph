@@ -310,11 +310,11 @@ class EuclideanCodebook(nn.Module):
             learnable_codebook=False,
             sample_codebook_temp=0
     ):
-        print(f"Using EuclidCodebook {num_codebooks}")
+        # print(f"Using EuclidCodebook {num_codebooks}")
         super().__init__()
         self.decay = decay
         init_fn = uniform_init if not kmeans_init else torch.zeros
-        print(f"init_fn: {init_fn}")
+        # print(f"init_fn: {init_fn}")
         embed = init_fn(num_codebooks, codebook_size, dim)
         self.codebook_size = codebook_size
         self.num_codebooks = num_codebooks
@@ -348,10 +348,10 @@ class EuclideanCodebook(nn.Module):
 
     @torch.jit.ignore
     def init_embed_(self, data):
-        print("running init_embed 1 !!!!!!!!!!!!!!!!!!!")
+        # print("running init_embed 1 !!!!!!!!!!!!!!!!!!!")
         if self.initted:
             return
-        print("running init_embed 2 !!!!!!!!!!!!!!!!!!!")
+        print("running kmeans !!!!!!!!!!!!!!!!!!!")
         # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
