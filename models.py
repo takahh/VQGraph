@@ -273,7 +273,7 @@ class SAGE(nn.Module):
             # Monitor reserved memory after cleanup
 
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, init_cb
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list
 
 
 class GAT(nn.Module):
