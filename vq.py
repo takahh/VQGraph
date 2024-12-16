@@ -256,7 +256,7 @@ def orthogonal_loss_fn(t, min_distance=1):
     dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
 
     # Debug: Log distance statistics
-    # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
+    print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
 
     # Margin loss: Encourage distances >= min_distance
     smooth_penalty = torch.nn.functional.relu(min_distance - dist_matrix_no_diag)
