@@ -570,12 +570,12 @@ class VectorQuantize(nn.Module):
             channel_last=True,
             accept_image_fmap=False,
             commitment_weight=0.003,
-            margin_weight=8,
+            margin_weight=0.8,
             spread_weight=0.2,
             pair_weight=0.01,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
-            sample_codebook_temp=0.,
+            sample_codebook_temp=1.,
             sync_codebook=False
     ):
         super().__init__()
