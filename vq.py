@@ -377,7 +377,7 @@ class EuclideanCodebook(nn.Module):
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
         # -----------------------------------------------------------------------------
-        # run simple k-means
+        # run simple k-means to set initial codebook
         # -----------------------------------------------------------------------------
         self.init_embed_(flatten)
         # -----------------------------------------------------------------------------
@@ -390,7 +390,7 @@ class EuclideanCodebook(nn.Module):
         embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
         # -----------------------------------------------------------------------------
-        # Update centroids in an ML friendly way
+        # Update centroids (in an ML friendly way)
         # -----------------------------------------------------------------------------
         if self.training:
             cluster_size = embed_onehot.sum(dim=1)
@@ -675,12 +675,13 @@ class VectorQuantize(nn.Module):
         # --------------------------------------------------
         # quantize here
         # --------------------------------------------------
+        # quantize, embed_ind, dist, self.embed, flatten
         quantize, embed_ind, dist, embed, latents = self._codebook(x)
-        # quantize
-        # embed_ind
-        # dist
-        # embed
-        # latents
+        # quantize　: 各データに対応する codebook vector
+        # embed_ind : 各データに対応する codebook vector のインデックス
+        # dist      : codebook の距離行列
+        # embed     : codebook  ← これをプロットに使いたい
+        # latents   : 潜在変数ベクトル
 
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
@@ -757,4 +758,4 @@ class VectorQuantize(nn.Module):
         if only_one:
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
-        return quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x
+        return quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x

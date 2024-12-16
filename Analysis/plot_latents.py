@@ -8,7 +8,7 @@ np.set_printoptions(threshold=np.inf)
 # path = "/Users/mac/Documents/vq-data/"
 path = "/Users/taka/Downloads/"
 MODE = "tsne"
-MODE = "umap"
+# MODE = "umap"
 
 
 def plot_graph(data, mode, epoch, param, cb_size):
@@ -79,7 +79,7 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    for epoch in range(15):
+    for epoch in range(4, 15):
         arr = None
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
