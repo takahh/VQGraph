@@ -723,10 +723,10 @@ class VectorQuantize(nn.Module):
                 #     codebook = torch.squeeze(codebook)
                 #     codebook = codebook[unique_code_ids]
 
-                num_codes = codebook.shape[0]
-                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                    codebook = codebook[rand_ids]
+                # num_codes = codebook.shape[0]
+                # if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                #     rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                #     codebook = codebook[rand_ids]
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
