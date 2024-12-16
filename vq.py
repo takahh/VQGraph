@@ -311,6 +311,7 @@ class EuclideanCodebook(nn.Module):
         super().__init__()
         self.decay = decay
         init_fn = uniform_init if not kmeans_init else torch.zeros
+        print(f"init_fn: {init_fn}")
         embed = init_fn(num_codebooks, codebook_size, dim)
         self.codebook_size = codebook_size
         self.num_codebooks = num_codebooks
