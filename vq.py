@@ -586,7 +586,7 @@ class VectorQuantize(nn.Module):
             separate_codebook_per_head=False,
             decay=0.8,
             eps=1e-5,
-            kmeans_init=False,
+            kmeans_init=True,
             kmeans_iters=600,
             sync_kmeans=True,
             use_cosine_sim=False,
