@@ -37,8 +37,8 @@ def plot_graph(data, mode, epoch, param, cb_size):
         plt.colorbar(label='Density')
         plt.title(f"{parameter_names}, cb {cb_size}")
         # Overlay scatter plot
-        plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
         plt.scatter(embedding[cb_size:2 * cb_size, 0], embedding[cb_size:2 * cb_size, 1], s=3, c='red', alpha=1)
+        plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
         plt.show()
         # plt.savefig(f"./plot_epoch{epoch}")
 
@@ -80,7 +80,7 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    for epoch in range(4, 5):
+    for epoch in range(2, 3):
         arr = None
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]

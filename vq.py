@@ -384,7 +384,7 @@ class EuclideanCodebook(nn.Module):
         # prepare for updating centroids
         # -----------------------------------------------------------------------------
         embed = self.embed if self.learnable_codebook else self.embed.detach()
-        init_cb = self.embed.detach().clone()
+        init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
