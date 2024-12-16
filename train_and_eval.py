@@ -504,8 +504,8 @@ def run_inductive(
             np.savez(f"./codebook_{epoch}", cb_just_trained[-4:].cpu().detach().numpy())
             np.savez(f"./init_codebook_{epoch}", init_cb_list[-4:].cpu().detach().numpy())
             latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
-            random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-            latent_train = latent_train[random_indices]
+            # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
+            latent_train = latent_train[-16000:]
             np.savez(f"./latent_train_{epoch}", latent_train)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
