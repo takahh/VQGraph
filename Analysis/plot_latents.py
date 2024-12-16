@@ -81,7 +81,7 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    for epoch in range(4, 6):
+    for epoch in range(6, 9):
         arr = None
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]

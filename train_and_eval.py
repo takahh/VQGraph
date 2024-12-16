@@ -69,7 +69,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             # print(f"unique codebook vectors {counts}")
             # print(f"feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread_loss {loss_list[4].item(): 4f}")
 
-        model.encoder.reset_kmeans()
+        # model.encoder.reset_kmeans()
         # Logging
         total_loss += loss.item() * accumulation_steps
 
