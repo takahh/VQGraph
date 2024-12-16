@@ -581,7 +581,7 @@ class VectorQuantize(nn.Module):
             separate_codebook_per_head=False,
             decay=0.8,
             eps=1e-5,
-            kmeans_init=True,
+            kmeans_init=False,
             kmeans_iters=600,
             sync_kmeans=True,
             use_cosine_sim=False,
@@ -594,7 +594,7 @@ class VectorQuantize(nn.Module):
             pair_weight=0.01,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
-            sample_codebook_temp=1.,
+            sample_codebook_temp=0.,
             sync_codebook=False
     ):
         super().__init__()
