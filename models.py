@@ -245,7 +245,7 @@ class SAGE(nn.Module):
             # ----------------
             # Quantize
             # ----------------
-            quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss, spread_loss, pair_loss, detached_quantize, x = self.vq(h)
+            quantized, _, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb = self.vq(h)
             latent_list.append(latent_vectors.detach().cpu())
 
             dist = torch.squeeze(dist)
@@ -273,7 +273,7 @@ class SAGE(nn.Module):
             # Monitor reserved memory after cleanup
 
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, init_cb
 
 
 class GAT(nn.Module):
