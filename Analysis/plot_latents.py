@@ -81,7 +81,7 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    for epoch in range(5, 8):
+    for epoch in range(100, 101):
         arr = None
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
@@ -95,12 +95,12 @@ def main():
                 print(f"original {arr.shape}")
                 # random_indices = np.random.choice(arr.shape[0], 4000, replace=False)
                 # arr = arr[random_indices]
-                arr = arr[-4000:]
+                # arr = arr[-4000:]
             print(f"{names.split('/')[-1]} - {arr.shape}")
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
-        for param in [100]:
+        for param in [10]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 

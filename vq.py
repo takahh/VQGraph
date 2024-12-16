@@ -439,7 +439,7 @@ class EuclideanCodebook(nn.Module):
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
             # quantize, embed_ind, dist, embed, latents
-        return quantize, embed_ind, dist, self.embed, flatten, init_cb
+        return quantize, embed_ind, dist, self.embed, flatten, init_cb  # flatten と x はどう違うのか？commitment loss には x をしよう。
 
 
 class CosineSimCodebook(nn.Module):
@@ -748,16 +748,16 @@ class VectorQuantize(nn.Module):
             if self.margin_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
 
-                if self.orthogonal_reg_active_codes_only:
-                    # only calculate orthogonal loss for the activated codes for this batch
-                    unique_code_ids = torch.unique(embed_ind)
-                    codebook = torch.squeeze(codebook)
-                    codebook = codebook[unique_code_ids]
-
-                num_codes = codebook.shape[0]
-                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                    codebook = codebook[rand_ids]
+                # if self.orthogonal_reg_active_codes_only:
+                #     # only calculate orthogonal loss for the activated codes for this batch
+                #     unique_code_ids = torch.unique(embed_ind)
+                #     codebook = torch.squeeze(codebook)
+                #     codebook = codebook[unique_code_ids]
+                #
+                # num_codes = codebook.shape[0]
+                # if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                #     rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                #     codebook = codebook[rand_ids]
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
@@ -789,4 +789,6 @@ class VectorQuantize(nn.Module):
         if only_one:
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
+        #
+        # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x, init_cb
