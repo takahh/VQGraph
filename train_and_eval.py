@@ -40,6 +40,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     total_loss = 0
     loss_list, latent_list = [], []
     cb_list = []
+    init_cb_list = []
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
@@ -49,7 +50,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Gradient accumulation
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             # h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss], x, detached_quantize
-            _, logits, loss, _, cb, loss_list, latent_train, quantized = model(blocks, batch_feats)
+            _, logits, loss, _, cb, loss_list, latent_train, quantized, init_cb = model(blocks, batch_feats)
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
@@ -72,6 +73,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Append latent_train to CPU to avoid GPU memory growth
         latent_list.append(latent_train.detach().cpu())
         cb_list.append(cb.detach().cpu())
+        init_cb_list.append(init_cb.detach().cpu())
 
         # Move loss_list to CPU and release memory
         loss_list = [l.detach().cpu() for l in loss_list]
@@ -84,7 +86,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
-    return avg_loss, loss_list, latent_list, cb_list
+    return avg_loss, loss_list, latent_list, cb_list, init_cb_list
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
@@ -482,6 +484,7 @@ def run_inductive(
     cb_at_best, train_latents_at_best = None, None
     latent_ind, latent_trans, latent_train = None, None, None
     cb_just_trained = None
+    init_cb_list = None
     for epoch in range(1, conf["max_epoch"] + 1):
         # print(f"epoch {epoch}")
         # --------------------------------
@@ -490,12 +493,13 @@ def run_inductive(
         if "SAGE" in model.model_name:
             # partial sampling, only obs data
             # this loss is label loss
-            loss, loss_list, latent_train, cb_just_trained = train_sage(
+            loss, loss_list, latent_train, cb_just_trained, init_cb_list = train_sage(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
             )
             # save codebook and vectors every epoch
 
             np.savez(f"./codebook_{epoch}", cb_just_trained[-1].cpu().detach().numpy())
+            np.savez(f"./init_codebook_{epoch}", init_cb_list[-1].cpu().detach().numpy())
             latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
             random_indices = np.random.choice(latent_train.shape[0], 10000, replace=False)
             latent_train = latent_train[random_indices]

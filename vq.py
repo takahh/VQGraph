@@ -409,7 +409,7 @@ class EuclideanCodebook(nn.Module):
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
             # quantize, embed_ind, dist, embed, latents
-        return quantize, embed_ind, dist, self.embed, flatten
+        return quantize, embed_ind, dist, self.embed, flatten, embed_init
 
 
 class CosineSimCodebook(nn.Module):
@@ -676,7 +676,7 @@ class VectorQuantize(nn.Module):
         # quantize here
         # --------------------------------------------------
         # quantize, embed_ind, dist, self.embed, flatten
-        quantize, embed_ind, dist, embed, latents = self._codebook(x)
+        quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
         # quantize　: 各データに対応する codebook vector
         # embed_ind : 各データに対応する codebook vector のインデックス
         # dist      : codebook の距離行列
@@ -758,4 +758,4 @@ class VectorQuantize(nn.Module):
         if only_one:
             quantize = rearrange(quantize, 'b 1 d -> b d')
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
-        return quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x
+        return quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x, init_cb
