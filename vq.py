@@ -765,8 +765,8 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                # loss = loss + margin_loss * self.margin_weight
-                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
+                loss = loss + margin_loss * self.margin_weight
+                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
