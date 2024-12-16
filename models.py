@@ -154,7 +154,7 @@ class SAGE(nn.Module):
 
 
     def reset_kmeans(self):
-        self.vq.codebook.reset_kmeans()
+        self.vq._codebook.reset_kmeans()
 
 
     def forward(self, blocks, feats):
