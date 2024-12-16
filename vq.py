@@ -370,8 +370,8 @@ class EuclideanCodebook(nn.Module):
         #     sample_fn=self.sample_fn,
         #     all_reduce_fn=self.kmeans_all_reduce_fn
         # )
-        print(f"cluster_size {cluster_size}")
-        print(f"self.cluster_size {self.cluster_size}")
+        print(f"cluster_size {cluster_size.shape}")
+        print(f"self.cluster_size {self.cluster_size.shape}")
         self.embed.data.copy_(embed)
         self.embed_avg.data.copy_(embed.clone())
         self.cluster_size.data.copy_(cluster_size)
