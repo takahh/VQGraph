@@ -81,7 +81,7 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    for epoch in range(6, 9):
+    for epoch in range(5, 8):
         arr = None
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
@@ -100,7 +100,7 @@ def main():
             arr_list.append(arr)
         arr_combined = np.vstack(arr_list)
         print(f"combined - {arr_combined.shape}")
-        for param in [10]:
+        for param in [100]:
             plot_graph(arr_combined, MODE, epoch, param, cb_size)
 
 
