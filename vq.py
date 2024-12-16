@@ -243,7 +243,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def orthogonal_loss_fn(t, min_distance=0.4):
+def orthogonal_loss_fn(t, min_distance=1):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
     t = t / t_norm
@@ -569,8 +569,8 @@ class VectorQuantize(nn.Module):
             threshold_ema_dead_code=0,
             channel_last=True,
             accept_image_fmap=False,
-            commitment_weight=30,
-            margin_weight=0.8,
+            commitment_weight=0.003,
+            margin_weight=8,
             spread_weight=0.2,
             pair_weight=0.01,
             orthogonal_reg_active_codes_only=False,
