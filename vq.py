@@ -137,6 +137,13 @@ def batched_bincount(x, *, minlength):
     return target
 
 
+# data,
+# self.codebook_size,
+# self.kmeans_iters,
+# # use_cosine_sim=True,
+# sample_fn = self.sample_fn,
+# all_reduce_fn = self.kmeans_all_reduce_fn
+
 def gmm(
         samples,
         num_clusters,
@@ -351,7 +358,7 @@ class EuclideanCodebook(nn.Module):
             data,
             self.codebook_size,
             self.kmeans_iters,
-            use_cosine_sim=True,
+            # use_cosine_sim=True,
             sample_fn=self.sample_fn,
             all_reduce_fn=self.kmeans_all_reduce_fn
         )
