@@ -204,9 +204,6 @@ def kmeans(
         all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
-    print(f"running kmeans !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(f"running kmeans !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(f"running kmeans !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     # KMeans++ Initialization
     means = torch.empty((num_codebooks, num_clusters, dim), dtype=dtype, device=device)
@@ -348,26 +345,24 @@ class EuclideanCodebook(nn.Module):
 
     @torch.jit.ignore
     def init_embed_(self, data):
-        # print("running init_embed 1 !!!!!!!!!!!!!!!!!!!")
         if self.initted:
             return
-        print("running kmeans !!!!!!!!!!!!!!!!!!!")
-        # embed, cluster_size = gmm(
-        #     data,
-        #     self.codebook_size,
-        #     self.kmeans_iters,
-        #     use_cosine_sim=True,
-        #     sample_fn=self.sample_fn,
-        #     all_reduce_fn=self.kmeans_all_reduce_fn
-        # )
-
-        embed, cluster_size = kmeans(
+        embed, cluster_size = gmm(
             data,
             self.codebook_size,
             self.kmeans_iters,
+            use_cosine_sim=True,
             sample_fn=self.sample_fn,
             all_reduce_fn=self.kmeans_all_reduce_fn
         )
+        #
+        # embed, cluster_size = kmeans(
+        #     data,
+        #     self.codebook_size,
+        #     self.kmeans_iters,
+        #     sample_fn=self.sample_fn,
+        #     all_reduce_fn=self.kmeans_all_reduce_fn
+        # )
 
         self.embed.data.copy_(embed)
         self.embed_avg.data.copy_(embed.clone())
