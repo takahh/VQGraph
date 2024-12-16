@@ -205,7 +205,23 @@ def kmeans(
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
 
-    means = sample_fn(samples, num_clusters)
+    # KMeans++ Initialization
+    means = torch.empty((num_codebooks, num_clusters, dim), dtype=dtype, device=device)
+    for h in range(num_codebooks):
+        indices = torch.randint(0, samples.shape[1], (1,))
+        means[h, 0] = samples[h, indices]
+
+        for i in range(1, num_clusters):
+            # Compute distances to the nearest centroid
+            dists = torch.cdist(samples[h:h + 1], means[h, :i], p=2).squeeze(0)  # Shape: (num_samples, i)
+            min_dists, _ = torch.min(dists, dim=1)  # Minimum distance to the nearest centroid
+
+            # Select the next centroid with probability proportional to squared distances
+            probs = min_dists ** 2 / torch.sum(min_dists ** 2)
+            next_idx = torch.multinomial(probs, 1)
+            means[h, i] = samples[h, next_idx]
+
+    # KMeans clustering iterations
     for _ in range(num_iters):
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
@@ -233,6 +249,7 @@ def kmeans(
             means,
             new_means
         )
+
     return means, bins
 
 
