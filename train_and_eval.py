@@ -61,7 +61,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()  # Reset gradients after optimizer step
-            model.reset_kmeans()
+            model.encoder.reset_kmeans()
 
             # count unique cb vectors
             unique_vectors, counts = np.unique(np.squeeze(cb.cpu().detach().numpy()), axis=0, return_counts=True)
