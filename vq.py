@@ -384,6 +384,7 @@ class EuclideanCodebook(nn.Module):
         # prepare for updating centroids
         # -----------------------------------------------------------------------------
         embed = self.embed if self.learnable_codebook else self.embed.detach()
+        init_cb = self.embed.detach()
         dist = -torch.cdist(flatten, embed, p=2)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
@@ -409,7 +410,7 @@ class EuclideanCodebook(nn.Module):
         if needs_codebook_dim:
             quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
             # quantize, embed_ind, dist, embed, latents
-        return quantize, embed_ind, dist, self.embed, flatten, embed
+        return quantize, embed_ind, dist, self.embed, flatten, init_embed
 
 
 class CosineSimCodebook(nn.Module):

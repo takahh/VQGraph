@@ -29,7 +29,7 @@ def plot_graph(data, mode, epoch, param, cb_size):
         n_bins = 100  # Number of bins for both axes
         # cb_size = 1201
         plt.hist2d(
-            embedding[cb_size:, 0], embedding[cb_size:, 1],
+            embedding[2 * cb_size:, 0], embedding[2 * cb_size:, 1],
             bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
             cmap='viridis'
         )
@@ -37,7 +37,8 @@ def plot_graph(data, mode, epoch, param, cb_size):
         plt.colorbar(label='Density')
         plt.title(f"{parameter_names}, cb {cb_size}")
         # Overlay scatter plot
-        plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='red', alpha=1)
+        plt.scatter(embedding[cb_size:2 * cb_size, 0], embedding[cb_size:2 * cb_size, 1], s=3, c='red', alpha=1)
+        plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
         plt.show()
         # plt.savefig(f"./plot_epoch{epoch}")
 
@@ -79,10 +80,10 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    for epoch in range(5, 9):
+    for epoch in range(5, 6):
         arr = None
         print(f"epoch {epoch}")
-        namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
+        namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:
             arr = getdata(names)
             if "book" in names:
