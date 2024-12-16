@@ -198,12 +198,15 @@ from einops import rearrange, repeat
 def kmeans(
         samples,
         num_clusters,
-        num_iters=300,
+        num_iters=600,
         use_cosine_sim=False,
         sample_fn=batched_sample_vectors,
         all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
+    print(f"running kmeans !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(f"running kmeans !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(f"running kmeans !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     # KMeans++ Initialization
     means = torch.empty((num_codebooks, num_clusters, dim), dtype=dtype, device=device)
