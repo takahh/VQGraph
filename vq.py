@@ -343,9 +343,10 @@ class EuclideanCodebook(nn.Module):
 
     @torch.jit.ignore
     def init_embed_(self, data):
+        print("running init_embed 1 !!!!!!!!!!!!!!!!!!!")
         if self.initted:
             return
-
+        print("running init_embed 2 !!!!!!!!!!!!!!!!!!!")
         # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
@@ -354,6 +355,7 @@ class EuclideanCodebook(nn.Module):
         #     sample_fn=self.sample_fn,
         #     all_reduce_fn=self.kmeans_all_reduce_fn
         # )
+
         embed, cluster_size = kmeans(
             data,
             self.codebook_size,
