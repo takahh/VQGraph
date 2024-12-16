@@ -152,6 +152,11 @@ class SAGE(nn.Module):
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
 
+
+    def reset_kmeans(self):
+        self.vq.codebook.reset_kmeans()
+
+
     def forward(self, blocks, feats):
         # print("train")
         h = feats

@@ -341,6 +341,11 @@ class EuclideanCodebook(nn.Module):
         else:
             self.register_buffer('embed', embed)
 
+
+    def reset_kmeans(self):
+        self.initted.data.copy_(torch.Tensor([False]))
+
+
     @torch.jit.ignore
     def init_embed_(self, data):
         print("running init_embed 1 !!!!!!!!!!!!!!!!!!!")
@@ -496,6 +501,7 @@ class CosineSimCodebook(nn.Module):
         )
         self.embed.data.copy_(embed)
         self.cluster_size.data.copy_(cluster_size)
+        # this line means init_embed is run only once
         self.initted.data.copy_(torch.Tensor([True]))
 
 
