@@ -286,7 +286,7 @@ class EuclideanCodebook(nn.Module):
             decay=0.8,
             eps=1e-5,
             threshold_ema_dead_code=2,
-            use_ddp=False,
+            use_ddp=True,
             learnable_codebook=False,
             sample_codebook_temp=0
     ):
@@ -298,14 +298,14 @@ class EuclideanCodebook(nn.Module):
         self.codebook_size = codebook_size
         self.num_codebooks = num_codebooks
 
-        self.kmeans_iters = kmeans_iters
+        self.kmeans_iters = 300
         self.eps = eps
         self.threshold_ema_dead_code = threshold_ema_dead_code
         self.sample_codebook_temp = sample_codebook_temp
 
         assert not (
                     use_ddp and num_codebooks > 1 and kmeans_init), 'kmeans init is not compatible with multiple codebooks in distributed environment for now'
-
+        use_ddp = True
         self.sample_fn = sample_vectors_distributed if use_ddp and sync_kmeans else batched_sample_vectors
         self.kmeans_all_reduce_fn = distributed.all_reduce if use_ddp and sync_kmeans else noop
         self.all_reduce_fn = distributed.all_reduce if use_ddp else noop
