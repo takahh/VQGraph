@@ -15,20 +15,21 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
     embedding = None
-    heatmap_colors = ["Blues", "binary", "BuGn"]
-    cb_colors = ["blue", "black", "green"]
+    heatmap_colors = ["Blues", "binary", "BuGn", "Purples"]
+    cb_colors = ["blue", "black", "green", "orange"]
 
     if mode == "tsne":
         perplex = param
         n_iter = 5000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         data = np.concatenate((cb_arr, latent_list), axis=0)
-        parameter_names = f"umap: perplex {param}, epoch {epoch}, cb {cb_size}"
+        title = f"T-SNE: perplex {param}, epoch {epoch}, cb {cb_size}, dim {latent_list.shape[-1]}"
 
         # -------------------------------------
         # put all data into tsne
         # -------------------------------------
         embedding = tsne.fit_transform(data)
+        print(f"embedding.shape {embedding.shape}")
 
         # -------------------------------------
         # make two lists
@@ -36,7 +37,7 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
         cb_arr, latent_list = [], []
         for i in range(4):
             cb_arr.append(embedding[cb_size*i:cb_size*(i+1)])
-            latent_list.append(embedding[cb_size*4:][cb_size*4*i:cb_size*4*(i+1)])
+            latent_list.append(embedding[cb_size*4:][4000*i:4000*(i+1)])
 
         # -------------------------------------
         # plot three pairs of data
@@ -55,7 +56,7 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
             # cb_size = 1201
 
             plt.hist2d(
-                embedding[cb_size*4:][:, 0], embedding[cb_size*4:][:, 1],
+                latent_list[i][:, 0], latent_list[i][:, 1],
                 bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
                 cmap=heatmap_colors[i]
             )
@@ -63,7 +64,7 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
             plt.scatter(cb_arr[i][:, 0], cb_arr[i][:, 1], s=1, c="red", alpha=1)
 
             # plt.colorbar(label='Density')
-            plt.title(f"{parameter_names}, cb {cb_size}")
+            plt.title(title)
             # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
             plt.show()
             # plt.savefig(f"./plot_epoch{epoch}")
@@ -109,7 +110,7 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 256
-    EPOCH = 2
+    EPOCH = 6
     for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -119,14 +120,15 @@ def main():
             arr = getdata(names)
             if "book" in names:
                 cb_arr = np.unique(arr, axis=0)[-4:]
+                cb_size = cb_arr.shape[1]
+                print(f"cb_size {cb_size}")
                 cb_arr = np.reshape(cb_arr, (-1, DIMENSION))
                 print(f"cb_arr.shape {cb_arr.shape}")
-                cb_size = arr.shape[1]
             else:
                 latent_arr = arr
                 print(f"arr.shape {arr.shape}")
 
-        for param in [10, 100]:
+        for param in [10]:
             plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size)
 
 
