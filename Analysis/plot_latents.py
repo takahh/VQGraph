@@ -110,8 +110,9 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 128
-    EPOCH = 9
-    for epoch in range(EPOCH, EPOCH + 1):
+    EPOCH = 7
+    EPOCH2 = 9
+    for epoch in range(EPOCH, EPOCH2):
         arr = None
         print(f"epoch {epoch}")
         namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
