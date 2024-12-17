@@ -500,8 +500,8 @@ def run_inductive(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
             )
             # save codebook and vectors every epoch
-            cb_just_trained = np.concat([a.cpu().detach().numpy() for a in cb_just_trained])
-            init_cb_list = np.concat([a.cpu().detach().numpy() for a in init_cb_list])
+            cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained])
+            init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])
             np.savez(f"./codebook_{epoch}", cb_just_trained)
             np.savez(f"./init_codebook_{epoch}", init_cb_list)
             latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
