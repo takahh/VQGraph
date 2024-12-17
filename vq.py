@@ -424,8 +424,8 @@ class EuclideanCodebook(nn.Module):
         # -----------------------------------------------------------------------------
         # run simple k-means to set initial codebook
         # -----------------------------------------------------------------------------
-        if self.training:
-            self.init_embed_(flatten)
+        # if self.training:
+        #     self.init_embed_(flatten)
         # -----------------------------------------------------------------------------
         # prepare for updating centroids
         # -----------------------------------------------------------------------------
