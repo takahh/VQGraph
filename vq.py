@@ -761,7 +761,7 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+                # margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 # ---------------------------------
                 # linearly combine losses !!!!
