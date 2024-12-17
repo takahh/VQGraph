@@ -143,15 +143,32 @@ def batched_bincount(x, *, minlength):
 # # use_cosine_sim=True,
 # sample_fn = self.sample_fn,
 # all_reduce_fn = self.kmeans_all_reduce_fn
+import torch
+from torch.distributions.multivariate_normal import MultivariateNormal
+
 
 def gmm(
         samples,
-        num_clusters,
+        cluster_size=500,  # Enforced fixed cluster size
         num_iters=50,
         sample_fn=None,  # Optional sampling function
         all_reduce_fn=lambda x: x  # No-op by default
 ):
+    """
+    Gaussian Mixture Model (GMM) with a fixed number of bins (500 clusters).
+
+    Args:
+        samples: Tensor of shape [num_codebooks, num_samples, dim].
+        cluster_size: Fixed cluster size (default=500).
+        num_iters: Number of EM iterations.
+        sample_fn: Optional sampling function.
+        all_reduce_fn: Optional reduction function for distributed training.
+
+    Returns:
+        bins: Tensor containing cluster assignments for each sample.
+    """
     num_codebooks, num_samples, dim = samples.shape
+    num_clusters = cluster_size  # Fixed bins/clusters
 
     # Initialize means using k-means++ logic
     means = torch.empty(num_codebooks, num_clusters, dim, dtype=samples.dtype, device=samples.device)
@@ -177,7 +194,7 @@ def gmm(
                 responsibilities[h, :, k] = weights[h, k] * mvn.log_prob(samples[h]).exp()
 
         responsibilities_sum = responsibilities.sum(dim=-1, keepdim=True)
-        responsibilities = responsibilities / responsibilities_sum  # Normalize responsibilities
+        responsibilities = responsibilities / responsibilities_sum.clamp(min=1e-9)  # Normalize responsibilities safely
 
         # M-step: Update means, covariances, and weights
         for h in range(num_codebooks):
@@ -187,14 +204,14 @@ def gmm(
                 if N_k > 0:
                     means[h, k] = (resp_k.unsqueeze(-1) * samples[h]).sum(dim=0) / N_k
                     diff = samples[h] - means[h, k]
-                    covariances[h, k] = (resp_k.unsqueeze(-1).unsqueeze(-1) * (diff.unsqueeze(-1) * diff.unsqueeze(-2))).sum(dim=0) / N_k
+                    covariances[h, k] = (resp_k.unsqueeze(-1).unsqueeze(-1) *
+                                         (diff.unsqueeze(-1) * diff.unsqueeze(-2))).sum(dim=0) / N_k
                     weights[h, k] = N_k / num_samples
 
         all_reduce_fn(means)
 
-    # Compute final bins (assignments)
+    # Compute final bins (assignments) for a fixed cluster size
     bins = torch.argmax(responsibilities, dim=-1)
-
     return means, bins
 
 
