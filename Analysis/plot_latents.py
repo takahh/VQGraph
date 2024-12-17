@@ -110,8 +110,8 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 128
-    EPOCH = 7
-    EPOCH2 = 9
+    EPOCH = 4
+    EPOCH2 = 6
     for epoch in range(EPOCH, EPOCH2):
         arr = None
         print(f"epoch {epoch}")
