@@ -108,7 +108,7 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 256
-    EPOCH = 2
+    EPOCH = 3
     for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
