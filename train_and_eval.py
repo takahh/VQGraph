@@ -503,7 +503,7 @@ def run_inductive(
             cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained])
             init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])
             np.savez(f"./codebook_{epoch}", cb_just_trained)
-            np.savez(f"./init_codebook_{epoch}", init_cb_list)
+            # np.savez(f"./init_codebook_{epoch}", init_cb_list)
             latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
             # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
             latent_train = latent_train[-16000:]

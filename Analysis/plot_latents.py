@@ -11,7 +11,7 @@ MODE = "tsne"
 # MODE = "umap"
 
 
-def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
+def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
     embedding = None
@@ -22,8 +22,8 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
         perplex = param
         n_iter = 5000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
-        data = np.concatenate((cb_arr, latent_list), axis=0)
-        title = f"T-SNE: perplex {param}, epoch {epoch}, cb {cb_size}, dim {latent_list.shape[-1]}"
+        data = np.concatenate((cb_arr, latent_arr), axis=0)
+        title = f"T-SNE: perplex {param}, epoch {epoch}, cb {cb_size}, dim {latent_arr.shape[-1]}"
 
         # -------------------------------------
         # put all data into tsne
@@ -34,10 +34,10 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
         # -------------------------------------
         # make two lists
         # -------------------------------------
-        cb_arr, latent_list = [], []
+        cb_list, latent_list = [], []
         for i in range(4):
-            cb_arr.append(embedding[cb_size*i:cb_size*(i+1)])
-            latent_list.append(embedding[cb_size*4:][4000*i:4000*(i+1)])
+            cb_list.append(embedding[cb_size * i: cb_size * (i + 1)])
+            latent_list.append(embedding[cb_size * 4:][4000 * i: 4000 * (i + 1)])
 
         # -------------------------------------
         # plot three pairs of data
@@ -45,10 +45,10 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
         for i in range(4):
             plt.figure()
             # Define bin edges to control the size of the bins
-            x_min = min(min(cb_arr[i][:, 0]), min(latent_list[i][:, 0]))
-            x_max = max(max(cb_arr[i][:, 0]), max(latent_list[i][:, 0]))
-            y_min = min(min(cb_arr[i][:, 1]), min(latent_list[i][:, 1]))
-            y_max = max(max(cb_arr[i][:, 1]), max(latent_list[i][:, 1]))
+            x_min = min(min(cb_list[i][:, 0]), min(latent_list[i][:, 0]))
+            x_max = max(max(cb_list[i][:, 0]), max(latent_list[i][:, 0]))
+            y_min = min(min(cb_list[i][:, 1]), min(latent_list[i][:, 1]))
+            y_max = max(max(cb_list[i][:, 1]), max(latent_list[i][:, 1]))
             x_range = (x_min, x_max)  # Range for the x-axis
             y_range = (y_min, y_max)  # Range for the y-axis
             n_bins = 100  # Number of bins for both axes
@@ -61,7 +61,7 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
                 cmap=heatmap_colors[i]
             )
             # Overlay scatter plot
-            plt.scatter(cb_arr[i][:, 0], cb_arr[i][:, 1], s=1, c="red", alpha=1)
+            plt.scatter(cb_list[i][:, 0], cb_list[i][:, 1], s=1, c="red", alpha=1)
 
             # plt.colorbar(label='Density')
             plt.title(title)
@@ -109,8 +109,8 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    DIMENSION = 256
-    EPOCH = 6
+    DIMENSION = 128
+    EPOCH = 5
     for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -128,7 +128,7 @@ def main():
                 latent_arr = arr
                 print(f"arr.shape {arr.shape}")
 
-        for param in [10]:
+        for param in [200]:
             plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size)
 
 
