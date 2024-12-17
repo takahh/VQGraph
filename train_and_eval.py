@@ -83,7 +83,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Release memory explicitly
         del blocks, batch_feats, loss, logits
-        # torch.cuda.empty_cache()
+        torch.cuda.empty_cache()
 
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
@@ -500,13 +500,13 @@ def run_inductive(
                 model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
             )
             # save codebook and vectors every epoch
-            cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained])
+            cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
             init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])
             np.savez(f"./codebook_{epoch}", cb_just_trained)
             # np.savez(f"./init_codebook_{epoch}", init_cb_list)
             latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
             # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-            latent_train = latent_train[-16000:]
+            latent_train = latent_train[-4000:]
             np.savez(f"./latent_train_{epoch}", latent_train)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
