@@ -34,14 +34,14 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
         # make two lists
         # -------------------------------------
         cb_arr, latent_list = [], []
-        for i in range(3):
+        for i in range(4):
             cb_arr.append(embedding[cb_size*i:cb_size*(i+1)])
-            latent_list.append(embedding[1000*4:][4000*i:4000*(i+1)])
+            latent_list.append(embedding[cb_size*4:][cb_size*4*i:cb_size*4*(i+1)])
 
         # -------------------------------------
         # plot three pairs of data
         # -------------------------------------
-        for i in range(3):
+        for i in range(4):
             plt.figure()
             # Define bin edges to control the size of the bins
             x_min = min(min(cb_arr[i][:, 0]), min(latent_list[i][:, 0]))
@@ -109,7 +109,7 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 256
-    EPOCH = 17
+    EPOCH = 1
     for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -120,10 +120,12 @@ def main():
             if "book" in names:
                 cb_arr = np.unique(arr, axis=0)[-4:]
                 cb_arr = np.reshape(cb_arr, (-1, DIMENSION))
-                print()
+                print(f"cb_arr.shape {cb_arr.shape}")
                 cb_size = arr.shape[1]
             else:
                 latent_arr = arr
+                print(f"arr.shape {arr.shape}")
+
         for param in [5, 10, 100]:
             plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size)
 
