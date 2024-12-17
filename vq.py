@@ -228,23 +228,8 @@ def kmeans(
         all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
-    # KMeans++ Initialization
-    means = torch.empty((num_codebooks, num_clusters, dim), dtype=dtype, device=device)
-    for h in range(num_codebooks):
-        indices = torch.randint(0, samples.shape[1], (1,))
-        means[h, 0] = samples[h, indices]
 
-        for i in range(1, num_clusters):
-            # Compute distances to the nearest centroid
-            dists = torch.cdist(samples[h:h + 1], means[h, :i], p=2).squeeze(0)  # Shape: (num_samples, i)
-            min_dists, _ = torch.min(dists, dim=1)  # Minimum distance to the nearest centroid
-
-            # Select the next centroid with probability proportional to squared distances
-            probs = min_dists ** 2 / torch.sum(min_dists ** 2)
-            next_idx = torch.multinomial(probs, 1)
-            means[h, i] = samples[h, next_idx]
-
-    # KMeans clustering iterations
+    means = sample_fn(samples, num_clusters)
     for _ in range(num_iters):
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
@@ -370,22 +355,22 @@ class EuclideanCodebook(nn.Module):
     def init_embed_(self, data):
         if self.initted:
             return
-        embed, cluster_size = gmm(
-            data,
-            self.codebook_size,
-            self.kmeans_iters,
-            # use_cosine_sim=True,
-            sample_fn=self.sample_fn,
-            all_reduce_fn=self.kmeans_all_reduce_fn
-        )
-
-        # embed, cluster_size = kmeans(
+        # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
         #     self.kmeans_iters,
+        #     # use_cosine_sim=True,
         #     sample_fn=self.sample_fn,
         #     all_reduce_fn=self.kmeans_all_reduce_fn
         # )
+
+        embed, cluster_size = kmeans(
+            data,
+            self.codebook_size,
+            self.kmeans_iters,
+            sample_fn=self.sample_fn,
+            all_reduce_fn=self.kmeans_all_reduce_fn
+        )
         self.embed.data.copy_(embed)
         self.embed_avg.data.copy_(embed.clone())
         self.cluster_size.data.copy_(cluster_size)
@@ -424,8 +409,8 @@ class EuclideanCodebook(nn.Module):
         # -----------------------------------------------------------------------------
         # run simple k-means to set initial codebook
         # -----------------------------------------------------------------------------
-        # if self.training:
-        #     self.init_embed_(flatten)
+        if self.training:
+            self.init_embed_(flatten)
         # -----------------------------------------------------------------------------
         # prepare for updating centroids
         # -----------------------------------------------------------------------------
