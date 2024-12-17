@@ -109,7 +109,7 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 256
-    EPOCH = 1
+    EPOCH = 2
     for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -126,7 +126,7 @@ def main():
                 latent_arr = arr
                 print(f"arr.shape {arr.shape}")
 
-        for param in [5, 10, 100]:
+        for param in [10, 100]:
             plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size)
 
 
