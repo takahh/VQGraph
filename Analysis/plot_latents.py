@@ -11,66 +11,91 @@ MODE = "tsne"
 # MODE = "umap"
 
 
-def plot_graph(data, mode, epoch, param, cb_size):
+def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
     # Initialize UMAP or TSNE with custom parameters
     parameter_names = None
     embedding = None
+    heatmap_colors = ["Blues", "binary", "BuGn"]
+    cb_colors = ["blue", "black", "green"]
+
     if mode == "tsne":
         perplex = param
         n_iter = 5000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
+        data = np.concatenate((cb_arr, latent_list), axis=0)
+
+        # -------------------------------------
+        # put all data into tsne
+        # -------------------------------------
         embedding = tsne.fit_transform(data)
-        parameter_names = f"tsne: perplex {perplex}, epoch {epoch}, n_iter {n_iter}"
 
-        plt.figure()
-        # Define bin edges to control the size of the bins
-        x_range = (min(embedding[:, 0]), max(embedding[:, 0]))  # Range for the x-axis
-        y_range = (min(embedding[:, 1]), max(embedding[:, 1]))  # Range for the y-axis
-        n_bins = 100  # Number of bins for both axes
-        # cb_size = 1201
-        plt.hist2d(
-            embedding[2 * cb_size:, 0], embedding[2 * cb_size:, 1],
-            bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
-            cmap='viridis'
-        )
+        # -------------------------------------
+        # make two lists
+        # -------------------------------------
+        cb_arr, latent_list = [], []
+        for i in range(3):
+            cb_arr.append(embedding[1000*i:1000*(i+1)])
+            latent_list.append(embedding[1000*4:][4000*i:4000*(i+1)])
 
-        plt.colorbar(label='Density')
-        plt.title(f"{parameter_names}, cb {cb_size}")
-        # Overlay scatter plot
-        plt.scatter(embedding[cb_size:2 * cb_size, 0], embedding[cb_size:2 * cb_size, 1], s=3, c='red', alpha=1)
-        # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
-        plt.show()
-        # plt.savefig(f"./plot_epoch{epoch}")
+        # -------------------------------------
+        # plot three pairs of data
+        # -------------------------------------
+        for i in range(3):
+            plt.figure()
+            # Define bin edges to control the size of the bins
+            x_min = min(min(cb_arr[i][:, 0]), min(latent_list[i][:, 0]))
+            x_max = max(max(cb_arr[i][:, 0]), max(latent_list[i][:, 0]))
+            y_min = min(min(cb_arr[i][:, 1]), min(latent_list[i][:, 1]))
+            y_max = max(max(cb_arr[i][:, 1]), max(latent_list[i][:, 1]))
+            x_range = (x_min, x_max)  # Range for the x-axis
+            y_range = (y_min, y_max)  # Range for the y-axis
+            n_bins = 100  # Number of bins for both axes
 
-    elif mode == "umap":
-        n_neibogher = param
-        min_dist = 0.1
-        n_epochs = 5000
-        # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
-        reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42).fit(data[cb_size:])
-        embedding_latent = reducer.transform(data[2*cb_size:])
-        embedding_quantized = reducer.transform(data[:2*cb_size])
-        parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
+            # cb_size = 1201
+            plt.hist2d(
+                latent_list[i][:, 0], latent_list[i][:, 1],
+                bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
+                cmap=heatmap_colors[i]
+            )
+            # Overlay scatter plot
+            plt.scatter(cb_arr[i][:, 0], cb_arr[i][:, 1], s=1, c="red", alpha=1)
 
-        plt.figure()
-        # Define bin edges to control the size of the bins
-        x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
-        y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
-        n_bins = 100  # Number of bins for both axes
-        # cb_size = 1201
-        plt.hist2d(
-            embedding_latent[:, 0], embedding_latent[:, 1],
-            bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
-            cmap='viridis'
-        )
+            # plt.colorbar(label='Density')
+            # plt.title(f"{parameter_names}, cb {cb_size}")
+            # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
+            plt.show()
+            # plt.savefig(f"./plot_epoch{epoch}")
 
-        plt.colorbar(label='Density')
-        plt.title(f"{parameter_names}, cb {cb_size}")
-        # Overlay scatter plot
-        plt.scatter(embedding[cb_size:2 * cb_size, 0], embedding[cb_size:2 * cb_size, 1], s=3, c='red', alpha=1)
-        # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
-        plt.show()
-        # plt.savefig(f"./plot_epoch{epoch}")
+    # elif mode == "umap":
+    #     n_neibogher = param
+    #     min_dist = 0.1
+    #     n_epochs = 5000
+    #     # reducer = umap.UMAP(n_neighbors=n_neibogher, metric='cosine', min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42)
+    #     reducer = umap.UMAP(n_neighbors=n_neibogher, min_dist=min_dist, n_epochs=n_epochs, n_components=2, random_state=42).fit(data[cb_size:])
+    #     embedding_latent = reducer.transform(data[2*cb_size:])
+    #     embedding_quantized = reducer.transform(data[:2*cb_size])
+    #     parameter_names = f"umap: n_neiboughers {n_neibogher}, min_dist {min_dist}, epoch {epoch}\n n_epochs {n_epochs}"
+    #
+    #     plt.figure()
+    #     # Define bin edges to control the size of the bins
+    #     x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
+    #     y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
+    #     n_bins = 100  # Number of bins for both axes
+    #     # cb_size = 1201
+    #     plt.hist2d(
+    #         embedding_latent[:, 0], embedding_latent[:, 1],
+    #         bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
+    #         cmap='viridis'
+    #     )
+    #
+    #     plt.colorbar(label='Density')
+    #     plt.title(f"{parameter_names}, cb {cb_size}")
+    #     # Overlay scatter plot
+    #     plt.scatter(embedding[cb_size:2 * cb_size, 0], embedding[cb_size:2 * cb_size, 1], s=3, c='red', alpha=1)
+    #     # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
+    #     plt.show()
+    #     # plt.savefig(f"./plot_epoch{epoch}")
+
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -81,27 +106,23 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    for epoch in range(100, 101):
+    DIMENSION = 256
+    EPOCH = 3
+    for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
-        namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
+        namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
+        # namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:
             arr = getdata(names)
             if "book" in names:
-                arr = np.unique(arr, axis=0)
-                cb_size = arr.shape[0]
-                print(f"cb_size {cb_size}")
+                cb_arr = np.unique(arr, axis=0)[-4:]
+                cb_arr = np.reshape(cb_arr, (-1, DIMENSION))
+                cb_size = arr.shape[1]
             else:
-                print(f"original {arr.shape}")
-                # random_indices = np.random.choice(arr.shape[0], 4000, replace=False)
-                # arr = arr[random_indices]
-                # arr = arr[-4000:]
-            print(f"{names.split('/')[-1]} - {arr.shape}")
-            arr_list.append(arr)
-        arr_combined = np.vstack(arr_list)
-        print(f"combined - {arr_combined.shape}")
+                latent_arr = arr
         for param in [10]:
-            plot_graph(arr_combined, MODE, epoch, param, cb_size)
+            plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size)
 
 
 if __name__ == '__main__':

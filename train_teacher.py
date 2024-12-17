@@ -83,7 +83,7 @@ def get_args():
     # --------------
     # VQ
     # --------------
-    parser.add_argument("--codebook_size", type=int, default=1000, help="Codebook size of VQGraph")
+    parser.add_argument("--codebook_size", type=int, default=500, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_node", type=float, default=0.00008)  # default=0.001)
     parser.add_argument("--lamb_edge",  type=float, default=0.003)  # default=0.03)
 
@@ -109,7 +109,7 @@ def get_args():
     )
 
     """SAGE Specific"""
-    parser.add_argument("--batch_size", type=int, default=8000)
+    parser.add_argument("--batch_size", type=int, default=4000)
     parser.add_argument(
         "--fan_out",
         type=str,
@@ -121,7 +121,7 @@ def get_args():
     )
 
     """Optimization"""
-    parser.add_argument("--accumulation_steps", type=int, default=1) # default=0.0001)
+    parser.add_argument("--accumulation_steps", type=int, default=10) # default=0.0001)
     parser.add_argument("--learning_rate", type=float, default=0.0005) # default=0.0001)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument(
