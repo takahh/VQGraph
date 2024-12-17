@@ -211,7 +211,7 @@ def kmeans(
         all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
-
+    print(f"running kmeans !!!")
     # KMeans++ Initialization
     means = torch.empty((num_codebooks, num_clusters, dim), dtype=dtype, device=device)
     for h in range(num_codebooks):
