@@ -35,7 +35,7 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
         # -------------------------------------
         cb_arr, latent_list = [], []
         for i in range(3):
-            cb_arr.append(embedding[1000*i:1000*(i+1)])
+            cb_arr.append(embedding[cb_size*i:cb_size*(i+1)])
             latent_list.append(embedding[1000*4:][4000*i:4000*(i+1)])
 
         # -------------------------------------
@@ -53,8 +53,9 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
             n_bins = 100  # Number of bins for both axes
 
             # cb_size = 1201
+
             plt.hist2d(
-                latent_list[i][:, 0], latent_list[i][:, 1],
+                embedding[cb_size*4:][:, 0], embedding[cb_size*4:][:, 1],
                 bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
                 cmap=heatmap_colors[i]
             )
@@ -108,7 +109,7 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 256
-    EPOCH = 3
+    EPOCH = 17
     for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
@@ -119,10 +120,11 @@ def main():
             if "book" in names:
                 cb_arr = np.unique(arr, axis=0)[-4:]
                 cb_arr = np.reshape(cb_arr, (-1, DIMENSION))
+                print()
                 cb_size = arr.shape[1]
             else:
                 latent_arr = arr
-        for param in [10]:
+        for param in [5, 10, 100]:
             plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size)
 
 
