@@ -372,7 +372,7 @@ class EuclideanCodebook(nn.Module):
         self.embed.data.copy_(embed)
         self.embed_avg.data.copy_(embed.clone())
         self.cluster_size.data.copy_(cluster_size)
-        # self.initted.data.copy_(torch.Tensor([True]))
+        self.initted.data.copy_(torch.Tensor([True]))
 
     def replace(self, batch_samples, batch_mask):
         for ind, (samples, mask) in enumerate(zip(batch_samples.unbind(dim=0), batch_mask.unbind(dim=0))):
@@ -766,8 +766,8 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
-                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
+                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
+                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
