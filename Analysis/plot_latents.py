@@ -23,6 +23,7 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
         n_iter = 5000
         tsne = TSNE(n_components=2, random_state=44, perplexity=perplex, n_iter=n_iter)
         data = np.concatenate((cb_arr, latent_list), axis=0)
+        parameter_names = f"umap: perplex {param}, epoch {epoch}, cb {cb_size}"
 
         # -------------------------------------
         # put all data into tsne
@@ -61,7 +62,7 @@ def plot_graph(cb_arr, latent_list, mode, epoch, param, cb_size):
             plt.scatter(cb_arr[i][:, 0], cb_arr[i][:, 1], s=1, c="red", alpha=1)
 
             # plt.colorbar(label='Density')
-            # plt.title(f"{parameter_names}, cb {cb_size}")
+            plt.title(f"{parameter_names}, cb {cb_size}")
             # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
             plt.show()
             # plt.savefig(f"./plot_epoch{epoch}")
@@ -107,7 +108,7 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 256
-    EPOCH = 3
+    EPOCH = 8
     for epoch in range(EPOCH, EPOCH + 1):
         arr = None
         print(f"epoch {epoch}")
