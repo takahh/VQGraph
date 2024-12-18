@@ -222,7 +222,7 @@ from einops import rearrange, repeat
 def kmeans(
         samples,
         num_clusters,
-        num_iters=600,
+        num_iters=100,
         use_cosine_sim=False,
         sample_fn=batched_sample_vectors,
         all_reduce_fn=noop
