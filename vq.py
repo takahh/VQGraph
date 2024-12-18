@@ -228,7 +228,7 @@ def kmeans(
         all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
-
+    num_iters = 50
     means = sample_fn(samples, num_clusters)
     for _ in range(num_iters):
         if use_cosine_sim:
