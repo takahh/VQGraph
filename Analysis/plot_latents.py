@@ -51,6 +51,8 @@ def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size):
             y_max = max(max(cb_list[i][:, 1]), max(latent_list[i][:, 1]))
             x_range = (x_min, x_max)  # Range for the x-axis
             y_range = (y_min, y_max)  # Range for the y-axis
+            x_range = (-20, 0)  # Range for the x-axis
+            y_range = (-50, -25)  # Range for the y-axis
             n_bins = 100  # Number of bins for both axes
 
             # cb_size = 1201
@@ -110,7 +112,7 @@ def getdata(filename):
 def main():
     arr_list = []
     DIMENSION = 512
-    EPOCH = 5
+    EPOCH = 7
     EPOCH2 = 8
     for epoch in range(EPOCH, EPOCH2):
         arr = None
