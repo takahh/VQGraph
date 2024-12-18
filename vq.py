@@ -763,12 +763,12 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                # margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+                margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight
+                loss = loss + margin_loss * self.margin_weight
                 # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
