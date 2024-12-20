@@ -282,6 +282,7 @@ def run(args):
         score_lst = [score_test]
 
     elif args.exp_setting == "ind":
+        # indices = (obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind)  indices[4] is idx_test_ind
         indices = graph_split(idx_train, idx_val, idx_test, args.split_rate, args.seed)
 
         # propagate node feature. The propagation for the observed graph only happens within the subgraph obs_g
@@ -292,6 +293,9 @@ def run(args):
             feats = feature_prop(feats, g, args.feature_aug_k)
             feats[idx_obs] = obs_feats
 
+        # ----------------------------------------------------------------------------
+        # run the model
+        # ----------------------------------------------------------------------------
         out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind, latent_train_list = run_inductive(
             conf,
             model,
@@ -323,23 +327,23 @@ def run(args):
     # Sample the tensor
     latent_train_list_sampled = latent_train_list[random_indices]
 
-    """ Saving teacher outputs """
-    out_np = out.detach().cpu().numpy()
-    out_codebook = codebook.detach().cpu().numpy()
-    out_emb = h_list[0].detach().cpu().numpy()
-    dist_vq = dist.detach().cpu().numpy()
-    # latents_ind = F.normalize(latents_ind, p=2, dim=-1)
-    # latents_trans = F.normalize(latents_trans, p=2, dim=-1)
-    # print(f"latent : tran {latents_trans.shape}")
-    # print(f"latent : ind {latents_ind.shape}")
-    np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
-    np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
-    np.savez(output_dir.joinpath("codebook"), codebook.cpu().detach().numpy())
-    np.savez(output_dir.joinpath("out_emb_list"), out_emb)
-    # np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
-    # np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
-    np.savez(output_dir.joinpath("latent_train_list"), latent_train_list_sampled.cpu().detach().numpy())
-    np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
+    # """ Saving teacher outputs """
+    # out_np = out.detach().cpu().numpy()
+    # out_codebook = codebook.detach().cpu().numpy()
+    # out_emb = h_list[0].detach().cpu().numpy()
+    # dist_vq = dist.detach().cpu().numpy()
+    # # latents_ind = F.normalize(latents_ind, p=2, dim=-1)
+    # # latents_trans = F.normalize(latents_trans, p=2, dim=-1)
+    # # print(f"latent : tran {latents_trans.shape}")
+    # # print(f"latent : ind {latents_ind.shape}")
+    # np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
+    # np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
+    # np.savez(output_dir.joinpath("codebook"), codebook.cpu().detach().numpy())
+    # np.savez(output_dir.joinpath("out_emb_list"), out_emb)
+    # # np.savez(output_dir.joinpath("latents_trans"), latents_trans.cpu())
+    # # np.savez(output_dir.joinpath("latents_ind"), latents_ind.cpu())
+    # np.savez(output_dir.joinpath("latent_train_list"), latent_train_list_sampled.cpu().detach().numpy())
+    # np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)
 
     """ Saving loss curve and model """
     # if args.save_results:

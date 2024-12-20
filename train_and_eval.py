@@ -49,7 +49,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Gradient accumulation
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
-            # h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss], x, detached_quantize
             _, logits, loss, _, cb, loss_list, latent_train, quantized, init_cb = model(blocks, batch_feats)
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
@@ -177,7 +176,8 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     # this line explicitly set self.training True
     model.eval()
     with torch.no_grad():
-        h_list, logits, _ , dist, codebook, loss_list, latent_vectors = model.inference(data, feats)
+        # h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, embed_ind_list
+        h_list, logits, _ , dist, codebook, loss_list, latent_vectors, embed_ind_list = model.inference(data, feats)
         out = logits.log_softmax(dim=1)
         if idx_eval is None:
             loss = criterion(out, labels)
@@ -186,7 +186,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
         #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind
-    return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors
+    return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
 
 
 def evaluate_mini_batch(
@@ -507,7 +507,7 @@ def run_inductive(
             # np.savez(f"./init_codebook_{epoch}", init_cb_list)
             latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
             # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-            latent_train = latent_train[-4000:]
+            latent_train = latent_train[-8000:]
             np.savez(f"./latent_train_{epoch}", latent_train)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
@@ -553,7 +553,8 @@ def run_inductive(
             # test/inference, no sampling, full obs graph
             # --------------------------------------
             # the "loss_train" is test loss in training
-            obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans = evaluate(
+            # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
+            obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, embed_ind_list = evaluate(
                 model,
                 obs_data_eval,
                 obs_feats,
@@ -577,10 +578,33 @@ def run_inductive(
             # 3. Evaluate the inductive part (idx_test_ind),
             # which is unlabeled, unseen in training
             # -------------------------------------------------
+            # ---------------------------------------------------------------
+            # save 'INPUT' embed indices for comparison to actual molecules
+            # ---------------------------------------------------------------
+            idx_test_ind_tosave = idx_test_ind[:8000]
+            np.savez(f"./idx_test_ind_tosave_first8000_{epoch}", idx_test_ind_tosave)
+            # -----------------------------------------------
             # Evaluate the inductive part with the full graph
-            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind = evaluate(
-                model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
+            # -----------------------------------------------
+            # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
+            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices = evaluate(
+                model,
+                data_eval,
+                feats,
+                labels,
+                criterion,
+                evaluator,
+                idx_test_ind
             )
+
+            # -----------------------------------------------------
+            # save embed indices for comparison to actual molecules
+            # -----------------------------------------------------
+            embed_ind_list_indices = torch.cat([torch.squeeze(x) for x in embed_ind_list_indices])
+            # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
+            embed_ind_list_indices = embed_ind_list_indices[:8000]
+            np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
+
             loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])
             logger.info(f"------------epoch {epoch:3d} -----------------------")
             logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
@@ -623,6 +647,11 @@ def run_inductive(
 
             # if count == conf["patience"] or epoch == conf["max_epoch"]:
             #     break
+
+        # --------------------------------
+        # save model every epoch
+        # --------------------------------
+        torch.save(model.state_dict(), f"model_epoch_{epoch}.pth")
 
     model.load_state_dict(state)
     # if "MLP" in model.model_name:
