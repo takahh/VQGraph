@@ -488,6 +488,7 @@ def run_inductive(
     latent_ind, latent_trans, latent_train = None, None, None
     cb_just_trained = None
     init_cb_list = None
+    out, acc_ind, h_list, dist = None, None, None, None
     for epoch in range(1, conf["max_epoch"] + 1):
         # print(f"epoch {epoch}")
 
@@ -668,39 +669,39 @@ def run_inductive(
             torch.save(model.state_dict(), f"model_epoch_{epoch}.pth")
 
             model.load_state_dict(state)
-    # if "MLP" in model.model_name:
-    #     obs_out, _, score_val = evaluate_mini_batch(
-    #         model, obs_feats, obs_labels, criterion, batch_size, evaluator, obs_idx_val
-    #     )
-    #     out, _, acc_ind = evaluate_mini_batch(
-    #         model, feats, labels, criterion, batch_size, evaluator, idx_test_ind
-    #     )
-    #
-    # else:
-    #     logger.info(
-    #         f"started the final tran test"
-    #     )
-    #     obs_out, _, score_val, h_list, dist, codebook, loss_list, latent_trans = evaluate(
-    #         model,
-    #         obs_data_eval,
-    #         obs_feats,
-    #         obs_labels,
-    #         criterion,
-    #         evaluator,
-    #         obs_idx_val,
-    #     )
-    #     logger.info(
-    #         f"started the final ind test"
-    #     )
-    #     out, _, acc_ind, h_list, dist, codebook, loss_list, latent_ind = evaluate(
-    #         model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
-    #     )
+            # if "MLP" in model.model_name:
+            #     obs_out, _, score_val = evaluate_mini_batch(
+            #         model, obs_feats, obs_labels, criterion, batch_size, evaluator, obs_idx_val
+            #     )
+            #     out, _, acc_ind = evaluate_mini_batch(
+            #         model, feats, labels, criterion, batch_size, evaluator, idx_test_ind
+            #     )
+            #
+            # else:
+            #     logger.info(
+            #         f"started the final tran test"
+            #     )
+            #     obs_out, _, score_val, h_list, dist, codebook, loss_list, latent_trans = evaluate(
+            #         model,
+            #         obs_data_eval,
+            #         obs_feats,
+            #         obs_labels,
+            #         criterion,
+            #         evaluator,
+            #         obs_idx_val,
+            #     )
+            #     logger.info(
+            #         f"started the final ind test"
+            #     )
+            #     out, _, acc_ind, h_list, dist, codebook, loss_list, latent_ind = evaluate(
+            #         model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
+            #     )
 
-    acc_tran = evaluator(obs_out[obs_idx_test], obs_labels[obs_idx_test])
-    out[idx_obs] = obs_out
-    logger.info(
-        f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
-    )
+            # acc_tran = evaluator(obs_out[obs_idx_test], obs_labels[obs_idx_test])
+            # out[idx_obs] = obs_out
+            # logger.info(
+            #     f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
+            # )
     #      out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind, latent_train_list
     return out, score_val, acc_tran, acc_ind, h_list, dist, cb_at_best, latent_trans, latent_ind, train_latents_at_best
 
