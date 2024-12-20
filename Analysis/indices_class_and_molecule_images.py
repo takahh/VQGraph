@@ -58,21 +58,21 @@ def getdata(filename):
 
 
 def main():
-    path = "/Users/taka/Downloads/latent_and_ind/"
-    input_mol_file = f"/Users/taka/Downloads/molecules.npz"
-    class_file = f"{path}embed_ind_indices_first8000_6.npz"
-    indices_file = f"{path}idx_test_ind_tosave_first8000_6.npz"
+    path = "/Users/taka/Documents/output_of_vqgraph_for_analysis/"
+    input_mol_file = f"{path}/molecules.npz"
+    class_file = f"{path}embed_ind_indices_first8000_1.npz"
+    indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"
 
     arr_input = getdata(input_mol_file)
     arr_indices = getdata(indices_file)
     arr_class = getdata(class_file)
-    #
-    # # ic(arr_input.shape)
-    # # ic(arr_input)
-    # ic(arr_indices.shape)
-    # ic(arr_indices)
-    # ic(arr_class.shape)
-    # ic(arr_class)
+
+    # ic(arr_input.shape)
+    # ic(arr_input)
+    ic(arr_indices.shape)
+    ic(arr_indices)
+    ic(arr_class.shape)
+    ic(arr_class)
 
     test_indices = arr_indices[:5]
 
