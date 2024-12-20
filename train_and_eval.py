@@ -482,7 +482,7 @@ def run_inductive(
         obs_data = obs_g
         obs_data_eval = obs_g
         data_eval = g
-
+    state = None
     best_epoch, best_score_val, count = 0, 100, 0
     cb_at_best, train_latents_at_best = None, None
     latent_ind, latent_trans, latent_train = None, None, None
@@ -617,57 +617,57 @@ def run_inductive(
             embed_ind_list_indices = embed_ind_list_indices[:8000]
             np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
 
-            if conf["train_or_infer"] == "train":
+        if conf["train_or_infer"] == "train":
 
-                loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])
-                logger.info(f"------------epoch {epoch:3d} -----------------------")
-                logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
-                logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
-                logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+            loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])
+            logger.info(f"------------epoch {epoch:3d} -----------------------")
+            logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
+            logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
+            logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
-                print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
-                print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
-                print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
-                print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+            print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
+            print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
+            print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
+            print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
 
-                loss_and_score += [
-                    [
-                        epoch,
-                        loss_train,
-                        loss_val,
-                        loss_test_tran,
-                        loss_test_ind,
-                        score_train,
-                        score_val,
-                        acc_tran,
-                        acc_ind,
-                    ]
+            loss_and_score += [
+                [
+                    epoch,
+                    loss_train,
+                    loss_val,
+                    loss_test_tran,
+                    loss_test_ind,
+                    score_train,
+                    score_val,
+                    acc_tran,
+                    acc_ind,
                 ]
-                print(f"loss_total {loss_total:4f}, best_score_val {best_score_val: 5f}")
-                # --------------------------------
-                # check if edge loss is decreasing
-                # --------------------------------
-                if loss_list[1].item() < best_score_val:
-                    best_epoch = epoch
-                    best_score_val = loss_list[1].item()
-                    state = copy.deepcopy(model.state_dict())
-                    cb_at_best = cb_just_trained
-                    train_latents_at_best = latent_train
-                    print(f"best epoch is {best_epoch} !!!!!!!!!")
-                    count = 0
-                else:
-                    count += 1
+            ]
+            print(f"loss_total {loss_total:4f}, best_score_val {best_score_val: 5f}")
+            # --------------------------------
+            # check if edge loss is decreasing
+            # --------------------------------
+            if loss_list[1].item() < best_score_val:
+                best_epoch = epoch
+                best_score_val = loss_list[1].item()
+                state = copy.deepcopy(model.state_dict())
+                cb_at_best = cb_just_trained
+                train_latents_at_best = latent_train
+                print(f"best epoch is {best_epoch} !!!!!!!!!")
+                count = 0
+            else:
+                count += 1
 
             # if count == conf["patience"] or epoch == conf["max_epoch"]:
             #     break
 
-        # --------------------------------
-        # save model every epoch
-        # --------------------------------
-        torch.save(model.state_dict(), f"model_epoch_{epoch}.pth")
+            # --------------------------------
+            # save model every epoch
+            # --------------------------------
+            torch.save(model.state_dict(), f"model_epoch_{epoch}.pth")
 
-    model.load_state_dict(state)
+            model.load_state_dict(state)
     # if "MLP" in model.model_name:
     #     obs_out, _, score_val = evaluate_mini_batch(
     #         model, obs_feats, obs_labels, criterion, batch_size, evaluator, obs_idx_val
