@@ -325,15 +325,15 @@ def run(args):
     )
     logger.info(f"# params {sum(p.numel() for p in model.parameters())}")
 
-    def squeezeit(dlist):
-        dlist = [torch.squeeze(x) for x in dlist]
-        return dlist
-    # print(f"{squeezeit(latent_train_list)} squeezeit(latent_train_list)")
-    latent_train_list = torch.cat(squeezeit(latent_train_list), dim=0)
-    # Generate random indices for sampling
-    random_indices = torch.randperm(latent_train_list.size(0))[:30000]
-    # Sample the tensor
-    latent_train_list_sampled = latent_train_list[random_indices]
+    # def squeezeit(dlist):
+    #     dlist = [torch.squeeze(x) for x in dlist]
+    #     return dlist
+    # # print(f"{squeezeit(latent_train_list)} squeezeit(latent_train_list)")
+    # latent_train_list = torch.cat(squeezeit(latent_train_list), dim=0)
+    # # Generate random indices for sampling
+    # random_indices = torch.randperm(latent_train_list.size(0))[:30000]
+    # # Sample the tensor
+    # latent_train_list_sampled = latent_train_list[random_indices]
 
     # """ Saving teacher outputs """
     # out_np = out.detach().cpu().numpy()
