@@ -495,20 +495,24 @@ def run_inductive(
         # train
         # --------------------------------
         if "SAGE" in model.model_name:
-            # partial sampling, only obs data
-            # this loss is label loss
-            loss, loss_list, latent_train, cb_just_trained, init_cb_list = train_sage(
-                model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
-            )
-            # save codebook and vectors every epoch
-            cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
-            init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])
-            np.savez(f"./codebook_{epoch}", cb_just_trained)
-            # np.savez(f"./init_codebook_{epoch}", init_cb_list)
-            latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
-            # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-            latent_train = latent_train[-8000:]
-            np.savez(f"./latent_train_{epoch}", latent_train)
+            # --------------------------------
+            # run only in train mode
+            # --------------------------------
+            if conf["train_or_infer"] == "train":
+                # partial sampling, only obs data
+                # this loss is label loss
+                loss, loss_list, latent_train, cb_just_trained, init_cb_list = train_sage(
+                    model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
+                )
+                # save codebook and vectors every epoch
+                cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
+                init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])
+                np.savez(f"./codebook_{epoch}", cb_just_trained)
+                # np.savez(f"./init_codebook_{epoch}", init_cb_list)
+                latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
+                # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
+                latent_train = latent_train[-8000:]
+                np.savez(f"./latent_train_{epoch}", latent_train)
         elif "MLP" in model.model_name:
             loss = train_mini_batch(
                 model, feats_train, labels_train, batch_size, criterion, optimizer
@@ -549,30 +553,34 @@ def run_inductive(
                 evaluator,
             )
         else:
-            # --------------------------------------
-            # test/inference, no sampling, full obs graph
-            # --------------------------------------
-            # the "loss_train" is test loss in training
-            # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
-            obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, embed_ind_list = evaluate(
-                model,
-                obs_data_eval,
-                obs_feats,
-                obs_labels,
-                criterion,
-                evaluator,
-                obs_idx_train,
-            )
-            loss_val = criterion(
-                obs_out[obs_idx_val], obs_labels[obs_idx_val]
-            ).item()
-            score_val = evaluator(obs_out[obs_idx_val], obs_labels[obs_idx_val])
-            loss_test_tran = criterion(
-                obs_out[obs_idx_test], obs_labels[obs_idx_test]
-            ).item()
-            acc_tran = evaluator(
-                obs_out[obs_idx_test], obs_labels[obs_idx_test]
-            )
+            # --------------------------------
+            # run only in train mode
+            # --------------------------------
+            if conf["train_or_infer"] == "train":
+                # --------------------------------------
+                # test/inference, no sampling, full obs graph
+                # --------------------------------------
+                # the "loss_train" is test loss in training
+                # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
+                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, embed_ind_list = evaluate(
+                    model,
+                    obs_data_eval,
+                    obs_feats,
+                    obs_labels,
+                    criterion,
+                    evaluator,
+                    obs_idx_train,
+                )
+                loss_val = criterion(
+                    obs_out[obs_idx_val], obs_labels[obs_idx_val]
+                ).item()
+                score_val = evaluator(obs_out[obs_idx_val], obs_labels[obs_idx_val])
+                loss_test_tran = criterion(
+                    obs_out[obs_idx_test], obs_labels[obs_idx_test]
+                ).item()
+                acc_tran = evaluator(
+                    obs_out[obs_idx_test], obs_labels[obs_idx_test]
+                )
 
             # -------------------------------------------------
             # 3. Evaluate the inductive part (idx_test_ind),
@@ -582,7 +590,11 @@ def run_inductive(
             # save 'INPUT' embed indices for comparison to actual molecules
             # ---------------------------------------------------------------
             idx_test_ind_tosave = idx_test_ind[:8000]
-            np.savez(f"./idx_test_ind_tosave_first8000_{epoch}", idx_test_ind_tosave)
+            # --------------------------------
+            # run only in train mode
+            # --------------------------------
+            if conf["train_or_infer"] == "infer":
+                np.savez(f"./idx_test_ind_tosave_first8000_{epoch}", idx_test_ind_tosave)
             # -----------------------------------------------
             # Evaluate the inductive part with the full graph
             # -----------------------------------------------
@@ -605,16 +617,18 @@ def run_inductive(
             embed_ind_list_indices = embed_ind_list_indices[:8000]
             np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
 
-            loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])
-            logger.info(f"------------epoch {epoch:3d} -----------------------")
-            logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
-            logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
-            logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+            if conf["train_or_infer"] == "train":
 
-            print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
-            print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
-            print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
-            print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+                loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])
+                logger.info(f"------------epoch {epoch:3d} -----------------------")
+                logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
+                logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
+                logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+
+                print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
+                print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
+                print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
+                print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
 
             loss_and_score += [

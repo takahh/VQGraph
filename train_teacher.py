@@ -97,6 +97,7 @@ def get_args():
         help="Path to model configeration",
     )
     parser.add_argument("--teacher", type=str, default="SAGE", help="Teacher model")
+    parser.add_argument("--train_or_infer", type=str, default="train", help="Train or just infer")
     parser.add_argument(
         "--num_layers", type=int, default=2, help="Model number of layers"
     )
@@ -222,6 +223,7 @@ def run(args):
         seed=args.seed,
         labelrate_train=args.labelrate_train,
         labelrate_val=args.labelrate_val,
+        train_or_infer=args.train_or_infer
     )
     logger.info(f"Total {g.number_of_nodes()} nodes.")
     logger.info(f"Total {g.number_of_edges()} edges.")
@@ -246,6 +248,10 @@ def run(args):
 
     """ Model init """
     model = Model(conf)
+
+    if conf["train_or_infer"] == "infer":
+        model.load_state_dict(torch.load("./data/model_epoch_6.pth"))
+
     optimizer = optim.Adam(
         model.parameters(), lr=conf["learning_rate"], weight_decay=conf["weight_decay"]
     )
@@ -262,7 +268,6 @@ def run(args):
         if args.feature_aug_k > 0:
             feats = feature_prop(feats, g, args.feature_aug_k)
 
-        
         # out, score_val, score_test, h_list, dist, codebook = 
         out, score_val, score_test, h_list, dist, codebook, loss_list = run_transductive(
             conf,
@@ -283,7 +288,10 @@ def run(args):
 
     elif args.exp_setting == "ind":
         # indices = (obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind)  indices[4] is idx_test_ind
-        indices = graph_split(idx_train, idx_val, idx_test, args.split_rate, args.seed)
+        # --------------------------------------------
+        # make train/valid/test data into mini-batches
+        # --------------------------------------------
+        indices = graph_split(idx_train, idx_val, idx_test, args.split_rate, args.seed, args.train_or_infer)
 
         # propagate node feature. The propagation for the observed graph only happens within the subgraph obs_g
         if args.feature_aug_k > 0:

@@ -48,6 +48,7 @@ def load_data(dataset, dataset_path, **kwargs):
             kwargs["seed"],
             kwargs["labelrate_train"],
             kwargs["labelrate_val"],
+            kwargs["train_or_infer"]
         )
     elif dataset in OGB_data:
         return load_ogb_data(dataset, dataset_path)
@@ -82,7 +83,7 @@ def load_ogb_data(dataset, dataset_path):
     return g, labels, idx_train, idx_val, idx_test
 
 
-def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
+def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, train_or_infer):
     data_path = Path.cwd().joinpath(dataset_path, f"{dataset}.npz")
     if os.path.isfile(data_path):
         data = load_npz_to_sparse_graph(data_path)
@@ -103,10 +104,14 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val):
     # print(])
     # print(features[696]==features[701])
     random_state = np.random.RandomState(seed)
-    idx_train, idx_val, idx_test = get_train_val_test_split(
-        random_state, labels, labelrate_train, labelrate_val
-    )
-
+    if train_or_infer == "train":
+        idx_train, idx_val, idx_test = get_train_val_test_split(
+            random_state, labels, labelrate_train, labelrate_val
+        )
+    elif train_or_infer == "infer":
+        idx_train, idx_val, idx_test = get_train_val_test_split_continuous(
+            random_state, labels, labelrate_train, labelrate_val
+        )
     features = torch.FloatTensor(np.array(features.todense()))
     print(f"{features.shape}  features.shape")
     num_nodes = features.shape[0]
@@ -673,6 +678,100 @@ def get_train_val_test_split(
     else:
         test_indices = np.setdiff1d(remaining_indices, forbidden_indices)
 
+    # assert that there are no duplicates in sets
+    assert len(set(train_indices)) == len(train_indices)
+    assert len(set(val_indices)) == len(val_indices)
+    assert len(set(test_indices)) == len(test_indices)
+    # assert sets are mutually exclusive
+    assert len(set(train_indices) - set(val_indices)) == len(set(train_indices))
+    assert len(set(train_indices) - set(test_indices)) == len(set(train_indices))
+    assert len(set(val_indices) - set(test_indices)) == len(set(val_indices))
+    if test_size is None and test_examples_per_class is None:
+        # all indices must be part of the split
+        assert (
+            len(np.concatenate((train_indices, val_indices, test_indices)))
+            == num_samples
+        )
+
+    if train_examples_per_class is not None:
+        train_labels = labels[train_indices, :]
+        train_sum = np.sum(train_labels, axis=0)
+        # assert all classes have equal cardinality
+        assert np.unique(train_sum).size == 1
+
+    if val_examples_per_class is not None:
+        val_labels = labels[val_indices, :]
+        val_sum = np.sum(val_labels, axis=0)
+        # assert all classes have equal cardinality
+        assert np.unique(val_sum).size == 1
+
+    if test_examples_per_class is not None:
+        test_labels = labels[test_indices, :]
+        test_sum = np.sum(test_labels, axis=0)
+        # assert all classes have equal cardinality
+        assert np.unique(test_sum).size == 1
+
+    return train_indices, val_indices, test_indices
+
+
+
+# ---------------------------------------------------------
+# this function split continuous test indicea for analysis
+# ---------------------------------------------------------
+def get_train_val_test_split_continuous(
+    random_state,
+    labels,
+    train_examples_per_class=None,
+    val_examples_per_class=None,
+    test_examples_per_class=None,
+    train_size=10,
+    val_size=10,
+    test_size=8000,
+    # train_size=5939700,
+    # val_size=1484900,
+    # test_size=1484900,
+):
+    num_samples, num_classes = labels.shape
+    print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
+    remaining_indices = list(range(num_samples))
+    train_indices = remaining_indices[:train_size]
+    # if train_examples_per_class is not None:
+    #     print("train_examples_per_class is not None:")
+    #     train_indices = sample_per_class(random_state, labels, train_examples_per_class)
+    # else:
+    #     print("train_examples_per_class is None:")
+    #     # select train examples with no respect to class distribution
+    #     train_indices = random_state.choice(
+    #         remaining_indices, train_size, replace=False
+    #     )
+    #     print(f"remaining_indices {len(remaining_indices)}")
+    # if val_examples_per_class is not None:
+    #     val_indices = sample_per_class(
+    #         random_state,
+    #         labels,
+    #         val_examples_per_class,
+    #         forbidden_indices=train_indices,
+    #     )
+    # else:
+    #     remaining_indices = np.setdiff1d(remaining_indices, train_indices)
+    #     val_indices = random_state.choice(remaining_indices, val_size, replace=False)
+    remaining_indices = np.setdiff1d(remaining_indices, train_indices)
+    val_indices = remaining_indices[train_size:(train_size + val_size)]
+    forbidden_indices = np.concatenate((train_indices, val_indices))
+    remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+    # if test_examples_per_class is not None:
+    #     test_indices = sample_per_class(
+    #         random_state,
+    #         labels,
+    #         test_examples_per_class,
+    #         forbidden_indices=forbidden_indices,
+    #     )
+    # elif test_size is not None:
+    #     remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+    #     test_indices = random_state.choice(remaining_indices, test_size, replace=False)
+    # else:
+    #     test_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+    test_indices = remaining_indices[(train_size + val_size):(train_size + val_size + val_size)]
     # assert that there are no duplicates in sets
     assert len(set(train_indices)) == len(train_indices)
     assert len(set(val_indices)) == len(val_indices)

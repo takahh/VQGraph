@@ -85,22 +85,25 @@ def get_logger(filename, console_log=False, log_level=logging.INFO):
     return logger
 
 
-def idx_split(idx, ratio, seed=0):
+def idx_split(idx, ratio, seed=0, train_or_infer=None):
     """
     randomly split idx into two portions with ratio% elements and (1 - ratio)% elements
     """
     set_seed(seed)
     n = len(idx)
     cut = int(n * ratio)
-    idx_idx_shuffle = torch.randperm(n)
-
-    idx1_idx, idx2_idx = idx_idx_shuffle[:cut], idx_idx_shuffle[cut:]
+    if train_or_infer == "train":
+        idx_idx_shuffle = torch.randperm(n)
+        idx1_idx, idx2_idx = idx_idx_shuffle[:cut], idx_idx_shuffle[cut:]
+    elif train_or_infer == "infer":
+        idx_idx_list = list(range(n))
+        idx1_idx, idx2_idx = idx_idx_list[:cut], idx_idx_list[cut:]
     idx1, idx2 = idx[idx1_idx], idx[idx2_idx]
     # assert((torch.cat([idx1, idx2]).sort()[0] == idx.sort()[0]).all())
     return idx1, idx2
 
 
-def graph_split(idx_train, idx_val, idx_test, rate, seed):
+def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
     """
     Args:
         The original setting was transductive. Full graph is observed, and idx_train takes up a small portion.
@@ -115,7 +118,7 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed):
         Indices start with 'obs_' correspond to the node indices within the observed subgraph,
         where as indices start directly with 'idx_' correspond to the node indices in the original graph
     """
-    idx_test_ind, idx_test_tran = idx_split(idx_test, rate, seed)
+    idx_test_ind, idx_test_tran = idx_split(idx_test, rate, seed, train_or_infer)
 
     idx_obs = torch.cat([idx_train, idx_val, idx_test_tran])
     N1, N2 = idx_train.shape[0], idx_val.shape[0]
