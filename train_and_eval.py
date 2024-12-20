@@ -631,33 +631,33 @@ def run_inductive(
                 print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
 
-            loss_and_score += [
-                [
-                    epoch,
-                    loss_train,
-                    loss_val,
-                    loss_test_tran,
-                    loss_test_ind,
-                    score_train,
-                    score_val,
-                    acc_tran,
-                    acc_ind,
+                loss_and_score += [
+                    [
+                        epoch,
+                        loss_train,
+                        loss_val,
+                        loss_test_tran,
+                        loss_test_ind,
+                        score_train,
+                        score_val,
+                        acc_tran,
+                        acc_ind,
+                    ]
                 ]
-            ]
-            print(f"loss_total {loss_total:4f}, best_score_val {best_score_val: 5f}")
-            # --------------------------------
-            # check if edge loss is decreasing
-            # --------------------------------
-            if loss_list[1].item() < best_score_val:
-                best_epoch = epoch
-                best_score_val = loss_list[1].item()
-                state = copy.deepcopy(model.state_dict())
-                cb_at_best = cb_just_trained
-                train_latents_at_best = latent_train
-                print(f"best epoch is {best_epoch} !!!!!!!!!")
-                count = 0
-            else:
-                count += 1
+                print(f"loss_total {loss_total:4f}, best_score_val {best_score_val: 5f}")
+                # --------------------------------
+                # check if edge loss is decreasing
+                # --------------------------------
+                if loss_list[1].item() < best_score_val:
+                    best_epoch = epoch
+                    best_score_val = loss_list[1].item()
+                    state = copy.deepcopy(model.state_dict())
+                    cb_at_best = cb_just_trained
+                    train_latents_at_best = latent_train
+                    print(f"best epoch is {best_epoch} !!!!!!!!!")
+                    count = 0
+                else:
+                    count += 1
 
             # if count == conf["patience"] or epoch == conf["max_epoch"]:
             #     break
