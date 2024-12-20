@@ -91,19 +91,14 @@ def idx_split(idx, ratio, seed=0, train_or_infer=None):
     """
     set_seed(seed)
     n = len(idx)
-    print(f"n is {n} $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     cut = int(n * ratio)
-    print(f"cut is {cut} $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     if train_or_infer == "train":
         idx_idx_shuffle = torch.randperm(n)
         idx1_idx, idx2_idx = idx_idx_shuffle[:cut], idx_idx_shuffle[cut:]
     elif train_or_infer == "infer":
         idx_idx_list = list(range(n))
-        print(f"idx_idx_list is {idx_idx_list} $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         idx1_idx, idx2_idx = idx_idx_list[:cut], idx_idx_list[cut:]
     idx1, idx2 = idx[idx1_idx], idx[idx2_idx]
-    print(f"idx1 is {idx1} $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print(f"idx2 is {idx2} $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     # assert((torch.cat([idx1, idx2]).sort()[0] == idx.sort()[0]).all())
     return idx1, idx2
 
