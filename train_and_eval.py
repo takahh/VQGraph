@@ -489,6 +489,7 @@ def run_inductive(
     cb_just_trained = None
     init_cb_list = None
     out, acc_ind, h_list, dist = None, None, None, None
+    acc_tran, acc_ind = 0, 0
     score_val = 0
     for epoch in range(1, conf["max_epoch"] + 1):
         # print(f"epoch {epoch}")
