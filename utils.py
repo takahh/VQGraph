@@ -92,6 +92,7 @@ def idx_split(idx, ratio, seed=0, train_or_infer=None):
     set_seed(seed)
     n = len(idx)
     cut = int(n * ratio)
+    print(f"n {n}, cut {cut}, ratio {ratio}")
     if train_or_infer == "train":
         idx_idx_shuffle = torch.randperm(n)
         idx1_idx, idx2_idx = idx_idx_shuffle[:cut], idx_idx_shuffle[cut:]
