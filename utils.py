@@ -90,22 +90,18 @@ def idx_split(idx, ratio, seed=0, train_or_infer=None):
     randomly split idx into two portions with ratio% elements and (1 - ratio)% elements
     """
     set_seed(seed)
-    n = len(idx)
-    cut = int(n * ratio)
-    print(f"n {n}, cut {cut}, ratio {ratio}")
+    n = len(idx)   # idx starts from 40
+    cut = int(n * ratio)  # n 8000, cut 1600, ratio 0.2
+    # print(f"n {n}, cut {cut}, ratio {ratio}") # n 8000, cut 1600, ratio 0.2
     if train_or_infer == "train":
         idx_idx_shuffle = torch.randperm(n)
         idx1_idx, idx2_idx = idx_idx_shuffle[:cut], idx_idx_shuffle[cut:]
     elif train_or_infer == "infer":
         idx_idx_list = list(range(n))
         idx1_idx, idx2_idx = idx_idx_list[:cut], idx_idx_list[cut:]
-        print("idx")
-        print(idx)
-        print("idx1_idx")
-        print(idx1_idx)
     idx1, idx2 = idx[idx1_idx], idx[idx2_idx]
     # assert((torch.cat([idx1, idx2]).sort()[0] == idx.sort()[0]).all())
-    return idx1, idx2
+    return idx1, idx2  # idx1 is test_ind
 
 
 def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
@@ -124,8 +120,6 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
         where as indices start directly with 'idx_' correspond to the node indices in the original graph
     """
     idx_test_ind, idx_test_tran = idx_split(idx_test, rate, seed, train_or_infer)
-    print("idx_test_ind")
-    print(idx_test_ind)  # 40, 41, 42, ...
 
     idx_obs = torch.cat([idx_train, idx_val, idx_test_tran])
     N1, N2 = idx_train.shape[0], idx_val.shape[0]

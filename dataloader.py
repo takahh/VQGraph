@@ -141,7 +141,7 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
     idx_val = torch.LongTensor(idx_val)
     idx_test = torch.LongTensor(idx_test)
     # print(labels)
-    return g, labels, idx_train, idx_val, idx_test
+    return g, labels, idx_train, idx_val, idx_test   # idx_test starts from 40
 
 
 def load_nonhom_data(dataset, dataset_path, split_idx):
@@ -734,6 +734,9 @@ def get_train_val_test_split_continuous(
     num_samples, num_classes = labels.shape
     print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
     remaining_indices = list(range(num_samples))
+    # ----------------
+    # get train indices
+    # ----------------
     train_indices = remaining_indices[:train_size]
     # if train_examples_per_class is not None:
     #     print("train_examples_per_class is not None:")
@@ -755,10 +758,13 @@ def get_train_val_test_split_continuous(
     # else:
     #     remaining_indices = np.setdiff1d(remaining_indices, train_indices)
     #     val_indices = random_state.choice(remaining_indices, val_size, replace=False)
-    remaining_indices = np.setdiff1d(remaining_indices, train_indices)
+    # remaining_indices = np.setdiff1d(remaining_indices, train_indices)
+    # ----------------
+    # get val indices
+    # ----------------
     val_indices = remaining_indices[train_size:(train_size + val_size)]
-    forbidden_indices = np.concatenate((train_indices, val_indices))
-    remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+    # forbidden_indices = np.concatenate((train_indices, val_indices))
+    # remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
     # if test_examples_per_class is not None:
     #     test_indices = sample_per_class(
     #         random_state,
@@ -771,6 +777,9 @@ def get_train_val_test_split_continuous(
     #     test_indices = random_state.choice(remaining_indices, test_size, replace=False)
     # else:
     #     test_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+    # ----------------
+    # get test indices
+    # ----------------
     test_indices = remaining_indices[(train_size + val_size):(train_size + val_size + test_size)]
     # assert that there are no duplicates in sets
     assert len(set(train_indices)) == len(train_indices)
@@ -805,4 +814,4 @@ def get_train_val_test_split_continuous(
         # assert all classes have equal cardinality
         assert np.unique(test_sum).size == 1
 
-    return train_indices, val_indices, test_indices
+    return train_indices, val_indices, test_indices  # test_indices starts from 40

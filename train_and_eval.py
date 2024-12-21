@@ -177,7 +177,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     model.eval()
     with torch.no_grad():
         # h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, embed_ind_list
-        h_list, logits, _ , dist, codebook, loss_list, latent_vectors, embed_ind_list = model.inference(data, feats)
+        h_list, logits, _ , dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes = model.inference(data, feats)
         out = logits.log_softmax(dim=1)
         if idx_eval is None:
             loss = criterion(out, labels)
@@ -186,7 +186,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
         #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind
-    return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
+    return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes
 
 
 def evaluate_mini_batch(
@@ -565,6 +565,10 @@ def run_inductive(
                 # --------------------------------------
                 # the "loss_train" is test loss in training
                 # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
+
+                # -----------------------------
+                # 1 st evaluate
+                # -----------------------------
                 obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, embed_ind_list = evaluate(
                     model,
                     obs_data_eval,
@@ -601,12 +605,15 @@ def run_inductive(
             # -----------------------------------------------
             # Evaluate the inductive part with the full graph
             # -----------------------------------------------
+            # -----------------------------
+            # 2 nd evaluate
+            # -----------------------------
             # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
-            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices = evaluate(
+            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
                 model,
-                data_eval,
-                feats,
-                labels,
+                data_eval,   #
+                feats,       #
+                labels,      #
                 criterion,
                 evaluator,
                 idx_test_ind
@@ -619,6 +626,7 @@ def run_inductive(
             # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
             embed_ind_list_indices = embed_ind_list_indices[:8000]
             np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
+            np.savez(f"./input_nodes_{epoch}", embed_ind_list_indices)
 
         if conf["train_or_infer"] == "train":
 
@@ -683,6 +691,9 @@ def run_inductive(
             #     logger.info(
             #         f"started the final tran test"
             #     )
+            #     # -----------------------------
+            #     # 3 rd evaluate
+            #     # -----------------------------
             #     obs_out, _, score_val, h_list, dist, codebook, loss_list, latent_trans = evaluate(
             #         model,
             #         obs_data_eval,
@@ -695,6 +706,9 @@ def run_inductive(
             #     logger.info(
             #         f"started the final ind test"
             #     )
+            #     # -----------------------------
+            #     # 4 th evaluate
+            #     # -----------------------------
             #     out, _, acc_ind, h_list, dist, codebook, loss_list, latent_ind = evaluate(
             #         model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
             #     )
