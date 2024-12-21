@@ -98,6 +98,10 @@ def idx_split(idx, ratio, seed=0, train_or_infer=None):
     elif train_or_infer == "infer":
         idx_idx_list = list(range(n))
         idx1_idx, idx2_idx = idx_idx_list[:cut], idx_idx_list[cut:]
+        print("idx")
+        print(idx)
+        print("idx1_idx")
+        print(idx1_idx)
     idx1, idx2 = idx[idx1_idx], idx[idx2_idx]
     # assert((torch.cat([idx1, idx2]).sort()[0] == idx.sort()[0]).all())
     return idx1, idx2
@@ -120,7 +124,7 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
     """
     idx_test_ind, idx_test_tran = idx_split(idx_test, rate, seed, train_or_infer)
     print("idx_test_ind")
-    print(idx_test_ind)
+    print(idx_test_ind)  # 40, 41, 42, ...
 
     idx_obs = torch.cat([idx_train, idx_val, idx_test_tran])
     N1, N2 = idx_train.shape[0], idx_val.shape[0]
