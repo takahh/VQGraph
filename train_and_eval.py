@@ -626,7 +626,7 @@ def run_inductive(
             # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
             embed_ind_list_indices = embed_ind_list_indices[:8000]
             np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
-            np.savez(f"./input_nodes_{epoch}", embed_ind_list_indices)
+            np.savez(f"./input_nodes_{epoch}", input_nodes)
 
         if conf["train_or_infer"] == "train":
 
