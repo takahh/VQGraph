@@ -119,6 +119,8 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
         where as indices start directly with 'idx_' correspond to the node indices in the original graph
     """
     idx_test_ind, idx_test_tran = idx_split(idx_test, rate, seed, train_or_infer)
+    print("idx_test_ind")
+    print(idx_test_ind)
 
     idx_obs = torch.cat([idx_train, idx_val, idx_test_tran])
     N1, N2 = idx_train.shape[0], idx_val.shape[0]
