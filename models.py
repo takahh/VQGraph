@@ -183,7 +183,7 @@ class SAGE(nn.Module):
         h = self.dropout(h)
         h_list.append(h)
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
-        quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb = self.vq(h)
+        quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb = self.vq(h, atom_type_arr)
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
         # --------------------
