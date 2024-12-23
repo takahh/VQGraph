@@ -304,7 +304,7 @@ def atom_type_divergence_loss(assigned_vectors, atom_types):
     return loss
 
 
-def orthogonal_loss_fn(t, min_distance=0.5):
+def orthogonal_loss_fn(t, atom_type_arr, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
     t = t / t_norm
@@ -332,7 +332,7 @@ def orthogonal_loss_fn(t, min_distance=0.5):
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
     # ---------------------------------------------------------------
-    atom_type_div_loss = atom_type_divergence_loss(t)
+    atom_type_div_loss = atom_type_divergence_loss(t, atom_type_arr)
 
     return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss
 
@@ -725,6 +725,7 @@ class VectorQuantize(nn.Module):
     def forward(
             self,
             x,
+            atom_type_arr,
             mask=None
     ):
         only_one = x.ndim == 2
@@ -804,7 +805,7 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss, element_div_loss = orthogonal_loss_fn(codebook)
+                margin_loss, spread_loss, pair_distance_loss, element_div_loss = orthogonal_loss_fn(codebook, atom_type_arr)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 print("element_div_loss")
                 print(element_div_loss)

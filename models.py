@@ -162,6 +162,7 @@ class SAGE(nn.Module):
         h = feats
         print("torch.squeeze(h[:, 0]).shape")
         print(torch.squeeze(h[:, 0]).shape)
+        atom_type_arr = torch.squeeze(h[:, 0])
         torch.save(h, "/h.pt")
         h_list = []
         g = dgl.DGLGraph().to(h.device)
