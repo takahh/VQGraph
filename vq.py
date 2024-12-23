@@ -269,7 +269,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks, num_atom_types, temperature=0.1):
+def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1, num_atom_types=9, temperature=0.1):
     """
     Soft atom type divergence loss for probabilistic assignments.
 
