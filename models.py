@@ -130,8 +130,7 @@ class SAGE(nn.Module):
         norm_type,
         codebook_size,
         lamb_edge,
-        lamb_node,
-        lamb_div_ele
+        lamb_node
     ):
         super().__init__()
         self.num_layers = num_layers
