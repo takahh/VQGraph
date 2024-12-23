@@ -295,10 +295,10 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, num_ato
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
 
-    # Debug embed_one_hot
-    print(f"embed_one_hot shape: {embed_one_hot.shape}")
-    embed_one_hot_cpu = embed_one_hot.cpu()  # Move to CPU for debug output
-    print(f"embed_one_hot min: {embed_one_hot_cpu.min().item()}, max: {embed_one_hot_cpu.max().item()}")
+    # # Debug embed_one_hot
+    # print(f"embed_one_hot shape: {embed_one_hot.shape}")
+    # embed_one_hot_cpu = embed_one_hot.cpu()  # Move to CPU for debug output
+    # print(f"embed_one_hot min: {embed_one_hot_cpu.min().item()}, max: {embed_one_hot_cpu.max().item()}")
 
     # Check temperature
     assert temperature > 0, f"Temperature must be positive, but got {temperature}"
