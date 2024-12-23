@@ -271,7 +271,7 @@ def batched_embedding(indices, embeds):
 
 def atom_type_divergence_loss(embed_ind, atom_types):
     """
-    Regularizes codebook assignments to discourage different atom types from sharing the same codebook index.
+    Differentiable version of atom type divergence loss.
 
     Args:
         embed_ind (torch.Tensor): Tensor of shape (N,) containing the indices of the assigned codebook vectors.
@@ -280,29 +280,21 @@ def atom_type_divergence_loss(embed_ind, atom_types):
     Returns:
         torch.Tensor: The divergence regularization loss.
     """
-    # Unique codebook indices
-    unique_indices = torch.unique(embed_ind)
+    # Create one-hot representations of atom types and indices
+    num_indices = torch.max(embed_ind) + 1  # Number of unique codebook indices
+    num_atom_types = torch.max(atom_types) + 1  # Number of unique atom types
 
-    loss = 0.0
-    count = 0
-    embed_ind = torch.squeeze(embed_ind)
-    for index in unique_indices:
-        # Get atom types associated with this codebook index
-        atom_types_for_index = atom_types[embed_ind == index]
+    index_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_indices).float()
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
 
-        # Count unique atom types assigned to this codebook index
-        unique_atom_types = torch.unique(atom_types_for_index)
+    # Compute co-occurrence of atom types for each codebook index
+    co_occurrence = index_one_hot.T @ atom_type_one_hot
 
-        if len(unique_atom_types) > 1:
-            # Penalize sharing: The more unique atom types, the higher the penalty
-            # Option: Use (num_unique_types - 1)^2 to amplify the penalty
-            loss += (len(unique_atom_types) - 1) ** 2
-            count += 1
-
-    if count > 0:
-        loss /= count  # Normalize by the number of unique indices
+    # Penalize multiple atom types being assigned to the same codebook index
+    loss = torch.sum(co_occurrence * (co_occurrence - 1))  # Encourages sparsity in co-occurrence
 
     return loss
+
 
 def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
