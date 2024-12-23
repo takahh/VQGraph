@@ -244,6 +244,7 @@ class SAGE(nn.Module):
             adj = adj = g.adjacency_matrix().to_dense().to(feats.device)
             h_list = []
             h = feats[input_nodes]
+            atom_type_arr = torch.squeeze(h[:, 0])
             h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
             if self.norm_type != "none":
@@ -254,7 +255,7 @@ class SAGE(nn.Module):
             # ----------------
             # Quantize
             # ----------------
-            quantized, embed_ind, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb = self.vq(h)
+            quantized, embed_ind, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb = self.vq(h, atom_type_arr)
             latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind.detach().cpu())
 
