@@ -807,11 +807,8 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                print(f"embed_ind {embed_ind.shape}, atomtype {atom_type_arr.shape}")
                 margin_loss, spread_loss, pair_distance_loss, element_div_loss = orthogonal_loss_fn(codebook, atom_type_arr, embed_ind)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-                print("element_div_loss")
-                print(element_div_loss)
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
@@ -840,4 +837,4 @@ class VectorQuantize(nn.Module):
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         #
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
-        return quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x, init_cb
+        return quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x, init_cb, element_div_loss

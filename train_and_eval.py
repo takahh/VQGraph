@@ -632,14 +632,14 @@ def run_inductive(
 
             loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])
             logger.info(f"------------epoch {epoch:3d} -----------------------")
-            logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
-            logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
-            logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+            logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| div_element_loss: {loss_list[2].item(): 4f},| commit_loss: {loss_list[3].item(): 4f}, margin loss {loss_list[4].item(): 4f}, spread loss {loss_list[5].item(): 4f}, pair loss {loss_list[6].item(): 4f}, loss_train {loss:.4f}")
+            logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| div_element_loss: {loss_list0[2].item(): 4f},| commit_loss: {loss_list0[3].item(): 4f}, loss_train {loss_train:.4f}")
+            logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| div_element_loss: {loss_list1[2].item(): 4f},| commit_loss: {loss_list1[3].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
             print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
-            print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f},　margin loss {loss_list[3].item(): 4f},　spread loss {loss_list[4].item(): 4f}, pair loss {loss_list[5].item(): 4f}, loss_train {loss:.4f}")
-            print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| commit_loss: {loss_list0[2].item(): 4f}, loss_train {loss_train:.4f}")
-            print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| commit_loss: {loss_list1[2].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
+            print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| div_element_loss: {loss_list[2].item(): 4f},| commit_loss: {loss_list[3].item(): 4f},　margin loss {loss_list[4].item(): 4f},　spread loss {loss_list[5].item(): 4f}, pair loss {loss_list[6].item(): 4f}, loss_train {loss:.4f}")
+            print(f"test_known_g, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| div_element_loss: {loss_list0[2].item(): 4f}, | commit_loss: {loss_list0[3].item(): 4f}, loss_train {loss_train:.4f}")
+            print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| div_element_loss: {loss_list1[2].item(): 4f},| commit_loss: {loss_list1[3].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
 
             loss_and_score += [

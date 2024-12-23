@@ -160,8 +160,6 @@ class SAGE(nn.Module):
     def forward(self, blocks, feats):
         # print("train")
         h = feats
-        print("torch.squeeze(h[:, 0]).shape")
-        print(torch.squeeze(h[:, 0]).shape)
         atom_type_arr = torch.squeeze(h[:, 0])
         torch.save(h, "/h.pt")
         h_list = []
@@ -183,7 +181,7 @@ class SAGE(nn.Module):
         h = self.dropout(h)
         h_list.append(h)
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
-        quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb = self.vq(h, atom_type_arr)
+        quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss = self.vq(h, atom_type_arr)
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
         # --------------------
@@ -216,7 +214,7 @@ class SAGE(nn.Module):
         loss = feature_rec_loss + edge_rec_loss + commit_loss
         h = h[:blocks[-1].num_dst_nodes()]
         # x and codebook are saved later...
-        return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss], x, detached_quantize, init_cb
+        return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss], x, detached_quantize, init_cb
 
 
     def inference(self, dataloader, feats):
@@ -255,7 +253,7 @@ class SAGE(nn.Module):
             # ----------------
             # Quantize
             # ----------------
-            quantized, embed_ind, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb = self.vq(h, atom_type_arr)
+            quantized, embed_ind, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss = self.vq(h, atom_type_arr)
             latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind.detach().cpu())
 
@@ -284,7 +282,7 @@ class SAGE(nn.Module):
             # Monitor reserved memory after cleanup
 
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, embed_ind_list, input_nodes
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss], latent_list, embed_ind_list, input_nodes
 
 
 class GAT(nn.Module):
