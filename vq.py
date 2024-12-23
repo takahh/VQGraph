@@ -333,7 +333,7 @@ def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
     # ---------------------------------------------------------------
-    atom_type_div_loss = torch.var(atom_type_divergence_loss(embed_ind, atom_type_arr))
+    atom_type_div_loss = torch.tensor(atom_type_divergence_loss(embed_ind, atom_type_arr))
 
     return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss
 
