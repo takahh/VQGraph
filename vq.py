@@ -297,14 +297,28 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, num_ato
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
 
-    # Compute soft assignments for atom types and codebooks
-    soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
+    # Debug embed_one_hot
+    print(f"embed_one_hot shape: {embed_one_hot.shape}")
+    print(f"embed_one_hot min: {embed_one_hot.min().item()}, max: {embed_one_hot.max().item()}")
+
+    # Ensure temperature is valid
+    assert temperature > 0, f"Temperature must be positive, but got {temperature}"
+
+    # Normalize embed_one_hot to prevent numerical instability
+    embed_one_hot = embed_one_hot - embed_one_hot.max(dim=-1, keepdim=True).values
+
+    # Compute soft assignments
+    try:
+        soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
+    except RuntimeError as e:
+        print(f"Softmax failed with embed_one_hot: {embed_one_hot}, temperature: {temperature}")
+        raise e
 
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
     co_occurrence = co_occurrence / (torch.sum(co_occurrence, dim=1, keepdim=True) + 1e-6)  # Normalize
 
-    # Compute the divergence penalty
+    # Compute divergence penalty
     penalty = co_occurrence * torch.log(co_occurrence + 1e-6)
     divergence_loss = -torch.sum(penalty)  # Negative to encourage exclusivity
 
