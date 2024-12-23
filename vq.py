@@ -773,6 +773,7 @@ class VectorQuantize(nn.Module):
         raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         margin_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         spread_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        div_ele_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         pair_distance_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         detached_quantize = torch.tensor([0.], device=device, requires_grad=self.training)
         if self.training:
@@ -809,12 +810,12 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss, element_div_loss = orthogonal_loss_fn(codebook, atom_type_arr, embed_ind)
+                margin_loss, spread_loss, pair_distance_loss, div_ele_loss = orthogonal_loss_fn(codebook, atom_type_arr, embed_ind)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * element_div_loss
+                loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * div_ele_loss
                 # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
