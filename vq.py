@@ -268,6 +268,7 @@ def batched_embedding(indices, embeds):
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
     return embeds.gather(2, indices)
 
+
 def normalized_atom_type_divergence_loss(embed_ind, atom_types):
     """
     Normalized version of atom type divergence loss.
@@ -300,7 +301,6 @@ def normalized_atom_type_divergence_loss(embed_ind, atom_types):
     return loss
 
 
-
 def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
@@ -329,7 +329,7 @@ def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
     # ---------------------------------------------------------------
-    atom_type_div_loss = torch.tensor(atom_type_divergence_loss(embed_ind, atom_type_arr))
+    atom_type_div_loss = torch.tensor(normalized_atom_type_divergence_loss(embed_ind, atom_type_arr))
 
     return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss
 
