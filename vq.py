@@ -285,7 +285,9 @@ def atom_type_divergence_loss(embed_ind, atom_types):
 
     loss = 0.0
     count = 0
-
+    print(f"unique indices {unique_indices.shape}, embedding shape {embed_ind.shape}")
+    embed_ind = torch.squeeze(embed_ind)
+    print(f"unique indices {unique_indices.shape}, embedding shape {embed_ind.shape}")
     for index in unique_indices:
         # Get atom types associated with this codebook index
         atom_types_for_index = atom_types[embed_ind == index]
