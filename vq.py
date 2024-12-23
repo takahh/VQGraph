@@ -269,43 +269,40 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def pairwise_atom_divergence_loss(embed_ind, atom_types, embed_vectors):
+def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1, num_atom_types=9, temperature=0.1):
     """
-    Pairwise atom type divergence loss to encourage separation of atom types.
+    Soft atom type divergence loss for probabilistic assignments.
 
     Args:
-        embed_ind (torch.Tensor): Tensor of shape (N,) with codebook indices.
-        atom_types (torch.Tensor): Tensor of shape (N,) with atom types.
-        embed_vectors (torch.Tensor): Tensor of shape (K, D) for K codebook embeddings.
+        embed_ind (torch.Tensor): Tensor of shape (N,) containing the indices of the assigned codebook vectors.
+        atom_types (torch.Tensor): Tensor of shape (N,) containing the atom types as integers.
+        num_codebooks (int): Number of codebook vectors.
+        num_atom_types (int): Number of unique atom types.
+        temperature (float): Smoothing factor for softmax.
 
     Returns:
-        torch.Tensor: Pairwise divergence loss.
+        torch.Tensor: The divergence regularization loss.
     """
-    # Ensure proper data types
+    # Ensure proper types
     atom_types = atom_types.long()
     embed_ind = embed_ind.long()
 
-    # Get unique indices and atom types
-    unique_indices = torch.unique(embed_ind)
-    loss = 0.0
+    # Create one-hot representations
+    embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
 
-    for idx in unique_indices:
-        # Get atom types and embeddings assigned to this index
-        mask = (embed_ind == idx)
-        atom_types_for_index = atom_types[mask]
-        embed_vectors_for_index = embed_vectors[idx]
+    # Compute soft assignments for atom types and codebooks
+    soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
 
-        # Compute pairwise differences between embeddings
-        atom_type_diff = torch.cdist(embed_vectors_for_index.unsqueeze(0), embed_vectors_for_index.unsqueeze(0), p=2)
+    # Compute co-occurrence matrix
+    co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
+    co_occurrence = co_occurrence / (torch.sum(co_occurrence, dim=1, keepdim=True) + 1e-6)  # Normalize
 
-        # Penalize pairs with different atom types
-        for i in range(len(atom_types_for_index)):
-            for j in range(i + 1, len(atom_types_for_index)):
-                if atom_types_for_index[i] != atom_types_for_index[j]:
-                    loss += torch.exp(-atom_type_diff[i, j])  # Penalize similar embeddings for different atom types
+    # Compute the divergence penalty
+    penalty = co_occurrence * torch.log(co_occurrence + 1e-6)
+    divergence_loss = -torch.sum(penalty)  # Negative to encourage exclusivity
 
-    return loss / len(unique_indices)
-
+    return divergence_loss
 
 
 def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
