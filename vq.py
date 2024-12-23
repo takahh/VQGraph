@@ -268,6 +268,43 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
+def atom_type_divergence_loss(assigned_vectors):
+    """
+    Regularizes the codebook vectors to encourage distinct representations for different atom types.
+
+    Args:
+        assigned_vectors (torch.Tensor): A tensor of shape (N, D) containing codebook vectors for N atoms.
+        atom_types (torch.Tensor): A tensor of shape (N,) containing the atom types as integers.
+
+    Returns:
+        torch.Tensor: The divergence regularization loss.
+    """
+    atom_types = [1, 2, 3, 4, 5, 6, 7, 8]
+    unique_types = torch.unique(atom_types)
+    loss = 0.0
+    count = 0
+
+    for i, atom_type_i in enumerate(unique_types):
+        vectors_i = assigned_vectors[atom_types == atom_type_i]
+
+        for j, atom_type_j in enumerate(unique_types):
+            if i >= j:  # Avoid redundancy and self-comparison
+                continue
+
+            vectors_j = assigned_vectors[atom_types == atom_type_j]
+
+            # Compute pairwise cosine similarity between atom type i and j
+            pairwise_similarity = F.cosine_similarity(vectors_i.unsqueeze(1), vectors_j.unsqueeze(0), dim=-1)
+            # Penalize high similarity between distinct atom types
+            loss += torch.mean(pairwise_similarity)
+            count += 1
+
+    if count > 0:
+        loss /= count  # Normalize by the number of comparisons
+
+    return loss
+
+
 def orthogonal_loss_fn(t, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
@@ -293,7 +330,12 @@ def orthogonal_loss_fn(t, min_distance=0.5):
     # Pair distance loss: Regularize distances
     pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
 
-    return margin_loss, spread_loss, pair_distance_loss
+    # ---------------------------------------------------------------
+    # loss to assign different codes for different chemical elements
+    # ---------------------------------------------------------------
+    atom_type_div_loss = atom_type_divergence_loss(t)
+
+    return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss
 
 
 
@@ -763,12 +805,14 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss = orthogonal_loss_fn(codebook)
+                margin_loss, spread_loss, pair_distance_loss, element_div_loss = orthogonal_loss_fn(codebook)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+                print("element_div_loss")
+                print(element_div_loss)
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                loss = loss + margin_loss * self.margin_weight
+                loss = loss + margin_loss * self.margin_weight + element_div_loss
                 # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:

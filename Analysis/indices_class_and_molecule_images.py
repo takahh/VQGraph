@@ -34,6 +34,8 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
     """
     # Step 1: Load indices and classes
     node_indices = indices_file.tolist()
+    start_node_index = node_indices[0]
+    node_indices = [x - start_node_index for x in node_indices]
     classes = class_file.tolist()
     print("node_indices")
     print(node_indices)
@@ -48,7 +50,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
     # Step 3: Extract and annotate molecules
     images = []
-    for i in range(n_components):
+    for i in range(5):
         # Get node indices for this molecule
         component_indices = np.where(labels == i)[0]
 
@@ -103,7 +105,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         plt.title(f"Molecule {i+1}")
         plt.imshow(img)
         plt.axis("off")
-    # plt.show()
+    plt.show()
 
 
 def main():
@@ -117,6 +119,8 @@ def main():
     arr_indices = getdata(indices_file)   # indices of the input
     arr_class = getdata(class_file)       # assigned quantized code vec indices
 
+    node_indices = arr_indices.tolist()
+
     test_indices = arr_indices[:200]
     # -------------------------------------
     # rebuild attr matrix
@@ -126,7 +130,10 @@ def main():
     attr_indptr = arr_input["attr_indptr"]
     attr_shape = arr_input["attr_shape"]
     attr_matrix = csr_matrix((attr_data, attr_indices, attr_indptr), shape=attr_shape)
-    subset_attr_matrix = attr_matrix[:3000, :].toarray()
+    print(attr_matrix.shape)
+    print(node_indices[0])
+    subset_attr_matrix = attr_matrix[node_indices[0]:node_indices[0] + 200, :].toarray()
+    # subset_attr_matrix = attr_matrix.toarray()
 
     # -------------------------------------
     # rebuild adj matrix
@@ -138,7 +145,8 @@ def main():
     adj_shape = arr_input["adj_shape"]
     # Reconstruct the sparse adjacency matrix
     adj_matrix = csr_matrix((adj_data, adj_indices, adj_indptr), shape=adj_shape)
-    subset_adj_matrix = adj_matrix[:3000, :3000].toarray()
+    subset_adj_matrix = adj_matrix[node_indices[0]:node_indices[0] + 200, node_indices[0]:node_indices[0] + 200].toarray()
+    # subset_adj_matrix = adj_matrix.toarray()
 
     # -------------------------------------
     # split the matrix into molecules
