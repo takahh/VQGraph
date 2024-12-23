@@ -3,6 +3,7 @@ import torch.distributed as distributed
 import torch.nn.functional as F
 from einops import rearrange, repeat, pack, unpack
 from torch import nn, einsum
+from torch.ao.quantization import quantize
 from torch.cuda.amp import autocast
 from torch.onnx.symbolic_opset9 import pairwise_distance
 from einops import rearrange, repeat
@@ -305,7 +306,7 @@ def atom_type_divergence_loss(assigned_vectors, atom_types):
     return loss
 
 
-def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
+def orthogonal_loss_fn(t, atom_type_arr, quantized, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
     t = t / t_norm
@@ -333,7 +334,7 @@ def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
     # ---------------------------------------------------------------
-    atom_type_div_loss = atom_type_divergence_loss(embed_ind, atom_type_arr)
+    atom_type_div_loss = atom_type_divergence_loss(quantized, atom_type_arr)
 
     return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss
 
@@ -806,7 +807,7 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss, element_div_loss = orthogonal_loss_fn(codebook, atom_type_arr, embed_ind)
+                margin_loss, spread_loss, pair_distance_loss, element_div_loss = orthogonal_loss_fn(codebook, atom_type_arr, quantize)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 print("element_div_loss")
                 print(element_div_loss)
