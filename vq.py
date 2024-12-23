@@ -268,6 +268,7 @@ def batched_embedding(indices, embeds):
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
     return embeds.gather(2, indices)
 
+
 def atom_type_divergence_loss(embed_ind, atom_types):
     """
     Differentiable version of atom type divergence loss.
@@ -279,13 +280,20 @@ def atom_type_divergence_loss(embed_ind, atom_types):
     Returns:
         torch.Tensor: The divergence regularization loss.
     """
-    num_atom_types = int(torch.max(atom_types).item()) + 1  # Convert to int
+    # Ensure atom_types is an integer tensor
+    atom_types = atom_types.long()
+
+    # Ensure embed_ind is an integer tensor
+    embed_ind = embed_ind.long()
+
+    # Calculate the number of unique atom types
+    num_atom_types = int(torch.max(atom_types).item()) + 1
 
     # Create one-hot representation of atom types
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
 
     # Create one-hot representation of embed indices
-    num_indices = int(torch.max(embed_ind).item()) + 1  # Convert to int
+    num_indices = int(torch.max(embed_ind).item()) + 1
     index_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_indices).float()
 
     # Compute co-occurrence of atom types for each codebook index
