@@ -269,7 +269,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1, num_atom_types=9, temperature=0.1):
+def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks, num_atom_types, temperature=0.1):
     """
     Soft atom type divergence loss for probabilistic assignments.
 
@@ -287,9 +287,17 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1, num_atom_t
     atom_types = atom_types.long()
     embed_ind = embed_ind.long()
 
+    # Check valid values
+    assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks), \
+        f"embed_ind contains invalid values: {embed_ind}"
+
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
+
+    # Debugging
+    print(f"embed_one_hot shape: {embed_one_hot.shape}, atom_type_one_hot shape: {atom_type_one_hot.shape}")
+    assert temperature > 0, f"Temperature must be positive, but got {temperature}"
 
     # Compute soft assignments for atom types and codebooks
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
