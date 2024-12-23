@@ -268,7 +268,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def atom_type_divergence_loss(assigned_vectors):
+def atom_type_divergence_loss(assigned_vectors, atom_types):
     """
     Regularizes the codebook vectors to encourage distinct representations for different atom types.
 
@@ -279,7 +279,6 @@ def atom_type_divergence_loss(assigned_vectors):
     Returns:
         torch.Tensor: The divergence regularization loss.
     """
-    atom_types = torch.tensor([1, 2, 3, 4, 5, 6, 7, 8])
     unique_types = torch.unique(atom_types)
     loss = 0.0
     count = 0
