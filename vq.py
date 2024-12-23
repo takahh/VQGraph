@@ -285,9 +285,8 @@ def atom_type_divergence_loss(embed_ind, atom_types):
 
     loss = 0.0
     count = 0
-    print(f"unique indices {unique_indices.shape}, embedding shape {embed_ind.shape}")
+    print(f"atom_types {atom_types.shape}, embedding shape {embed_ind.shape}")
     embed_ind = torch.squeeze(embed_ind)
-    print(f"unique indices {unique_indices.shape}, embedding shape {embed_ind.shape}")
     for index in unique_indices:
         # Get atom types associated with this codebook index
         atom_types_for_index = atom_types[embed_ind == index]
@@ -334,7 +333,7 @@ def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
     # ---------------------------------------------------------------
-    atom_type_div_loss = atom_type_divergence_loss(embed_ind, atom_type_arr)
+    atom_type_div_loss = torch.var(atom_type_divergence_loss(embed_ind, atom_type_arr))
 
     return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss
 
