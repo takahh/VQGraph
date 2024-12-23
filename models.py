@@ -160,9 +160,8 @@ class SAGE(nn.Module):
     def forward(self, blocks, feats):
         # print("train")
         h = feats
-        print("h.shape")
-        print(h.shape)
-        print(h)
+        print("torch.squeeze(h[:, 0]).shape")
+        print(torch.squeeze(h[:, 0]).shape)
         torch.save(h, "/h.pt")
         h_list = []
         g = dgl.DGLGraph().to(h.device)
