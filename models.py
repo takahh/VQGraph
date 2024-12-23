@@ -130,7 +130,8 @@ class SAGE(nn.Module):
         norm_type,
         codebook_size,
         lamb_edge,
-        lamb_node
+        lamb_node,
+        lamb_div_ele
     ):
         super().__init__()
         self.num_layers = num_layers
@@ -151,7 +152,7 @@ class SAGE(nn.Module):
         self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
-
+        self.lamb_div_ele = lamb_div_ele
 
     def reset_kmeans(self):
         self.vq._codebook.reset_kmeans()

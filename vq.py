@@ -649,6 +649,7 @@ class VectorQuantize(nn.Module):
             margin_weight=0.8,
             spread_weight=0.2,
             pair_weight=0.01,
+            lamb_div_ele=1,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
@@ -672,6 +673,7 @@ class VectorQuantize(nn.Module):
 
         self.margin_weight = margin_weight
         self.spread_weight = spread_weight
+        self.lamb_div_ele = lamb_div_ele
         self.pair_weight = pair_weight
         self.orthogonal_reg_active_codes_only = orthogonal_reg_active_codes_only
         self.orthogonal_reg_max_codes = orthogonal_reg_max_codes
@@ -812,7 +814,7 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                loss = loss + margin_loss * self.margin_weight + element_div_loss
+                loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * element_div_loss
                 # loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
 
         if is_multiheaded:
