@@ -307,6 +307,7 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Compute divergence penalty
     co_occurrence = torch.clamp(co_occurrence, min=1e-6, max=1.0)  # Clamp to stabilize
+    co_occurrence += 1e-6 * torch.eye(co_occurrence.size(0), device=co_occurrence.device)
     penalty = co_occurrence * torch.log(co_occurrence + 1e-6)
     divergence_loss = -torch.sum(penalty)
 
