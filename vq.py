@@ -282,13 +282,8 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
         device=device
     )
     unique_atom_numbers = sorted(set(atom_types.tolist()))
-    print(f"Unique atom numbers: {unique_atom_numbers}")
-    print(f"Number of unique atom types: {len(unique_atom_numbers)} (expected: 9)")
 
     embed_ind = embed_ind.long()
-    print(f"embed_ind: {embed_ind.shape}")
-    print(f"atom_types_mapped: {atom_types_mapped.shape}")
-    # Validate indices
     assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks)
     assert torch.all(atom_types_mapped >= 0) and torch.all(atom_types_mapped < num_atom_types)
 
