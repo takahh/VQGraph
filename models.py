@@ -266,7 +266,9 @@ class SAGE(nn.Module):
             # ----------------
             # Quantize
             # ----------------
-            quantized, embed_ind, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss = self.vq(h, atom_type_arr)
+            (quantized, embed_ind, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
+             spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
+             ringy_div_loss, h_num_div_loss) = self.vq(h, atom_type_arr)
             latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind.detach().cpu())
 
