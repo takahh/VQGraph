@@ -48,7 +48,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         batch_feats = feats[input_nodes]
 
         # run kmeans at the first step and the last step
-        if step == 0 or (step + 1) == len(dataloader):
+        if step == 0:
             # Code to execute at the first and last step
             model.encoder.reset_kmeans()
 
