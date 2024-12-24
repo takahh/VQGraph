@@ -160,8 +160,6 @@ class SAGE(nn.Module):
         # print("train")
         h = feats
         atom_type_arr = torch.squeeze(h[:, 0])
-        print("atom_type_arr")
-        print(atom_type_arr[:100])
         torch.save(h, "/h.pt")
         h_list = []
         g = dgl.DGLGraph().to(h.device)

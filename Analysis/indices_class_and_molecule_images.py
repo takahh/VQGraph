@@ -130,8 +130,6 @@ def main():
     attr_indptr = arr_input["attr_indptr"]
     attr_shape = arr_input["attr_shape"]
     attr_matrix = csr_matrix((attr_data, attr_indices, attr_indptr), shape=attr_shape)
-    print(attr_matrix.shape)
-    print(node_indices[0])
     subset_attr_matrix = attr_matrix[node_indices[0]:node_indices[0] + 200, :].toarray()
     # subset_attr_matrix = attr_matrix.toarray()
 

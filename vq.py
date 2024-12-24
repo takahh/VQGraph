@@ -293,9 +293,9 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float().to(device)
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=num_atom_types).float().to(device)
 
-    # Check tensor shapes
-    print(f"embed_one_hot shape: {embed_one_hot.shape}")
-    print(f"atom_type_one_hot shape: {atom_type_one_hot.shape}")
+    # # Check tensor shapes
+    # print(f"embed_one_hot shape: {embed_one_hot.shape}")
+    # print(f"atom_type_one_hot shape: {atom_type_one_hot.shape}")
 
     # Stabilize embed_one_hot
     embed_one_hot = embed_one_hot - embed_one_hot.max(dim=-1, keepdim=True).values
