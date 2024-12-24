@@ -268,24 +268,24 @@ def batched_embedding(indices, embeds):
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
     return embeds.gather(2, indices)
 
+def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.1):
+    # Map atom_types to sequential indices
+    unique_atom_numbers = sorted(set(atom_types.tolist()))
+    atom_number_to_index = {atom: idx for idx, atom in enumerate(unique_atom_numbers)}
+    num_atom_types = len(unique_atom_numbers)
 
-def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, num_atom_types=9, temperature=0.1):
-    # Ensure indices are valid
+    atom_types_mapped = torch.tensor([atom_number_to_index[atom] for atom in atom_types.tolist()])
     embed_ind = embed_ind.long()
-    atom_types = atom_types.long()
 
     # Validate embed_ind
     assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks), \
         f"embed_ind out of bounds: min={embed_ind.min().item()}, max={embed_ind.max().item()}, num_codebooks={num_codebooks}"
-    assert torch.all(atom_types >= 0) and torch.all(atom_types < num_atom_types), \
-        f"atom_types out of bounds: min={atom_types.min().item()}, max={atom_types.max().item()}, num_atom_types={num_atom_types}"
+    assert torch.all(atom_types_mapped >= 0) and torch.all(atom_types_mapped < num_atom_types), \
+        f"atom_types_mapped out of bounds: min={atom_types_mapped.min().item()}, max={atom_types_mapped.max().item()}, num_atom_types={num_atom_types}"
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
-    atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
-
-    # Debug tensor shapes
-    print(f"embed_one_hot shape: {embed_one_hot.shape}, atom_type_one_hot shape: {atom_type_one_hot.shape}")
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=num_atom_types).float()
 
     # Check temperature
     assert temperature > 0, f"Temperature must be positive, but got {temperature}"
