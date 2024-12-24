@@ -133,11 +133,12 @@ def main():
                 latent_arr = arr
                 print(f"arr.shape {arr.shape}")
 
-        for param in [5, 10, 20, 30, 40, 50, 100]:
+        for param in [5]:
             if MODE == "tsne":
                 plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size, BATCH)
             else:
-                for param2 in [0.2, 0.4, 0.6, 0.8, 1.0]:
+                # for param2 in [0.2, 0.4, 0.6, 0.8, 1.0]:
+                for param2 in [1.0]:
                     plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size, BATCH, param2)
 
 if __name__ == '__main__':
