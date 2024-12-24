@@ -277,7 +277,7 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     atom_types_mapped = torch.tensor([atom_number_to_index[atom] for atom in atom_types.tolist()])
     embed_ind = embed_ind.long()
 
-    # Validate embed_ind
+    # Validate indices
     assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks), \
         f"embed_ind out of bounds: min={embed_ind.min().item()}, max={embed_ind.max().item()}, num_codebooks={num_codebooks}"
     assert torch.all(atom_types_mapped >= 0) and torch.all(atom_types_mapped < num_atom_types), \
@@ -287,14 +287,22 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=num_atom_types).float()
 
-    # Check temperature
-    assert temperature > 0, f"Temperature must be positive, but got {temperature}"
+    # Check tensor shapes
+    print(f"embed_one_hot shape: {embed_one_hot.shape}")
+    print(f"atom_type_one_hot shape: {atom_type_one_hot.shape}")
 
     # Stabilize embed_one_hot
     embed_one_hot = embed_one_hot - embed_one_hot.max(dim=-1, keepdim=True).values
 
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
+
+    # Debug soft_assignments shape
+    print(f"soft_assignments shape: {soft_assignments.shape}")
+
+    # Ensure soft_assignments is 2D
+    soft_assignments = soft_assignments.reshape(-1, soft_assignments.shape[-1])  # Shape [N, num_codebooks]
+    atom_type_one_hot = atom_type_one_hot.reshape(-1, atom_type_one_hot.shape[-1])  # Shape [N, num_atom_types]
 
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
@@ -305,7 +313,6 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     divergence_loss = -torch.sum(penalty)
 
     return divergence_loss
-
 
 def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
