@@ -187,6 +187,8 @@ class SAGE(nn.Module):
         # Feat loss
         # --------------------
         raw_feat_loss = F.mse_loss(h, quantized_node)
+        print(f"h {h.shape}, quantized_node {quantized_node.shape}")
+        print(f"h {h[:10]}, quantized_node {quantized_node[:10]}")
         feature_rec_loss = self.lamb_node * raw_feat_loss
         # --------------------
         # Adj loss (1D to 2D)
