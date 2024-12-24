@@ -269,7 +269,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
+def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
     device = embed_ind.device
     embed_ind = torch.squeeze(embed_ind, dim=-1)
     # Map atom_types to sequential indices
@@ -315,7 +315,7 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     return sparsity_loss
 
 
-def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
+def orthogonal_loss_fn(t, init_feat, embed_ind, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
     t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
     t = t / t_norm
@@ -343,10 +343,13 @@ def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
     # ---------------------------------------------------------------
-    atom_type_div_loss = torch.tensor(soft_atom_divergence_loss(embed_ind, atom_type_arr))
+    atom_type_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 0]))
+    bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
+    aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
+    ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
+    h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
 
-    return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss
-
+    return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss
 
 
 # distance types
@@ -659,6 +662,10 @@ class VectorQuantize(nn.Module):
             spread_weight=0.2,
             pair_weight=0.01,
             lamb_div_ele=100,
+            lamb_div_bonds=100,
+            lamb_div_aroma=100,
+            lamb_div_ringy=100,
+            lamb_div_h_num=100,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
@@ -683,6 +690,10 @@ class VectorQuantize(nn.Module):
         self.margin_weight = margin_weight
         self.spread_weight = spread_weight
         self.lamb_div_ele = lamb_div_ele
+        self.lamb_div_bonds = lamb_div_bonds
+        self.lamb_div_aroma = lamb_div_aroma
+        self.lamb_div_ringy = lamb_div_ringy
+        self.lamb_div_h_num = lamb_div_h_num
         self.pair_weight = pair_weight
         self.orthogonal_reg_active_codes_only = orthogonal_reg_active_codes_only
         self.orthogonal_reg_max_codes = orthogonal_reg_max_codes
@@ -738,7 +749,7 @@ class VectorQuantize(nn.Module):
     def forward(
             self,
             x,
-            atom_type_arr,
+            init_feat,
             mask=None
     ):
         only_one = x.ndim == 2
@@ -819,7 +830,8 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss, div_ele_loss = orthogonal_loss_fn(codebook, atom_type_arr, embed_ind)
+                margin_loss, spread_loss, pair_distance_loss, div_ele_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss\
+                    = orthogonal_loss_fn(codebook, init_feat, embed_ind)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 # ---------------------------------
                 # linearly combine losses !!!!
@@ -849,4 +861,5 @@ class VectorQuantize(nn.Module):
             embed_ind = rearrange(embed_ind, 'b 1 -> b')
         #
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
-        return quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss, pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss
+        return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
+                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss)
