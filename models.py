@@ -161,9 +161,9 @@ class SAGE(nn.Module):
     def forward(self, blocks, feats):
         # print("train")
         h = feats
-        print("h original")
-        print(h.shape)
-        print(h[:20])
+        # print("h original")
+        # print(h.shape)
+        # print(h[:20])
         atom_type_arr = torch.squeeze(h[:, 0])
         torch.save(h, "/h.pt")
         h_list = []
@@ -184,9 +184,9 @@ class SAGE(nn.Module):
             h = self.norms[0](h)
         h = self.dropout(h)
         h_list.append(h)
-        print("h latent")
-        print(h.shape)
-        print(h[:20])
+        # print("h latent")
+        # print(h.shape)
+        # print(h[:20])
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
         quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss = self.vq(h, atom_type_arr)
         quantized_edge = self.decoder_1(quantized)
