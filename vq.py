@@ -310,10 +310,8 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
     print(f"co_occurrence: {co_occurrence.shape}")
     co_occurrence = co_occurrence / (torch.sum(co_occurrence, dim=1, keepdim=True) + 1e-6)
-
-    # Add small values to diagonal for numerical stability
-    identity_matrix = torch.eye(co_occurrence.size(1), device=co_occurrence.device)  # Match second dimension
-    co_occurrence += 1e-6 * identity_matrix[:co_occurrence.size(0), :co_occurrence.size(1)]
+    identity_matrix = torch.eye(co_occurrence.size(1), device=co_occurrence.device)  # Size [14, 14]
+    co_occurrence[:, :co_occurrence.size(1)] += 1e-6 * identity_matrix
 
     target_distribution = co_occurrence / co_occurrence.sum(dim=1, keepdim=True)
     kl_div = torch.nn.functional.kl_div(torch.log(co_occurrence + 1e-6), target_distribution, reduction='batchmean')
