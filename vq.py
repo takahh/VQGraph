@@ -269,8 +269,8 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.1, normalize="frobenius"):
-    device = embed_ind.device  # Get the device of embed_ind
+def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.1, normalize="frobenius", alpha=1.0):
+    device = embed_ind.device
 
     # Map atom_types to sequential indices
     unique_atom_numbers = sorted(set(atom_types.tolist()))
@@ -279,15 +279,13 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     atom_types_mapped = torch.tensor(
         [atom_number_to_index[atom] for atom in atom_types.tolist()],
-        device=device  # Ensure tensor is on the same device
+        device=device
     )
     embed_ind = embed_ind.long()
 
     # Validate indices
-    assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks), \
-        f"embed_ind out of bounds: min={embed_ind.min().item()}, max={embed_ind.max().item()}, num_codebooks={num_codebooks}"
-    assert torch.all(atom_types_mapped >= 0) and torch.all(atom_types_mapped < num_atom_types), \
-        f"atom_types_mapped out of bounds: min={atom_types_mapped.min().item()}, max={atom_types_mapped.max().item()}, num_atom_types={num_atom_types}"
+    assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks)
+    assert torch.all(atom_types_mapped >= 0) and torch.all(atom_types_mapped < num_atom_types)
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float().to(device)
@@ -300,14 +298,15 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
 
     # Ensure soft_assignments is 2D
-    soft_assignments = soft_assignments.reshape(-1, soft_assignments.shape[-1])  # Shape [N, num_codebooks]
-    atom_type_one_hot = atom_type_one_hot.reshape(-1, atom_type_one_hot.shape[-1])  # Shape [N, num_atom_types]
+    soft_assignments = soft_assignments.reshape(-1, soft_assignments.shape[-1])
+    atom_type_one_hot = atom_type_one_hot.reshape(-1, atom_type_one_hot.shape[-1])
 
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
     co_occurrence = co_occurrence / (torch.sum(co_occurrence, dim=1, keepdim=True) + 1e-6)
 
     # Compute divergence penalty
+    co_occurrence = torch.clamp(co_occurrence, min=1e-6, max=1.0)  # Clamp to stabilize
     penalty = co_occurrence * torch.log(co_occurrence + 1e-6)
     divergence_loss = -torch.sum(penalty)
 
@@ -321,6 +320,9 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     elif normalize == "frobenius":
         frobenius_norm = torch.norm(co_occurrence, p='fro')
         divergence_loss = divergence_loss / (frobenius_norm + 1e-6)
+
+    # Apply scaling factor
+    divergence_loss = divergence_loss * alpha
 
     return divergence_loss
 
