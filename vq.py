@@ -796,6 +796,10 @@ class VectorQuantize(nn.Module):
         div_ele_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         pair_distance_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         detached_quantize = torch.tensor([0.], device=device, requires_grad=self.training)
+        bond_num_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        aroma_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        ringy_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        h_num_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         if self.training:
             if self.commitment_weight > 0:  # 0.25 is assigned
                 detached_quantize = quantize.detach()
