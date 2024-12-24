@@ -304,6 +304,7 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
+    print(f"co_occurrence: {co_occurrence.shape}")
     co_occurrence = co_occurrence / (torch.sum(co_occurrence, dim=1, keepdim=True) + 1e-6)
 
     # Add small values to diagonal for numerical stability
