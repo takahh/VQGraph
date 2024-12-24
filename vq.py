@@ -269,7 +269,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.1):
+def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.1, normalize="frobenius"):
     device = embed_ind.device  # Get the device of embed_ind
 
     # Map atom_types to sequential indices
@@ -293,10 +293,6 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float().to(device)
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=num_atom_types).float().to(device)
 
-    # # Check tensor shapes
-    # print(f"embed_one_hot shape: {embed_one_hot.shape}")
-    # print(f"atom_type_one_hot shape: {atom_type_one_hot.shape}")
-
     # Stabilize embed_one_hot
     embed_one_hot = embed_one_hot - embed_one_hot.max(dim=-1, keepdim=True).values
 
@@ -314,6 +310,17 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # Compute divergence penalty
     penalty = co_occurrence * torch.log(co_occurrence + 1e-6)
     divergence_loss = -torch.sum(penalty)
+
+    # Apply normalization
+    if normalize == "batch":
+        batch_size = embed_ind.shape[0]
+        divergence_loss = divergence_loss / batch_size
+    elif normalize == "max_value":
+        max_possible_loss = torch.log(torch.tensor(num_atom_types * num_codebooks, dtype=torch.float32)).to(device)
+        divergence_loss = divergence_loss / max_possible_loss
+    elif normalize == "frobenius":
+        frobenius_norm = torch.norm(co_occurrence, p='fro')
+        divergence_loss = divergence_loss / (frobenius_norm + 1e-6)
 
     return divergence_loss
 
