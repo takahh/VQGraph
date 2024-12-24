@@ -42,13 +42,16 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     cb_list = []
     init_cb_list = []
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
-
-    model.encoder.reset_kmeans()
+    #     model.encoder.reset_kmeans()
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
 
-        # Gradient accumulation
+        # run kmeans at the first step and the last step
+        if step == 0 or (step + 1) == len(dataloader):
+            # Code to execute at the first and last step
+            model.encoder.reset_kmeans()
+
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             _, logits, loss, _, cb, loss_list, latent_train, quantized, init_cb = model(blocks, batch_feats)
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
@@ -89,7 +92,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
-    model.encoder.reset_kmeans()
     return avg_loss, loss_list, latent_list, cb_list, init_cb_list
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
