@@ -255,6 +255,7 @@ def run(args):
     optimizer = optim.Adam(
         model.parameters(), lr=conf["learning_rate"], weight_decay=conf["weight_decay"]
     )
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
     criterion = torch.nn.NLLLoss()
     evaluator = get_evaluator(conf["dataset"])
 

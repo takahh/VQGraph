@@ -269,7 +269,7 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.1, normalize="frobenius", alpha=1.0):
+def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
     device = embed_ind.device
 
     # Map atom_types to sequential indices
@@ -670,7 +670,7 @@ class VectorQuantize(nn.Module):
             margin_weight=0.8,
             spread_weight=0.2,
             pair_weight=0.01,
-            lamb_div_ele=10,
+            lamb_div_ele=1,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
