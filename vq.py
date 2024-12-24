@@ -268,13 +268,19 @@ def batched_embedding(indices, embeds):
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
     return embeds.gather(2, indices)
 
+
 def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.1):
+    device = embed_ind.device  # Get the device of embed_ind
+
     # Map atom_types to sequential indices
     unique_atom_numbers = sorted(set(atom_types.tolist()))
     atom_number_to_index = {atom: idx for idx, atom in enumerate(unique_atom_numbers)}
     num_atom_types = len(unique_atom_numbers)
 
-    atom_types_mapped = torch.tensor([atom_number_to_index[atom] for atom in atom_types.tolist()])
+    atom_types_mapped = torch.tensor(
+        [atom_number_to_index[atom] for atom in atom_types.tolist()],
+        device=device  # Ensure tensor is on the same device
+    )
     embed_ind = embed_ind.long()
 
     # Validate indices
@@ -284,8 +290,8 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
         f"atom_types_mapped out of bounds: min={atom_types_mapped.min().item()}, max={atom_types_mapped.max().item()}, num_atom_types={num_atom_types}"
 
     # Create one-hot representations
-    embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
-    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=num_atom_types).float()
+    embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float().to(device)
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=num_atom_types).float().to(device)
 
     # Check tensor shapes
     print(f"embed_one_hot shape: {embed_one_hot.shape}")
@@ -296,9 +302,6 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
-
-    # Debug soft_assignments shape
-    print(f"soft_assignments shape: {soft_assignments.shape}")
 
     # Ensure soft_assignments is 2D
     soft_assignments = soft_assignments.reshape(-1, soft_assignments.shape[-1])  # Shape [N, num_codebooks]
@@ -313,6 +316,7 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     divergence_loss = -torch.sum(penalty)
 
     return divergence_loss
+
 
 def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
     # Normalize embeddings (optional: remove if not necessary)
