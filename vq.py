@@ -270,40 +270,21 @@ def batched_embedding(indices, embeds):
 
 
 def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, num_atom_types=9, temperature=0.1):
-    """
-    Soft atom type divergence loss for probabilistic assignments.
-
-    Args:
-        embed_ind (torch.Tensor): Tensor of shape (N,) containing the indices of the assigned codebook vectors.
-        atom_types (torch.Tensor): Tensor of shape (N,) containing the atom types as integers.
-        num_codebooks (int): Number of codebook vectors.
-        num_atom_types (int): Number of unique atom types.
-        temperature (float): Smoothing factor for softmax.
-
-    Returns:
-        torch.Tensor: The divergence regularization loss.
-    """
     atom_types = atom_types.long()
     embed_ind = embed_ind.long()
 
-    # Debug embed_ind
-    print(f"embed_ind min: {embed_ind.min().item()}, max: {embed_ind.max().item()}, num_codebooks: {num_codebooks}")
-    assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks), \
-        f"embed_ind contains invalid values: {embed_ind}"
+    # Validate embed_ind
+    assert embed_ind.min().item() >= 0 and embed_ind.max().item() < num_codebooks, \
+        f"embed_ind contains invalid values: min={embed_ind.min().item()}, max={embed_ind.max().item()}, num_codebooks={num_codebooks}"
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types, num_classes=num_atom_types).float()
 
-    # # Debug embed_one_hot
-    # print(f"embed_one_hot shape: {embed_one_hot.shape}")
-    # embed_one_hot_cpu = embed_one_hot.cpu()  # Move to CPU for debug output
-    # print(f"embed_one_hot min: {embed_one_hot_cpu.min().item()}, max: {embed_one_hot_cpu.max().item()}")
-
     # Check temperature
     assert temperature > 0, f"Temperature must be positive, but got {temperature}"
 
-    # Normalize embed_one_hot for numerical stability
+    # Stabilize embed_one_hot
     embed_one_hot = embed_one_hot - embed_one_hot.max(dim=-1, keepdim=True).values
 
     # Compute soft assignments
