@@ -305,9 +305,9 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
     co_occurrence = co_occurrence / (torch.sum(co_occurrence, dim=1, keepdim=True) + 1e-6)
 
-    # Compute divergence penalty
-    co_occurrence = torch.clamp(co_occurrence, min=1e-6, max=1.0)  # Clamp to stabilize
-    co_occurrence += 1e-6 * torch.eye(co_occurrence.size(0), device=co_occurrence.device)
+    # Add small values to diagonal for numerical stability
+    co_occurrence += 1e-6 * torch.eye(co_occurrence.size(1), device=co_occurrence.device)[:co_occurrence.size(0), :]
+
     target_distribution = co_occurrence / co_occurrence.sum(dim=1, keepdim=True)
     kl_div = torch.nn.functional.kl_div(torch.log(co_occurrence + 1e-6), target_distribution, reduction='batchmean')
     divergence_loss = kl_div
