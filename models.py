@@ -130,7 +130,8 @@ class SAGE(nn.Module):
         norm_type,
         codebook_size,
         lamb_edge,
-        lamb_node
+        lamb_node,
+        lamb_div_ele
     ):
         super().__init__()
         self.num_layers = num_layers
@@ -151,6 +152,7 @@ class SAGE(nn.Module):
         self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
+        self.lamb_div_ele = lamb_div_ele
 
     def reset_kmeans(self):
         self.vq._codebook.reset_kmeans()
@@ -159,6 +161,9 @@ class SAGE(nn.Module):
     def forward(self, blocks, feats):
         # print("train")
         h = feats
+        print("h")
+        print(h.shape)
+        print(h[:20])
         atom_type_arr = torch.squeeze(h[:, 0])
         torch.save(h, "/h.pt")
         h_list = []
@@ -187,9 +192,11 @@ class SAGE(nn.Module):
         # Feat loss
         # --------------------
         raw_feat_loss = F.mse_loss(h, quantized_node)
-        print(f"h {h.shape}, quantized_node {quantized_node.shape}")
-        print(f"h {h[:10]}, quantized_node {quantized_node[:10]}")
         feature_rec_loss = self.lamb_node * raw_feat_loss
+        # --------------------------
+        # diverge element loss (NEW)
+        # --------------------------
+        div_element_loss = F.mse_loss(h[0, :], quantized_node[0, :])
         # --------------------
         # Adj loss (1D to 2D)
         # --------------------
@@ -459,7 +466,8 @@ class Model(nn.Module):
                 norm_type=conf["norm_type"],
                 codebook_size=conf["codebook_size"],
                 lamb_edge=conf["lamb_edge"],
-                lamb_node=conf["lamb_node"]
+                lamb_node=conf["lamb_node"],
+                lamb_div_ele=conf["lamb_div_ele"]
             ).to(conf["device"])
         elif "GCN" in conf["model_name"]:
             self.encoder = GCN(
