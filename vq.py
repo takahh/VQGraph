@@ -830,7 +830,7 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss, div_ele_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss\
+                margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss\
                     = orthogonal_loss_fn(codebook, init_feat, embed_ind)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 # ---------------------------------
