@@ -43,6 +43,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     init_cb_list = []
     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
 
+    model.encoder.reset_kmeans()
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
@@ -88,8 +89,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
+    model.encoder.reset_kmeans()
     return avg_loss, loss_list, latent_list, cb_list, init_cb_list
-
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
     """
@@ -492,7 +493,6 @@ def run_inductive(
     acc_tran, acc_ind = 0, 0
     score_val = 0
     for epoch in range(1, conf["max_epoch"] + 1):
-        model.encoder.reset_kmeans()
         # print(f"epoch {epoch}")
 
         # --------------------------------
@@ -723,6 +723,7 @@ def run_inductive(
             #     f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
             # )
     #      out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind, latent_train_list
+
     return out, score_val, acc_tran, acc_ind, h_list, dist, cb_at_best, latent_trans, latent_ind, train_latents_at_best
 
 
