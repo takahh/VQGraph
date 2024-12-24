@@ -271,7 +271,7 @@ def batched_embedding(indices, embeds):
 
 def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
     device = embed_ind.device
-
+    embed_ind = torch.squeeze(embed_ind, dim=-1)
     # Map atom_types to sequential indices
     unique_atom_numbers = sorted(set(atom_types.tolist()))
     atom_number_to_index = {atom: idx for idx, atom in enumerate(unique_atom_numbers)}
