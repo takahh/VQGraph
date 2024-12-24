@@ -308,33 +308,16 @@ def soft_atom_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
-    co_occurrence = co_occurrence / (torch.sum(co_occurrence, dim=1, keepdim=True) + 1e-6)
-    identity_matrix = torch.eye(co_occurrence.size(1), device=co_occurrence.device)  # Size [14, 14]
-    print(f"identity_matrix: {identity_matrix.shape}")
-    print(f"co_occurrence: {co_occurrence.shape}")
-    co_occurrence[:, :co_occurrence.size(1)] += 1e-6 * identity_matrix
+    # Ensure co_occurrence is normalized (rows sum to 1)
+    co_occurrence_normalized = co_occurrence / (co_occurrence.sum(dim=1, keepdim=True) + 1e-6)
 
-    target_distribution = co_occurrence / co_occurrence.sum(dim=1, keepdim=True)
-    kl_div = torch.nn.functional.kl_div(torch.log(co_occurrence + 1e-6), target_distribution, reduction='batchmean')
-    divergence_loss = kl_div
-    # penalty = co_occurrence * torch.log(co_occurrence + 1e-6)
-    # divergence_loss = -torch.sum(penalty)
+    # Compute row-wise entropy
+    row_entropy = -torch.sum(co_occurrence_normalized * torch.log(co_occurrence_normalized + 1e-6), dim=1)
 
-    # Apply normalization
-    if normalize == "batch":
-        batch_size = embed_ind.shape[0]
-        divergence_loss = divergence_loss / batch_size
-    elif normalize == "max_value":
-        max_possible_loss = torch.log(torch.tensor(num_atom_types * num_codebooks, dtype=torch.float32)).to(device)
-        divergence_loss = divergence_loss / max_possible_loss
-    elif normalize == "frobenius":
-        frobenius_norm = torch.norm(co_occurrence, p='fro')
-        divergence_loss = divergence_loss / (frobenius_norm + 1e-6)
+    # Loss: Average entropy across all rows
+    sparsity_loss = row_entropy.mean()
 
-    # Apply scaling factor
-    divergence_loss = divergence_loss * alpha
-
-    return divergence_loss
+    return sparsity_loss
 
 
 def orthogonal_loss_fn(t, atom_type_arr, embed_ind, min_distance=0.5):
