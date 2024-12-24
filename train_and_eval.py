@@ -492,6 +492,7 @@ def run_inductive(
     acc_tran, acc_ind = 0, 0
     score_val = 0
     for epoch in range(1, conf["max_epoch"] + 1):
+        model.encoder.reset_kmeans()
         # print(f"epoch {epoch}")
 
         # --------------------------------
@@ -628,7 +629,6 @@ def run_inductive(
             embed_ind_list_indices = embed_ind_list_indices[:8000]
             np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
             np.savez(f"./input_nodes_{epoch}", input_nodes)
-            model.encoder.reset_kmeans()
 
         if conf["train_or_infer"] == "train":
 
