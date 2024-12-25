@@ -508,7 +508,7 @@ def run_inductive(
             if conf["train_or_infer"] == "train":
                 # partial sampling, only obs data
                 # this loss is label loss
-                loss, loss_list, latent_train, cb_just_trained, latents = train_sage(
+                loss, loss_list, latent_train, latents = train_sage(
                     model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
                 )
                 cb_new = model.encoder.vq._codebook.init_embed_(latents)
