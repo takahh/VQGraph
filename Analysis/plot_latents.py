@@ -102,7 +102,7 @@ def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size, batch_size, para
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
-    arr = np.load(f"{filename}")["arr_0"]
+    arr = np.load(f"{filename}", allow_pickle=True)["arr_0"]
     arr = np.squeeze(arr)
     return arr
 
@@ -112,7 +112,7 @@ def main():
     DIMENSION = 512
     BATCH = 8000
     EPOCH = 1
-    EPOCH2 = 11
+    EPOCH2 = 6
 
     # MODE = "tsne"
     MODE = "umap"
@@ -124,6 +124,7 @@ def main():
         for names in namelist:
             arr = getdata(names)
             if "book" in names:
+                print(arr.shape)
                 cb_arr = np.unique(arr, axis=0)
                 cb_size = cb_arr.shape[0]
                 print(f"cb_size {cb_size}")
