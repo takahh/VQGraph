@@ -111,11 +111,11 @@ def main():
     arr_list = []
     DIMENSION = 512
     BATCH = 8000
-    EPOCH = 2
-    EPOCH2 = 6
+    EPOCH = 4
+    EPOCH2 = 5
 
     # MODE = "tsne"
-    MODE = "umap"
+    MODE = "tsne"
     for epoch in range(EPOCH, EPOCH2):
         arr = None
         print(f"epoch {epoch}")
@@ -133,12 +133,12 @@ def main():
                 latent_arr = arr
                 print(f"arr.shape {arr.shape}")
 
-        for param in [5]:
+        for param in [100, 10]:
             if MODE == "tsne":
                 plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size, BATCH)
             else:
                 # for param2 in [0.2, 0.4, 0.6, 0.8, 1.0]:
-                for param2 in [0.1, 0.4]:
+                for param2 in [0.1, 0.4, 1.0]:
                     plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size, BATCH, param2)
 
 if __name__ == '__main__':

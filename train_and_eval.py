@@ -48,9 +48,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         batch_feats = feats[input_nodes]
 
         # run kmeans at the first step and the last step
-        if step % 5 == 0:
-            # Code to execute at the first and last step
-            model.encoder.reset_kmeans()
+        # if step % 1 == 0:
+        #     # Code to execute at the first and last step
+        #     model.encoder.reset_kmeans()
 
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             _, logits, loss, _, cb, loss_list, latent_train, quantized, init_cb = model(blocks, batch_feats)
@@ -510,6 +510,7 @@ def run_inductive(
                 loss, loss_list, latent_train, cb_just_trained, init_cb_list = train_sage(
                     model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
                 )
+                model.encoder.reset_kmeans()
                 # save codebook and vectors every epoch
                 cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
                 init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])
