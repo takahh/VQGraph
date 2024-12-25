@@ -511,15 +511,11 @@ def run_inductive(
                 loss, loss_list, latent_train, latents = train_sage(
                     model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
                 )
-                print(f"latents {latents}")
-                print(f"latents shape {latents.shape}")
+                model.encoder.reset_kmeans()
                 cb_new = model.encoder.vq._codebook.init_embed_(latents)
                 # save codebook and vectors every epoch
                 # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
-                print(f"cb_new {cb_new}")
-                print(f"cb_new shape {cb_new.shape}")
-                np.savez(f"./codebook_{epoch}", cb_new)
-                # np.savez(f"./init_codebook_{epoch}", init_cb_list)
+                np.savez(f"./init_codebook_{epoch}", cb_new)
                 latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
                 # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
                 latent_train = latent_train[-8000:]
