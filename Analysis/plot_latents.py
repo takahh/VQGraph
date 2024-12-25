@@ -112,14 +112,14 @@ def main():
     DIMENSION = 512
     BATCH = 8000
     EPOCH = 1
-    EPOCH2 = 6
+    EPOCH2 = 11
 
     # MODE = "tsne"
     MODE = "umap"
     for epoch in range(EPOCH, EPOCH2):
         arr = None
         print(f"epoch {epoch}")
-        namelist = [f"{path}codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
+        namelist = [f"{path}init_codebook_{epoch}.npz", f"{path}latents_{epoch}.npz"]
         # namelist = [f"{path}codebook_{epoch}.npz", f"{path}init_codebook_{epoch}.npz", f"{path}latent_train_{epoch}.npz"]
         for names in namelist:
             arr = getdata(names)
