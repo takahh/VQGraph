@@ -510,7 +510,7 @@ def run_inductive(
                 loss, loss_list, latent_train, cb_just_trained, init_cb_list = train_sage(
                     model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
                 )
-                cb_new = model.encoder.vq._codebook.init_embed()
+                cb_new = model.encoder.vq._codebook.init_embed_()
                 # save codebook and vectors every epoch
                 # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
                 init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])
