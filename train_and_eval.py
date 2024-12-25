@@ -516,6 +516,8 @@ def run_inductive(
                 cb_new = model.encoder.vq._codebook.init_embed_(latents)
                 # save codebook and vectors every epoch
                 # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
+                print(f"cb_new {cb_new}")
+                print(f"cb_new shape {cb_new.shape}")
                 np.savez(f"./codebook_{epoch}", cb_new)
                 # np.savez(f"./init_codebook_{epoch}", init_cb_list)
                 latent_train = torch.cat([torch.squeeze(x) for x in latent_train])
