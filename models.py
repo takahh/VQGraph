@@ -227,7 +227,7 @@ class SAGE(nn.Module):
         h = h[:blocks[-1].num_dst_nodes()]
         # x and codebook are saved later...
         return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
-                                                 bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss], x, detached_quantize, init_cb
+                                                 bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss], x, detached_quantize, latents
 
 
     def inference(self, dataloader, feats):

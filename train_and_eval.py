@@ -53,7 +53,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         #     model.encoder.reset_kmeans()
 
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
-            _, logits, loss, _, cb, loss_list, latent_train, quantized, init_cb = model(blocks, batch_feats)
+            # h_list, h, loss, dist, codebook, losslist, x, detached_quantize, latents
+            _, logits, loss, _, cb, loss_list, latent_train, quantized, latents = model(blocks, batch_feats)
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
@@ -79,7 +80,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Append latent_train to CPU to avoid GPU memory growth
         latent_list.append(latent_train.detach().cpu())
         cb_list.append(cb.detach().cpu())
-        init_cb_list.append(init_cb.detach().cpu())
 
         # Move loss_list to CPU and release memory
         loss_list = [l.detach().cpu() for l in loss_list]
@@ -92,7 +92,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
     torch.cuda.empty_cache()
-    return avg_loss, loss_list, latent_list, cb_list, init_cb_list
+    return avg_loss, loss_list, latent_list, latents
+
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
     """
@@ -507,10 +508,10 @@ def run_inductive(
             if conf["train_or_infer"] == "train":
                 # partial sampling, only obs data
                 # this loss is label loss
-                loss, loss_list, latent_train, cb_just_trained, init_cb_list = train_sage(
+                loss, loss_list, latent_train, cb_just_trained, latents = train_sage(
                     model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
                 )
-                cb_new = model.encoder.vq._codebook.init_embed_()
+                cb_new = model.encoder.vq._codebook.init_embed_(latents)
                 # save codebook and vectors every epoch
                 # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
                 init_cb_list = np.concatenate([a.cpu().detach().numpy() for a in init_cb_list])

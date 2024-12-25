@@ -780,7 +780,7 @@ class VectorQuantize(nn.Module):
         # --------------------------------------------------
         # quantize here
         # --------------------------------------------------
-        # quantize, embed_ind, dist, self.embed, flatten
+        # quantize, embed_ind, dist, self.embed, flatten, init_cb
         quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
         # quantize　: 各データに対応する codebook vector
         # embed_ind : 各データに対応する codebook vector のインデックス
