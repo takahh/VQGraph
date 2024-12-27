@@ -355,6 +355,8 @@ def silhouette_loss(embeddings, embed_ind, num_clusters):
             inter_cluster_distances.append(0)
 
     # Compute silhouette coefficients
+    print(f"intra_cluster_distances = {intra_cluster_distances}")
+    print(f"inter_cluster_distances = {inter_cluster_distances}")
     a = torch.tensor(intra_cluster_distances)
     b = torch.tensor(inter_cluster_distances)
     silhouette_coefficients = (b - a) / torch.max(a, b)
