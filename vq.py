@@ -315,48 +315,6 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     return sparsity_loss
 
 
-def orthogonal_loss_fn(t, init_feat, embed_ind, min_distance=0.5):
-    # Normalize embeddings (optional: remove if not necessary)
-    t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
-    t = t / t_norm
-
-    # Pairwise distances
-    dist_matrix = torch.squeeze(torch.cdist(t, t, p=2) + 1e-6)  # Avoid zero distances
-
-    # Remove diagonal
-    mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
-    dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
-
-    # Debug: Log distance statistics
-    # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
-
-    # Margin loss: Encourage distances >= min_distance
-    smooth_penalty = torch.nn.functional.relu(min_distance - dist_matrix_no_diag)
-    margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
-
-    # Spread loss: Encourage diversity
-    spread_loss = torch.var(t)
-
-    # Pair distance loss: Regularize distances
-    pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
-
-    # ---------------------------------------------------------------
-    # loss to assign different codes for different chemical elements
-    # ---------------------------------------------------------------
-    atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
-    bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
-    aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
-    ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
-    h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
-
-    # bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
-    # aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
-    # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
-    # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
-
-    return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss
-
-
 from torch.nn.functional import pairwise_distance
 
 
@@ -403,6 +361,54 @@ def silhouette_loss(embeddings, embed_ind, num_clusters):
 
     # Return mean silhouette loss
     return -silhouette_coefficients.mean()
+
+
+def orthogonal_loss_fn(t, init_feat, embed_ind, latents, min_distance=0.5):
+    # Normalize embeddings (optional: remove if not necessary)
+    t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
+    t = t / t_norm
+
+    latents_norm = torch.norm(latents, dim=1, keepdim=True) + 1e-6
+    latents = latents / latents_norm
+
+    # Pairwise distances
+    dist_matrix = torch.squeeze(torch.cdist(t, t, p=2) + 1e-6)  # Avoid zero distances
+
+    # Remove diagonal
+    mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
+    dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
+
+    # Debug: Log distance statistics
+    # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
+
+    # Margin loss: Encourage distances >= min_distance
+    smooth_penalty = torch.nn.functional.relu(min_distance - dist_matrix_no_diag)
+    margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
+
+    # Spread loss: Encourage diversity
+    spread_loss = torch.var(t)
+
+    # Pair distance loss: Regularize distances
+    pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
+
+    # sil loss
+    sil_loss = silhouette_loss(latents, t, t.shape[0])
+
+    # ---------------------------------------------------------------
+    # loss to assign different codes for different chemical elements
+    # ---------------------------------------------------------------
+    atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
+    bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
+    aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
+    ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
+    h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
+
+    # bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
+    # aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
+    # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
+    # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
+
+    return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss
 
 
 class EuclideanCodebook(nn.Module):
@@ -890,8 +896,8 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss\
-                    = orthogonal_loss_fn(codebook, init_feat, embed_ind)
+                (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
+                 ringy_div_loss, h_num_div_loss, silh_loss) = orthogonal_loss_fn(codebook, init_feat, embed_ind, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
 
                 # ---------------------------------
