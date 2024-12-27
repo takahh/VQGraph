@@ -392,7 +392,8 @@ def orthogonal_loss_fn(t, init_feat, embed_ind, latents, min_distance=0.5):
     pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
 
     # sil loss
-    sil_loss = silhouette_loss(latents, t, t.shape[0])
+    embed_ind_for_sil = torch.squeeze(embed_ind)
+    sil_loss = silhouette_loss(latents, embed_ind_for_sil, embed_ind_for_sil.shape[0])
 
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
@@ -903,7 +904,7 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate silouhette Losses
                 # ---------------------------------
-                silh_loss = silhouette_loss(latents, embed_ind, codebook.shape[0])
+                # silh_loss = silhouette_loss(latents, embed_ind, codebook.shape[0])
 
                 # ---------------------------------
                 # linearly combine losses !!!!
