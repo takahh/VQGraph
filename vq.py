@@ -523,7 +523,7 @@ class EuclideanCodebook(nn.Module):
         batch_samples = rearrange(batch_samples, 'h ... d -> h (...) d')
         self.replace(batch_samples, batch_mask=expired_codes)
 
-    @autocast('cuda', enabled=False)
+    @torch.amp.autocast('cuda', enabled=False)
     def forward(self, x):
         needs_codebook_dim = x.ndim < 4
         x = x.float()
@@ -657,7 +657,8 @@ class CosineSimCodebook(nn.Module):
         batch_samples = rearrange(batch_samples, 'h ... d -> h (...) d')
         self.replace(batch_samples, batch_mask=expired_codes)
 
-    @autocast('cuda', enabled=False)
+
+    @torch.amp.autocast('cuda', enabled=False)
     def forward(self, x):
         needs_codebook_dim = x.ndim < 4
         x = x.float()
