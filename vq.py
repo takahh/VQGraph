@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from einops import rearrange, repeat, pack, unpack
 from torch import nn, einsum
 from torch.ao.quantization import quantize
-from torch.cuda.amp import autocast
+from torch.amp import autocast
 from torch.onnx.symbolic_opset9 import pairwise_distance
 from einops import rearrange, repeat
 from torch.distributions import MultivariateNormal
@@ -523,7 +523,7 @@ class EuclideanCodebook(nn.Module):
         batch_samples = rearrange(batch_samples, 'h ... d -> h (...) d')
         self.replace(batch_samples, batch_mask=expired_codes)
 
-    @autocast(enabled=False)
+    @autocast('cuda', enabled=False)
     def forward(self, x):
         needs_codebook_dim = x.ndim < 4
         x = x.float()
@@ -657,7 +657,7 @@ class CosineSimCodebook(nn.Module):
         batch_samples = rearrange(batch_samples, 'h ... d -> h (...) d')
         self.replace(batch_samples, batch_mask=expired_codes)
 
-    @autocast(enabled=False)
+    @autocast('cuda', enabled=False)
     def forward(self, x):
         needs_codebook_dim = x.ndim < 4
         x = x.float()
