@@ -214,7 +214,6 @@ def run(args):
 
     check_writable(output_dir, overwrite=False)
     logger = get_logger(output_dir.joinpath("log"), args.console_log, args.log_level)
-    logger.info(f"output_dir: {output_dir}")
 
     """ Load data """
     g, labels, idx_train, idx_val, idx_test = load_data(
@@ -226,8 +225,8 @@ def run(args):
         labelrate_val=args.labelrate_val,
         train_or_infer=args.train_or_infer
     )
-    logger.info(f"Total {g.number_of_nodes()} nodes.")
-    logger.info(f"Total {g.number_of_edges()} edges.")
+    # logger.info(f"Total {g.number_of_nodes()} nodes.")
+    # logger.info(f"Total {g.number_of_edges()} edges.")
 
     feats = g.ndata["feat"]
     # args.feat_dim = g.ndata["feat"].shape[1]
@@ -245,7 +244,7 @@ def run(args):
         conf = get_training_config(args.model_config_path, args.teacher, args.dataset)
     conf = dict(args.__dict__, **conf)
     conf["device"] = device
-    logger.info(f"conf: {conf}")
+    # logger.info(f"conf: {conf}")
 
     """ Model init """
     model = Model(conf)
