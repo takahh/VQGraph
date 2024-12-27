@@ -317,25 +317,28 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
 from torch.nn.functional import pairwise_distance
 
+import torch
+import torch.nn.functional as F
 
 def silhouette_loss(embeddings, embed_ind, num_clusters):
-    # embeddings: Tensor of shape (N, D) where N is number of points, D is embedding dim
-    # cluster_assignments: Tensor of shape (N,) with cluster indices
+    # embeddings: Tensor of shape (N, D) where N is the number of points, D is embedding dim
+    # embed_ind: Tensor of shape (N,) with cluster indices
     # num_clusters: Total number of clusters
     print(f"embeddings shape: {embeddings.shape}")
     print(f"embed_ind shape: {embed_ind.shape}")
     print(f"num_clusters = {num_clusters}")
+
     intra_cluster_distances = []
     inter_cluster_distances = []
 
     for k in range(num_clusters):
         # Mask for current cluster
         cluster_mask = (embed_ind == k)
-        cluster_points = embeddings[cluster_mask]
+        cluster_points = embeddings[cluster_mask]  # Shape: (num_points_in_cluster, D)
 
         if cluster_points.shape[0] > 1:
             # Compute intra-cluster distances (pairwise distances within the cluster)
-            intra_dist = pairwise_distance(cluster_points.unsqueeze(1), cluster_points).mean()
+            intra_dist = torch.cdist(cluster_points, cluster_points).mean()  # Use cdist for pairwise distances
             intra_cluster_distances.append(intra_dist)
         else:
             intra_cluster_distances.append(0)  # No intra-cluster distance for single points
@@ -346,9 +349,11 @@ def silhouette_loss(embeddings, embed_ind, num_clusters):
 
         for j in other_clusters:
             other_cluster_mask = (embed_ind == j)
-            other_cluster_points = embeddings[other_cluster_mask]
+            other_cluster_points = embeddings[other_cluster_mask]  # Shape: (num_points_in_other_cluster, D)
+
             if other_cluster_points.shape[0] > 0:
-                inter_dist = pairwise_distance(cluster_points, other_cluster_points).mean()
+                # Compute pairwise distances between cluster_points and other_cluster_points
+                inter_dist = torch.cdist(cluster_points, other_cluster_points).mean()
                 nearest_cluster_distances.append(inter_dist)
 
         if nearest_cluster_distances:
@@ -365,6 +370,7 @@ def silhouette_loss(embeddings, embed_ind, num_clusters):
 
     # Return mean silhouette loss
     return -silhouette_coefficients.mean()
+
 
 
 def orthogonal_loss_fn(t, init_feat, embed_ind, latents, min_distance=0.5):
