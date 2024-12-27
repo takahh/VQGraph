@@ -322,6 +322,8 @@ def silhouette_loss(embeddings, embed_ind, num_clusters):
     # embeddings: Tensor of shape (N, D) where N is number of points, D is embedding dim
     # cluster_assignments: Tensor of shape (N,) with cluster indices
     # num_clusters: Total number of clusters
+    print(f"embeddings shape: {embeddings.shape}")
+    print(f"embed_ind shape: {embed_ind.shape}")
     print(f"num_clusters = {num_clusters}")
     intra_cluster_distances = []
     inter_cluster_distances = []
