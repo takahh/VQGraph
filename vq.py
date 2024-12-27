@@ -400,7 +400,7 @@ def orthogonal_loss_fn(t, init_feat, embed_ind, latents, min_distance=0.5):
     # sil loss
     embed_ind_for_sil = torch.squeeze(embed_ind)
     latents_for_sil = torch.squeeze(latents)
-    sil_loss = silhouette_loss_parallel(latents_for_sil, embed_ind_for_sil, t.shape[-2])
+    sil_loss = silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2])
 
     # ---------------------------------------------------------------
     # loss to assign different codes for different chemical elements
