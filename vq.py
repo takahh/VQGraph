@@ -357,7 +357,53 @@ def orthogonal_loss_fn(t, init_feat, embed_ind, min_distance=0.5):
     return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss
 
 
-# distance types
+from torch.nn.functional import pairwise_distance
+
+
+def silhouette_loss(embeddings, embed_ind, num_clusters):
+    # embeddings: Tensor of shape (N, D) where N is number of points, D is embedding dim
+    # cluster_assignments: Tensor of shape (N,) with cluster indices
+    # num_clusters: Total number of clusters
+
+    intra_cluster_distances = []
+    inter_cluster_distances = []
+
+    for k in range(num_clusters):
+        # Mask for current cluster
+        cluster_mask = (embed_ind == k)
+        cluster_points = embeddings[cluster_mask]
+
+        if cluster_points.shape[0] > 1:
+            # Compute intra-cluster distances (pairwise distances within the cluster)
+            intra_dist = pairwise_distance(cluster_points.unsqueeze(1), cluster_points).mean()
+            intra_cluster_distances.append(intra_dist)
+        else:
+            intra_cluster_distances.append(0)  # No intra-cluster distance for single points
+
+        # Compute inter-cluster distances (to the nearest cluster centroid)
+        other_clusters = [i for i in range(num_clusters) if i != k]
+        nearest_cluster_distances = []
+
+        for j in other_clusters:
+            other_cluster_mask = (embed_ind == j)
+            other_cluster_points = embeddings[other_cluster_mask]
+            if other_cluster_points.shape[0] > 0:
+                inter_dist = pairwise_distance(cluster_points, other_cluster_points).mean()
+                nearest_cluster_distances.append(inter_dist)
+
+        if nearest_cluster_distances:
+            inter_cluster_distances.append(min(nearest_cluster_distances))
+        else:
+            inter_cluster_distances.append(0)
+
+    # Compute silhouette coefficients
+    a = torch.tensor(intra_cluster_distances)
+    b = torch.tensor(inter_cluster_distances)
+    silhouette_coefficients = (b - a) / torch.max(a, b)
+
+    # Return mean silhouette loss
+    return -silhouette_coefficients.mean()
+
 
 class EuclideanCodebook(nn.Module):
     def __init__(
@@ -673,6 +719,7 @@ class VectorQuantize(nn.Module):
             lamb_div_aroma=1,
             lamb_div_ringy=1,
             lamb_div_h_num=1,
+            lamb_sil=1,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
@@ -701,6 +748,7 @@ class VectorQuantize(nn.Module):
         self.lamb_div_aroma = lamb_div_aroma
         self.lamb_div_ringy = lamb_div_ringy
         self.lamb_div_h_num = lamb_div_h_num
+        self.lamb_sil = lamb_sil
         self.pair_weight = pair_weight
         self.orthogonal_reg_active_codes_only = orthogonal_reg_active_codes_only
         self.orthogonal_reg_max_codes = orthogonal_reg_max_codes
@@ -807,6 +855,7 @@ class VectorQuantize(nn.Module):
         aroma_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         ringy_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         h_num_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        silh_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         if self.training:
             if self.commitment_weight > 0:  # 0.25 is assigned
                 detached_quantize = quantize.detach()
@@ -844,11 +893,18 @@ class VectorQuantize(nn.Module):
                 margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss\
                     = orthogonal_loss_fn(codebook, init_feat, embed_ind)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+
+                # ---------------------------------
+                # Calculate silouhette Losses
+                # ---------------------------------
+                silh_loss = silhouette_loss(latents, embed_ind, codebook.shape[0])
+
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
                 # loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * div_ele_loss
-                loss = loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight + self.spread_weight * spread_loss
+                loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
+                        self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
