@@ -189,7 +189,7 @@ class SAGE(nn.Module):
         # print(h[:20])
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
         (quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
-         detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss) = self.vq(h, init_feat)
+         detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
         # --------------------
@@ -227,7 +227,7 @@ class SAGE(nn.Module):
         h = h[:blocks[-1].num_dst_nodes()]
         # x and codebook are saved later...
         return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
-                                                 bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss], x, detached_quantize, latents
+                                                 bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss], x, detached_quantize, latents
 
 
     def inference(self, dataloader, feats):
