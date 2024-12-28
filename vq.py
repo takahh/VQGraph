@@ -811,7 +811,7 @@ class VectorQuantize(nn.Module):
         silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
 
         # Return the mean silhouette loss
-        return -silhouette_coefficients.mean()
+        return embed_ind, -silhouette_coefficients.mean()
 
 
     def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, min_distance=0.5):
@@ -845,7 +845,7 @@ class VectorQuantize(nn.Module):
         # sil loss
         embed_ind_for_sil = torch.squeeze(embed_ind)
         latents_for_sil = torch.squeeze(latents)
-        sil_loss, embed_ind = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2])
+        embed_ind, sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2])
 
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
