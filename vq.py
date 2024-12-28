@@ -269,30 +269,33 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
+def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius",
+                              alpha=1.0):
     device = embed_ind.device
+
+    # Validate atom_types
+    assert atom_types.ndim == 1, f"atom_types must be 1D, but got shape {atom_types.shape}"
+    assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
+    assert torch.all(atom_types >= 0), "atom_types contains negative values!"
+    print(f"atom_types: min={atom_types.min()}, max={atom_types.max()}, unique={torch.unique(atom_types)}")
+
+    # Validate embed_ind
     embed_ind = torch.squeeze(embed_ind, dim=-1)
+    embed_ind = embed_ind.long()  # Ensure correct type
+    assert embed_ind.ndim == 1, f"embed_ind must be 1D, but got shape {embed_ind.shape}"
+    assert torch.all(embed_ind >= 0), "embed_ind contains negative indices!"
+    assert torch.all(
+        embed_ind < num_codebooks), f"embed_ind out of bounds! Expected max {num_codebooks - 1}, got {embed_ind.max()}"
+
     # Map atom_types to sequential indices
-    unique_atom_numbers = sorted(set(atom_types.tolist()))
+    unique_atom_numbers = torch.unique(atom_types).tolist()
     atom_number_to_index = {atom: idx for idx, atom in enumerate(unique_atom_numbers)}
-    num_atom_types = len(unique_atom_numbers)
-
-    atom_types_mapped = torch.tensor(
-        [atom_number_to_index[atom] for atom in atom_types.tolist()],
-        device=device
-    )
-    unique_atom_numbers = sorted(set(atom_types.tolist()))
-
-    embed_ind = embed_ind.long()
-    print(f"embed_ind min: {embed_ind.min()}, max: {embed_ind.max()}")
-    print(f"Expected range: 0 to {num_codebooks - 1}")
-
-    # assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks)
-    assert torch.all(atom_types_mapped >= 0) and torch.all(atom_types_mapped < num_atom_types)
+    atom_types_mapped = torch.tensor([atom_number_to_index[atom] for atom in atom_types.tolist()], device=device)
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float().to(device)
-    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=num_atom_types).float().to(device)
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float().to(
+        device)
 
     # Stabilize embed_one_hot
     embed_one_hot = embed_one_hot - embed_one_hot.max(dim=-1, keepdim=True).values
@@ -301,12 +304,11 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
 
     # Ensure soft_assignments is 2D
-    soft_assignments = soft_assignments.reshape(-1, soft_assignments.shape[-1])
-    atom_type_one_hot = atom_type_one_hot.reshape(-1, atom_type_one_hot.shape[-1])
+    soft_assignments = soft_assignments.view(-1, soft_assignments.shape[-1])
+    atom_type_one_hot = atom_type_one_hot.view(-1, atom_type_one_hot.shape[-1])
 
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
-    # Ensure co_occurrence is normalized (rows sum to 1)
     co_occurrence_normalized = co_occurrence / (co_occurrence.sum(dim=1, keepdim=True) + 1e-6)
 
     # Compute row-wise entropy
@@ -316,6 +318,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     sparsity_loss = row_entropy.mean()
 
     return sparsity_loss
+
 
 import torch.nn.functional as F
 #   increase_non_empty_clusters(embed_ind, num_clusters, target_non_empty_clusters)
