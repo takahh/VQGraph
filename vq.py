@@ -319,17 +319,16 @@ from torch.nn.functional import pairwise_distance
 
 import torch
 import torch.nn.functional as F
-
 def fast_silhouette_loss(embeddings, embed_ind, num_clusters):
     # Compute pairwise distances for all points
     pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
 
-    # Intra-cluster distances
-    intra_cluster_distances = torch.zeros(num_clusters, device=embeddings.device)
-    inter_cluster_distances = torch.full((num_clusters,), float('inf'), device=embeddings.device)
-
+    # Initialize lists to store distances for non-empty clusters
+    intra_cluster_distances = []
+    inter_cluster_distances = []
     empty_cluster_count = 0  # Counter for empty clusters
 
+    # Iterate over clusters
     for k in range(num_clusters):
         cluster_mask = (embed_ind == k)  # Mask for cluster k
         cluster_indices = cluster_mask.nonzero(as_tuple=True)[0]
@@ -338,26 +337,34 @@ def fast_silhouette_loss(embeddings, embed_ind, num_clusters):
             empty_cluster_count += 1  # Increment the empty cluster count
             continue
 
+        # Compute intra-cluster distances
         cluster_distances = pairwise_distances[cluster_indices][:, cluster_indices]
         if cluster_distances.numel() > 1:
-            intra_cluster_distances[k] = cluster_distances.mean()
+            intra_cluster_distances.append(cluster_distances.mean().item())
+        else:
+            intra_cluster_distances.append(0)
 
-        # Inter-cluster distances
+        # Compute inter-cluster distances
         other_mask = ~cluster_mask
         if other_mask.sum() > 0:
             other_distances = pairwise_distances[cluster_indices][:, other_mask]
-            inter_cluster_distances[k] = other_distances.mean()
+            inter_cluster_distances.append(other_distances.mean().item())
+        else:
+            inter_cluster_distances.append(float('inf'))
 
     # Print the number of empty clusters
     print(f"Number of empty clusters: {empty_cluster_count}")
 
+    # Convert intra- and inter-cluster distances to tensors
+    a = torch.tensor(intra_cluster_distances, device=embeddings.device)
+    b = torch.tensor(inter_cluster_distances, device=embeddings.device)
+
     # Compute silhouette coefficients
     epsilon = 1e-6  # To avoid division by zero
-    a = intra_cluster_distances
-    b = inter_cluster_distances
     silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
     silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
 
+    # Return the mean silhouette loss
     return -silhouette_coefficients.mean()
 
 
@@ -910,8 +917,9 @@ class VectorQuantize(nn.Module):
                 # linearly combine losses !!!!
                 # ---------------------------------
                 # loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * div_ele_loss
-                loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
-                        self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
+                # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
+                #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
+                loss = (loss + self.lamb_sil * silh_loss)
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
