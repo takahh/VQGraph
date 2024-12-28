@@ -314,12 +314,37 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     return sparsity_loss
 
-
-from torch.nn.functional import pairwise_distance
-
-import torch
 import torch.nn.functional as F
-def fast_silhouette_loss(embeddings, embed_ind, num_clusters):
+
+
+def preprocess_clusters(embed_ind, num_clusters, target_non_empty_clusters=500):
+    # Count the size of each cluster
+    cluster_sizes = [(k, (embed_ind == k).sum().item()) for k in range(num_clusters)]
+    cluster_sizes.sort(key=lambda x: x[1], reverse=True)  # Sort by size (descending)
+
+    # Identify non-empty clusters
+    non_empty_clusters = [k for k, size in cluster_sizes if size > 0]
+
+    # If the number of non-empty clusters is greater than the target
+    if len(non_empty_clusters) > target_non_empty_clusters:
+        print(f"Reducing clusters from {len(non_empty_clusters)} to {target_non_empty_clusters}...")
+        # Keep the largest clusters and reassign points in smaller clusters
+        keep_clusters = set(non_empty_clusters[:target_non_empty_clusters])
+        new_embed_ind = embed_ind.clone()
+        for k in non_empty_clusters[target_non_empty_clusters:]:
+            # Reassign points in smaller clusters to the nearest large cluster
+            reassign_mask = (embed_ind == k)
+            new_embed_ind[reassign_mask] = non_empty_clusters[0]  # Assign to largest cluster (simplified)
+
+        return new_embed_ind
+    else:
+        return embed_ind
+
+
+def fast_silhouette_loss(embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
+    # Preprocess clusters to ensure the desired number of non-empty clusters
+    embed_ind = preprocess_clusters(embed_ind, num_clusters, target_non_empty_clusters)
+
     # Compute pairwise distances for all points
     pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
 
