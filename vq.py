@@ -958,6 +958,7 @@ class VectorQuantize(nn.Module):
                  ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 print(f"embed_ind.shape {embed_ind.shape} after ")
+                embed_ind = rearrange(embed_ind, 'b 1 -> b')
 
                 # ---------------------------------
                 # Calculate silouhette Losses
