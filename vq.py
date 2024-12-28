@@ -953,9 +953,11 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
+                print(f"embed_ind.shape {embed_ind.shape} befpre ")
                 (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
                  ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+                print(f"embed_ind.shape {embed_ind.shape} after ")
 
                 # ---------------------------------
                 # Calculate silouhette Losses
