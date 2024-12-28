@@ -845,7 +845,7 @@ class VectorQuantize(nn.Module):
         # sil loss
         embed_ind_for_sil = torch.squeeze(self.embed_ind)
         latents_for_sil = torch.squeeze(latents)
-        sil_loss = fast_silhouette_loss(self, latents_for_sil, embed_ind_for_sil, t.shape[-2])
+        sil_loss = self.fast_silhouette_loss(self, latents_for_sil, embed_ind_for_sil, t.shape[-2])
 
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
@@ -953,7 +953,7 @@ class VectorQuantize(nn.Module):
                 # Calculate Codebook Losses
                 # ---------------------------------
                 (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-                 ringy_div_loss, h_num_div_loss, silh_loss) = self.orthogonal_loss_fn(codebook, init_feat, latents)
+                 ringy_div_loss, h_num_div_loss, silh_loss) = self.orthogonal_loss_fn(self, codebook, init_feat, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
 
                 # ---------------------------------
