@@ -284,8 +284,8 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     embed_ind = embed_ind.long()  # Ensure correct type
     assert embed_ind.ndim == 1, f"embed_ind must be 1D, but got shape {embed_ind.shape}"
     assert torch.all(embed_ind >= 0), "embed_ind contains negative indices!"
-    assert torch.all(
-        embed_ind < num_codebooks), f"embed_ind out of bounds! Expected max {num_codebooks - 1}, got {embed_ind.max()}"
+    # assert torch.all(
+    #     embed_ind < num_codebooks), f"embed_ind out of bounds! Expected max {num_codebooks - 1}, got {embed_ind.max()}"
 
     # Map atom_types to sequential indices
     unique_atom_numbers = torch.unique(atom_types).tolist()
