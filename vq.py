@@ -316,131 +316,52 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
 import torch.nn.functional as F
 
-
-def preprocess_clusters(embed_ind, num_clusters, target_non_empty_clusters=500):
+def increase_non_empty_clusters(self, embeddings, num_clusters, target_non_empty_clusters=500):
     # Count the size of each cluster
-    cluster_sizes = [(k, (embed_ind == k).sum().item()) for k in range(num_clusters)]
+    cluster_sizes = [(k, (self.embed_ind == k).sum().item()) for k in range(num_clusters)]
     cluster_sizes.sort(key=lambda x: x[1], reverse=True)  # Sort by size (descending)
 
     # Identify non-empty clusters
     non_empty_clusters = [k for k, size in cluster_sizes if size > 0]
+    current_non_empty_count = len(non_empty_clusters)
 
-    # If the number of non-empty clusters is greater than the target
-    if len(non_empty_clusters) > target_non_empty_clusters:
-        print(f"Reducing clusters from {len(non_empty_clusters)} to {target_non_empty_clusters}...")
-        # Keep the largest clusters and reassign points in smaller clusters
-        keep_clusters = set(non_empty_clusters[:target_non_empty_clusters])
-        new_embed_ind = embed_ind.clone()
-        for k in non_empty_clusters[target_non_empty_clusters:]:
-            # Reassign points in smaller clusters to the nearest large cluster
-            reassign_mask = (embed_ind == k)
-            new_embed_ind[reassign_mask] = non_empty_clusters[0]  # Assign to largest cluster (simplified)
+    if current_non_empty_count < target_non_empty_clusters:
+        print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
+        new_embed_ind = self.embed_ind.clone()
 
+        # Determine how many clusters need to be added
+        clusters_to_add = target_non_empty_clusters - current_non_empty_count
+
+        # Start splitting the largest clusters
+        for k, size in cluster_sizes:
+            if clusters_to_add == 0:
+                break
+            if size > 1:  # Only split clusters with more than one point
+                cluster_mask = (self.embed_ind == k)
+                cluster_points = embeddings[cluster_mask]
+
+                if cluster_points.size(0) < 2:  # Avoid splitting very small clusters
+                    continue
+
+                # Split cluster into two
+                midpoint = cluster_points.mean(dim=0)
+                distances = torch.norm(cluster_points - midpoint, dim=1)
+                split_mask = distances > distances.median()  # Split into two groups
+
+                # Create a new cluster for the split points
+                new_cluster_id = self.embed_ind.max().item() + 1  # Ensure unique cluster ID
+                new_embed_ind[cluster_mask] = torch.where(
+                    split_mask,
+                    torch.tensor(new_cluster_id, device=self.embed_ind.device, dtype=self.embed_ind.dtype),
+                    k
+                )
+                clusters_to_add -= 1
+
+        print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
         return new_embed_ind
     else:
-        return embed_ind
-
-
-def fast_silhouette_loss(embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
-    # Preprocess clusters to ensure the desired number of non-empty clusters
-    embed_ind = preprocess_clusters(embed_ind, num_clusters, target_non_empty_clusters)
-
-    # Compute pairwise distances for all points
-    pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
-
-    # Initialize lists to store distances for non-empty clusters
-    intra_cluster_distances = []
-    inter_cluster_distances = []
-    empty_cluster_count = 0  # Counter for empty clusters
-
-    # Iterate over clusters
-    for k in range(num_clusters):
-        cluster_mask = (embed_ind == k)  # Mask for cluster k
-        cluster_indices = cluster_mask.nonzero(as_tuple=True)[0]
-
-        if cluster_indices.numel() == 0:  # If the cluster is empty
-            empty_cluster_count += 1  # Increment the empty cluster count
-            continue
-
-        # Compute intra-cluster distances
-        cluster_distances = pairwise_distances[cluster_indices][:, cluster_indices]
-        if cluster_distances.numel() > 1:
-            intra_cluster_distances.append(cluster_distances.mean().item())
-        else:
-            intra_cluster_distances.append(0)
-
-        # Compute inter-cluster distances
-        other_mask = ~cluster_mask
-        if other_mask.sum() > 0:
-            other_distances = pairwise_distances[cluster_indices][:, other_mask]
-            inter_cluster_distances.append(other_distances.mean().item())
-        else:
-            inter_cluster_distances.append(float('inf'))
-
-    # Print the number of empty clusters
-    print(f"Number of empty clusters: {empty_cluster_count}")
-
-    # Convert intra- and inter-cluster distances to tensors
-    a = torch.tensor(intra_cluster_distances, device=embeddings.device)
-    b = torch.tensor(inter_cluster_distances, device=embeddings.device)
-
-    # Compute silhouette coefficients
-    epsilon = 1e-6  # To avoid division by zero
-    silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
-    silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
-
-    # Return the mean silhouette loss
-    return -silhouette_coefficients.mean()
-
-
-def orthogonal_loss_fn(t, init_feat, embed_ind, latents, min_distance=0.5):
-    # Normalize embeddings (optional: remove if not necessary)
-    t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
-    t = t / t_norm
-
-    latents_norm = torch.norm(latents, dim=1, keepdim=True) + 1e-6
-    latents = latents / latents_norm
-
-    # Pairwise distances
-    dist_matrix = torch.squeeze(torch.cdist(t, t, p=2) + 1e-6)  # Avoid zero distances
-
-    # Remove diagonal
-    mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
-    dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
-
-    # Debug: Log distance statistics
-    # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
-
-    # Margin loss: Encourage distances >= min_distance
-    smooth_penalty = torch.nn.functional.relu(min_distance - dist_matrix_no_diag)
-    margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
-
-    # Spread loss: Encourage diversity
-    spread_loss = torch.var(t)
-
-    # Pair distance loss: Regularize distances
-    pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
-
-    # sil loss
-    embed_ind_for_sil = torch.squeeze(embed_ind)
-    latents_for_sil = torch.squeeze(latents)
-    sil_loss = fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2])
-
-    # ---------------------------------------------------------------
-    # loss to assign different codes for different chemical elements
-    # ---------------------------------------------------------------
-    atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
-    bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
-    aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
-    ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
-    h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
-
-    # bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
-    # aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
-    # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
-    # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
-
-    return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss
+        print(f"No need to increase clusters; current count is {current_non_empty_count}.")
+        return self.embed_ind
 
 
 class EuclideanCodebook(nn.Module):
@@ -840,6 +761,108 @@ class VectorQuantize(nn.Module):
         codes, = unpack(codes, ps, 'b * d')
         return codes
 
+    def fast_silhouette_loss(self, embeddings, num_clusters, target_non_empty_clusters=500):
+        # Preprocess clusters to ensure the desired number of non-empty clusters
+        embed_ind = increase_non_empty_clusters(self.embed_ind, num_clusters, target_non_empty_clusters)
+        self.embed_ind.data.copy_(embed_ind)
+
+        # Compute pairwise distances for all points
+        pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
+
+        # Initialize lists to store distances for non-empty clusters
+        intra_cluster_distances = []
+        inter_cluster_distances = []
+        empty_cluster_count = 0  # Counter for empty clusters
+
+        # Iterate over clusters
+        for k in range(num_clusters):
+            cluster_mask = (embed_ind == k)  # Mask for cluster k
+            cluster_indices = cluster_mask.nonzero(as_tuple=True)[0]
+
+            if cluster_indices.numel() == 0:  # If the cluster is empty
+                empty_cluster_count += 1  # Increment the empty cluster count
+                continue
+
+            # Compute intra-cluster distances
+            cluster_distances = pairwise_distances[cluster_indices][:, cluster_indices]
+            if cluster_distances.numel() > 1:
+                intra_cluster_distances.append(cluster_distances.mean().item())
+            else:
+                intra_cluster_distances.append(0)
+
+            # Compute inter-cluster distances
+            other_mask = ~cluster_mask
+            if other_mask.sum() > 0:
+                other_distances = pairwise_distances[cluster_indices][:, other_mask]
+                inter_cluster_distances.append(other_distances.mean().item())
+            else:
+                inter_cluster_distances.append(float('inf'))
+
+        # Print the number of empty clusters
+        print(f"Number of empty clusters: {empty_cluster_count}")
+
+        # Convert intra- and inter-cluster distances to tensors
+        a = torch.tensor(intra_cluster_distances, device=embeddings.device)
+        b = torch.tensor(inter_cluster_distances, device=embeddings.device)
+
+        # Compute silhouette coefficients
+        epsilon = 1e-6  # To avoid division by zero
+        silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
+        silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
+
+        # Return the mean silhouette loss
+        return -silhouette_coefficients.mean()
+
+
+    def orthogonal_loss_fn(self, t, init_feat, latents, min_distance=0.5):
+        # Normalize embeddings (optional: remove if not necessary)
+        t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
+        t = t / t_norm
+
+        latents_norm = torch.norm(latents, dim=1, keepdim=True) + 1e-6
+        latents = latents / latents_norm
+
+        # Pairwise distances
+        dist_matrix = torch.squeeze(torch.cdist(t, t, p=2) + 1e-6)  # Avoid zero distances
+
+        # Remove diagonal
+        mask = ~torch.eye(dist_matrix.size(0), dtype=bool, device=dist_matrix.device)
+        dist_matrix_no_diag = dist_matrix[mask].view(dist_matrix.size(0), -1)
+
+        # Debug: Log distance statistics
+        # print(f"Min: {dist_matrix_no_diag.min().item()}, Max: {dist_matrix_no_diag.max().item()}, Mean: {dist_matrix_no_diag.mean().item()}")
+
+        # Margin loss: Encourage distances >= min_distance
+        smooth_penalty = torch.nn.functional.relu(min_distance - dist_matrix_no_diag)
+        margin_loss = torch.mean(smooth_penalty)  # Use mean for better gradient scaling
+
+        # Spread loss: Encourage diversity
+        spread_loss = torch.var(t)
+
+        # Pair distance loss: Regularize distances
+        pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
+
+        # sil loss
+        embed_ind_for_sil = torch.squeeze(self.embed_ind)
+        latents_for_sil = torch.squeeze(latents)
+        sil_loss = fast_silhouette_loss(self, latents_for_sil, embed_ind_for_sil, t.shape[-2])
+
+        # ---------------------------------------------------------------
+        # loss to assign different codes for different chemical elements
+        # ---------------------------------------------------------------
+        atom_type_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 0]).clone().detach()
+        bond_num_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 1]).clone().detach()
+        aroma_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 4]).clone().detach()
+        ringy_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 5]).clone().detach()
+        h_num_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 6]).clone().detach()
+
+        # bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
+        # aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
+        # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
+        # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
+
+        return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss
+
     def forward(
             self,
             x,
@@ -930,7 +953,7 @@ class VectorQuantize(nn.Module):
                 # Calculate Codebook Losses
                 # ---------------------------------
                 (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-                 ringy_div_loss, h_num_div_loss, silh_loss) = orthogonal_loss_fn(codebook, init_feat, embed_ind, latents)
+                 ringy_div_loss, h_num_div_loss, silh_loss) = self.orthogonal_loss_fn(codebook, init_feat, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
 
                 # ---------------------------------
