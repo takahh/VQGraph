@@ -320,52 +320,44 @@ from torch.nn.functional import pairwise_distance
 import torch
 import torch.nn.functional as F
 
-
 def silhouette_loss(embeddings, embed_ind, num_clusters):
-    # embeddings: Tensor of shape (N, D) where N is the number of points, D is embedding dim
-    # embed_ind: Tensor of shape (N,) with cluster indices
-    # num_clusters: Total number of clusters
-
     intra_cluster_distances = []
     inter_cluster_distances = []
 
     for k in range(num_clusters):
         # Mask for current cluster
         cluster_mask = (embed_ind == k)
-        cluster_points = embeddings[cluster_mask]  # Shape: (num_points_in_cluster, D)
+        if cluster_mask.sum() == 0:  # Skip empty clusters
+            intra_cluster_distances.append(0)
+            inter_cluster_distances.append(float('inf'))
+            continue
+
+        cluster_points = embeddings[cluster_mask]
 
         if cluster_points.shape[0] > 1:
-            # Compute intra-cluster distances (pairwise distances within the cluster)
-            intra_dist = torch.cdist(cluster_points, cluster_points).mean()  # Use cdist for pairwise distances
-            intra_cluster_distances.append(intra_dist)
+            intra_dist = torch.cdist(cluster_points, cluster_points).mean()
+            intra_cluster_distances.append(intra_dist.item())
         else:
-            intra_cluster_distances.append(0)  # No intra-cluster distance for single points
+            intra_cluster_distances.append(0)
 
-        # Compute inter-cluster distances (to the nearest cluster centroid)
         other_clusters = [i for i in range(num_clusters) if i != k]
         nearest_cluster_distances = []
 
         for j in other_clusters:
             other_cluster_mask = (embed_ind == j)
-            other_cluster_points = embeddings[other_cluster_mask]  # Shape: (num_points_in_other_cluster, D)
-
-            if other_cluster_points.shape[0] > 0:
-                # Compute pairwise distances between cluster_points and other_cluster_points
+            if other_cluster_mask.sum() > 0:
+                other_cluster_points = embeddings[other_cluster_mask]
                 inter_dist = torch.cdist(cluster_points, other_cluster_points).mean()
-                nearest_cluster_distances.append(inter_dist)
+                nearest_cluster_distances.append(inter_dist.item())
 
-        if nearest_cluster_distances:
-            inter_cluster_distances.append(min(nearest_cluster_distances))
-        else:
-            inter_cluster_distances.append(0)
+        inter_cluster_distances.append(min(nearest_cluster_distances) if nearest_cluster_distances else float('inf'))
 
-    # Compute silhouette coefficients
     a = torch.tensor(intra_cluster_distances)
     b = torch.tensor(inter_cluster_distances)
-    print(f"a {a}, b {b}")
-    silhouette_coefficients = (b - a) / torch.max(a, b)
+    epsilon = 1e-6  # Avoid division errors
+    silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
+    silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
 
-    # Return mean silhouette loss
     return -silhouette_coefficients.mean()
 
 
