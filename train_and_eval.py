@@ -46,7 +46,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
-
+        print(f"step {step}")
         # run kmeans at the first step and the last step
         # if step % 1 == 0:
         #     # Code to execute at the first and last step
