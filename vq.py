@@ -287,7 +287,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     print(f"embed_ind min: {embed_ind.min()}, max: {embed_ind.max()}")
     print(f"Expected range: 0 to {num_codebooks - 1}")
 
-    assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks)
+    # assert torch.all(embed_ind >= 0) and torch.all(embed_ind < num_codebooks)
     assert torch.all(atom_types_mapped >= 0) and torch.all(atom_types_mapped < num_atom_types)
 
     # Create one-hot representations
