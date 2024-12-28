@@ -328,10 +328,14 @@ def fast_silhouette_loss(embeddings, embed_ind, num_clusters):
     intra_cluster_distances = torch.zeros(num_clusters, device=embeddings.device)
     inter_cluster_distances = torch.full((num_clusters,), float('inf'), device=embeddings.device)
 
+    empty_cluster_count = 0  # Counter for empty clusters
+
     for k in range(num_clusters):
         cluster_mask = (embed_ind == k)  # Mask for cluster k
         cluster_indices = cluster_mask.nonzero(as_tuple=True)[0]
-        if cluster_indices.numel() == 0:  # Skip empty clusters
+
+        if cluster_indices.numel() == 0:  # If the cluster is empty
+            empty_cluster_count += 1  # Increment the empty cluster count
             continue
 
         cluster_distances = pairwise_distances[cluster_indices][:, cluster_indices]
@@ -343,6 +347,9 @@ def fast_silhouette_loss(embeddings, embed_ind, num_clusters):
         if other_mask.sum() > 0:
             other_distances = pairwise_distances[cluster_indices][:, other_mask]
             inter_cluster_distances[k] = other_distances.mean()
+
+    # Print the number of empty clusters
+    print(f"Number of empty clusters: {empty_cluster_count}")
 
     # Compute silhouette coefficients
     epsilon = 1e-6  # To avoid division by zero
