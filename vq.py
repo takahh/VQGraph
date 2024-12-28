@@ -997,7 +997,8 @@ class VectorQuantize(nn.Module):
 
         if only_one:
             quantize = rearrange(quantize, 'b 1 d -> b d')
-            embed_ind = rearrange(embed_ind, 'b 1 -> b')
+            if len(embed_ind.shape) == 2:
+                embed_ind = rearrange(embed_ind, 'b 1 -> b')
         #
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
