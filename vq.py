@@ -316,9 +316,9 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
 import torch.nn.functional as F
 
-def increase_non_empty_clusters(self, embeddings, num_clusters, target_non_empty_clusters=500):
+def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters=500):
     # Count the size of each cluster
-    cluster_sizes = [(k, (self.embed_ind == k).sum().item()) for k in range(num_clusters)]
+    cluster_sizes = [(k, (embed_ind == k).sum().item()) for k in range(num_clusters)]
     cluster_sizes.sort(key=lambda x: x[1], reverse=True)  # Sort by size (descending)
 
     # Identify non-empty clusters
@@ -327,7 +327,7 @@ def increase_non_empty_clusters(self, embeddings, num_clusters, target_non_empty
 
     if current_non_empty_count < target_non_empty_clusters:
         print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
-        new_embed_ind = self.embed_ind.clone()
+        new_embed_ind = embed_ind.clone()
 
         # Determine how many clusters need to be added
         clusters_to_add = target_non_empty_clusters - current_non_empty_count
@@ -337,7 +337,7 @@ def increase_non_empty_clusters(self, embeddings, num_clusters, target_non_empty
             if clusters_to_add == 0:
                 break
             if size > 1:  # Only split clusters with more than one point
-                cluster_mask = (self.embed_ind == k)
+                cluster_mask = (embed_ind == k)
                 cluster_points = embeddings[cluster_mask]
 
                 if cluster_points.size(0) < 2:  # Avoid splitting very small clusters
@@ -349,10 +349,10 @@ def increase_non_empty_clusters(self, embeddings, num_clusters, target_non_empty
                 split_mask = distances > distances.median()  # Split into two groups
 
                 # Create a new cluster for the split points
-                new_cluster_id = self.embed_ind.max().item() + 1  # Ensure unique cluster ID
+                new_cluster_id = embed_ind.max().item() + 1  # Ensure unique cluster ID
                 new_embed_ind[cluster_mask] = torch.where(
                     split_mask,
-                    torch.tensor(new_cluster_id, device=self.embed_ind.device, dtype=self.embed_ind.dtype),
+                    torch.tensor(new_cluster_id, device=embed_ind.device, dtype=embed_ind.dtype),
                     k
                 )
                 clusters_to_add -= 1
@@ -361,7 +361,7 @@ def increase_non_empty_clusters(self, embeddings, num_clusters, target_non_empty
         return new_embed_ind
     else:
         print(f"No need to increase clusters; current count is {current_non_empty_count}.")
-        return self.embed_ind
+        return embed_ind
 
 
 class EuclideanCodebook(nn.Module):
@@ -761,7 +761,7 @@ class VectorQuantize(nn.Module):
         codes, = unpack(codes, ps, 'b * d')
         return codes
 
-    def fast_silhouette_loss(self, embeddings, num_clusters, target_non_empty_clusters=500):
+    def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Preprocess clusters to ensure the desired number of non-empty clusters
         embed_ind = increase_non_empty_clusters(self.embed_ind, num_clusters, target_non_empty_clusters)
         self.embed_ind.data.copy_(embed_ind)
@@ -814,7 +814,7 @@ class VectorQuantize(nn.Module):
         return -silhouette_coefficients.mean()
 
 
-    def orthogonal_loss_fn(self, t, init_feat, latents, min_distance=0.5):
+    def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, min_distance=0.5):
         # Normalize embeddings (optional: remove if not necessary)
         t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
         t = t / t_norm
@@ -843,25 +843,26 @@ class VectorQuantize(nn.Module):
         pair_distance_loss = torch.mean(torch.log(dist_matrix_no_diag))
 
         # sil loss
-        embed_ind_for_sil = torch.squeeze(self.embed_ind)
+        embed_ind_for_sil = torch.squeeze(embed_ind)
         latents_for_sil = torch.squeeze(latents)
-        sil_loss = self.fast_silhouette_loss(self, latents_for_sil, embed_ind_for_sil, t.shape[-2])
+        sil_loss, embed_ind = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2])
 
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
-        atom_type_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 0]).clone().detach()
-        bond_num_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 1]).clone().detach()
-        aroma_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 4]).clone().detach()
-        ringy_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 5]).clone().detach()
-        h_num_div_loss = feat_elem_divergence_loss(self.embed_ind, init_feat[:, 6]).clone().detach()
+        atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
+        bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
+        aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
+        ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
+        h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
 
         # bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
         # aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
         # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
         # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
 
-        return margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss
+        return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss,
+                ringy_div_loss, h_num_div_loss, sil_loss, embed_ind)
 
     def forward(
             self,
@@ -953,7 +954,7 @@ class VectorQuantize(nn.Module):
                 # Calculate Codebook Losses
                 # ---------------------------------
                 (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-                 ringy_div_loss, h_num_div_loss, silh_loss) = self.orthogonal_loss_fn(codebook, init_feat, latents)
+                 ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
 
                 # ---------------------------------
