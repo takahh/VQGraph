@@ -958,7 +958,12 @@ class VectorQuantize(nn.Module):
                  ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
                 print(f"embed_ind.shape {embed_ind.shape} after ")
-                embed_ind = rearrange(embed_ind, 'b 1 -> b')
+                if embed_ind.ndim == 2:
+                    embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
+                elif embed_ind.ndim == 1:
+                    embed_ind = embed_ind  # Leave as is if already 1D
+                else:
+                    raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
 
                 # ---------------------------------
                 # Calculate silouhette Losses
