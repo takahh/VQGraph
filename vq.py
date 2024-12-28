@@ -356,6 +356,9 @@ def silhouette_loss_parallel(embeddings, embed_ind, num_clusters, n_jobs=64):
     # embed_ind: Tensor of shape (N,) with cluster indices
     # num_clusters: Total number of clusters
     # n_jobs: Number of parallel jobs (-1 means using all available CPUs)
+    # Ensure embeddings and embed_ind are correctly created
+    assert isinstance(embeddings, torch.Tensor), "Embeddings should be a torch.Tensor"
+    assert isinstance(embed_ind, torch.Tensor), "embed_ind should be a torch.Tensor"
 
     results = Parallel(n_jobs=n_jobs)(
         delayed(compute_distances)(k, embeddings, embed_ind, num_clusters)
