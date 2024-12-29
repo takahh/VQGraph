@@ -797,7 +797,7 @@ class VectorQuantize(nn.Module):
                 inter_cluster_distances.append(float('inf'))
 
         # Print the number of empty clusters
-        print(f"Number of empty clusters: {empty_cluster_count}")
+        # print(f"Number of empty clusters: {empty_cluster_count}")
 
         # Convert intra- and inter-cluster distances to tensors
         a = torch.tensor(intra_cluster_distances, device=embeddings.device)
