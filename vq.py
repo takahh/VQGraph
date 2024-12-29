@@ -317,8 +317,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
 
 import torch.nn.functional as F
-#   increase_non_empty_clusters(embed_ind, num_clusters, target_non_empty_clusters)
-def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters=500):
+def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters=500, min_cluster_size=5):
     # Count the size of each cluster
     cluster_sizes = [(k, (embed_ind == k).sum().item()) for k in range(num_clusters)]
     cluster_sizes.sort(key=lambda x: x[1], reverse=True)  # Sort by size (descending)
@@ -328,7 +327,7 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
     current_non_empty_count = len(non_empty_clusters)
 
     if current_non_empty_count < target_non_empty_clusters:
-        # print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
+        print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
         new_embed_ind = embed_ind.clone()
 
         # Determine how many clusters need to be added
@@ -338,12 +337,9 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
         for k, size in cluster_sizes:
             if clusters_to_add == 0:
                 break
-            if size > 1:  # Only split clusters with more than one point
+            if size > min_cluster_size:  # Only split clusters with enough points
                 cluster_mask = (embed_ind == k)
                 cluster_points = embeddings[cluster_mask]
-
-                if cluster_points.size(0) < 2:  # Avoid splitting very small clusters
-                    continue
 
                 # Split cluster into two
                 midpoint = cluster_points.mean(dim=0)
@@ -358,13 +354,13 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
                     k
                 )
                 clusters_to_add -= 1
+                print(f"Created new cluster {new_cluster_id} with size {(new_embed_ind == new_cluster_id).sum().item()}")
 
         print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
         return new_embed_ind
     else:
         print(f"No need to increase clusters; current count is {current_non_empty_count}.")
         return embed_ind
-
 
 class EuclideanCodebook(nn.Module):
     def __init__(
@@ -420,8 +416,8 @@ class EuclideanCodebook(nn.Module):
 
     @torch.jit.ignore
     def init_embed_(self, data):
-        if self.initted:
-            return
+        # if self.initted:
+        #     return
         # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
@@ -478,8 +474,8 @@ class EuclideanCodebook(nn.Module):
         # -----------------------------------------------------------------------------
         # run simple k-means to set initial codebook
         # -----------------------------------------------------------------------------
-        if self.training:
-            self.init_embed_(flatten)
+        # if self.training:
+        #     self.init_embed_(flatten)
         # -----------------------------------------------------------------------------
         # prepare for updating centroids
         # -----------------------------------------------------------------------------

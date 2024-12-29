@@ -48,9 +48,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         batch_feats = feats[input_nodes]
         print(f"step {step}")
         # run kmeans at the first step and the last step
-        # if step % 1 == 0:
-        #     # Code to execute at the first and last step
-        #     model.encoder.reset_kmeans()
+        if step % 1 == 0:
+            # Code to execute at the first and last step
+            model.encoder.reset_kmeans()
+            model.encoder.vq._codebook.init_embed_(latents)
+
 
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             # h_list, h, loss, dist, codebook, losslist, x, detached_quantize, latents
