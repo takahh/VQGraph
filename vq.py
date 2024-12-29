@@ -274,6 +274,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Validate embed_ind
     # print(f"embed_ind: min={embed_ind.min().item()}, max={embed_ind.max().item()}, shape={embed_ind.shape}")
+    print(embed_ind[:30])
     embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1)
     embed_ind = embed_ind.long()
 
