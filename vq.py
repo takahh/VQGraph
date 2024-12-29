@@ -272,13 +272,15 @@ def batched_embedding(indices, embeds):
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
     device = embed_ind.device
 
-    # Clean atom_types
-    atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
-    print(f"atom_types: {atom_types.cpu().numpy()}")
-    assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
-
-    embed_ind = torch.squeeze(embed_ind, dim=-1)
+    # Validate embed_ind
+    print(f"embed_ind: min={embed_ind.min().item()}, max={embed_ind.max().item()}, shape={embed_ind.shape}")
+    embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1)
     embed_ind = embed_ind.long()
+
+    # Validate atom_types
+    atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
+    print(f"atom_types: min={atom_types.min().item()}, max={atom_types.max().item()}, shape={atom_types.shape}")
+    assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
 
     # Map atom_types to sequential indices
     unique_atom_numbers = torch.unique(atom_types).tolist()
@@ -310,6 +312,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     sparsity_loss = row_entropy.mean()
 
     return sparsity_loss
+
 
 
 import torch.nn.functional as F
