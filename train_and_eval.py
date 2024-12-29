@@ -48,10 +48,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         batch_feats = feats[input_nodes]
         print(f"step {step}")
         # run kmeans at the first step and the last step
-        if step % 1 == 0:
-            # Code to execute at the first and last step
-            model.encoder.reset_kmeans()
-            model.encoder.vq._codebook.init_embed_(latents)
 
 
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
@@ -62,6 +58,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Backpropagation
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
         print(f"sil loss {loss_list[-1]}")
+
+        if step % 1 == 0:
+            # Code to execute at the first and last step
+            model.encoder.reset_kmeans()
+            model.encoder.vq._codebook.init_embed_(latents)
         # ---------------------------------------
         # Update weights after accumulation_steps
         # ---------------------------------------
