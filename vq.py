@@ -273,13 +273,13 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     device = embed_ind.device
 
     # Validate embed_ind
-    print(f"embed_ind: min={embed_ind.min().item()}, max={embed_ind.max().item()}, shape={embed_ind.shape}")
+    # print(f"embed_ind: min={embed_ind.min().item()}, max={embed_ind.max().item()}, shape={embed_ind.shape}")
     embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1)
     embed_ind = embed_ind.long()
 
     # Validate atom_types
     atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
-    print(f"atom_types: min={atom_types.min().item()}, max={atom_types.max().item()}, shape={atom_types.shape}")
+    # print(f"atom_types: min={atom_types.min().item()}, max={atom_types.max().item()}, shape={atom_types.shape}")
     assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
 
     # Map atom_types to sequential indices
@@ -327,7 +327,7 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
     current_non_empty_count = len(non_empty_clusters)
 
     if current_non_empty_count < target_non_empty_clusters:
-        print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
+        # print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
         new_embed_ind = embed_ind.clone()
 
         # Determine how many clusters need to be added
@@ -358,10 +358,10 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
                 )
                 clusters_to_add -= 1
 
-        print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
+        # print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
         return new_embed_ind
     else:
-        print(f"No need to increase clusters; current count is {current_non_empty_count}.")
+        # print(f"No need to increase clusters; current count is {current_non_empty_count}.")
         return embed_ind
 
 
