@@ -359,10 +359,10 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
                 )
                 clusters_to_add -= 1
 
-        # print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
+        print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
         return new_embed_ind
     else:
-        # print(f"No need to increase clusters; current count is {current_non_empty_count}.")
+        print(f"No need to increase clusters; current count is {current_non_empty_count}.")
         return embed_ind
 
 
