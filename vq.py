@@ -274,7 +274,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Validate embed_ind
     # print(f"embed_ind: min={embed_ind.min().item()}, max={embed_ind.max().item()}, shape={embed_ind.shape}")
-    print(embed_ind[:30])
+    # print(embed_ind[:30])
     embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1)
     embed_ind = embed_ind.long()
 
@@ -327,7 +327,7 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
     current_non_empty_count = len(non_empty_clusters)
 
     if current_non_empty_count < target_non_empty_clusters:
-        print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
+        # print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
         new_embed_ind = embed_ind.clone()
 
         # Determine how many clusters need to be added
@@ -354,12 +354,12 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
                     k
                 )
                 clusters_to_add -= 1
-                print(f"Created new cluster {new_cluster_id} with size {(new_embed_ind == new_cluster_id).sum().item()}")
+                # print(f"Created new cluster {new_cluster_id} with size {(new_embed_ind == new_cluster_id).sum().item()}")
 
-        print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
+        # print(f"Final non-empty clusters: {target_non_empty_clusters - clusters_to_add}")
         return new_embed_ind
     else:
-        print(f"No need to increase clusters; current count is {current_non_empty_count}.")
+        # print(f"No need to increase clusters; current count is {current_non_empty_count}.")
         return embed_ind
 
 class EuclideanCodebook(nn.Module):
@@ -951,11 +951,11 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # Calculate Codebook Losses
                 # ---------------------------------
-                print(f"embed_ind.shape {embed_ind.shape} befpre ")
+                # print(f"embed_ind.shape {embed_ind.shape} befpre ")
                 (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
                  ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
                 # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-                print(f"embed_ind.shape {embed_ind.shape} after ")
+                # print(f"embed_ind.shape {embed_ind.shape} after ")
                 if embed_ind.ndim == 2:
                     embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
                 elif embed_ind.ndim == 1:
