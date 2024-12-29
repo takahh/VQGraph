@@ -274,7 +274,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Clean atom_types
     atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
-    print(f"atom_types {atom_types}")
+    print(f"atom_types: {atom_types.cpu().numpy()}")
     assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
 
     embed_ind = torch.squeeze(embed_ind, dim=-1)
