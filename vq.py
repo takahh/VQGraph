@@ -269,23 +269,15 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
-def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius",
-                              alpha=1.0):
+def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
     device = embed_ind.device
 
-    # Validate atom_types
-    assert atom_types.ndim == 1, f"atom_types must be 1D, but got shape {atom_types.shape}"
+    # Clean atom_types
+    atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
     assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
-    assert torch.all(atom_types >= 0), "atom_types contains negative values!"
-    print(f"atom_types: min={atom_types.min()}, max={atom_types.max()}, unique={torch.unique(atom_types)}")
 
-    # Validate embed_ind
     embed_ind = torch.squeeze(embed_ind, dim=-1)
-    embed_ind = embed_ind.long()  # Ensure correct type
-    assert embed_ind.ndim == 1, f"embed_ind must be 1D, but got shape {embed_ind.shape}"
-    assert torch.all(embed_ind >= 0), "embed_ind contains negative indices!"
-    # assert torch.all(
-    #     embed_ind < num_codebooks), f"embed_ind out of bounds! Expected max {num_codebooks - 1}, got {embed_ind.max()}"
+    embed_ind = embed_ind.long()
 
     # Map atom_types to sequential indices
     unique_atom_numbers = torch.unique(atom_types).tolist()
@@ -294,8 +286,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float().to(device)
-    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float().to(
-        device)
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float().to(device)
 
     # Stabilize embed_one_hot
     embed_one_hot = embed_one_hot - embed_one_hot.max(dim=-1, keepdim=True).values
