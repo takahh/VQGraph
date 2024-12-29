@@ -371,7 +371,7 @@ class EuclideanCodebook(nn.Module):
             kmeans_init=True,
             kmeans_iters=300,
             sync_kmeans=True,
-            decay=0.8,
+            decay=0.1,
             eps=1e-5,
             threshold_ema_dead_code=2,
             use_ddp=False,
@@ -933,7 +933,7 @@ class VectorQuantize(nn.Module):
                 else:
                     commit_loss = F.mse_loss(detached_quantize, x)
                 raw_commit_loss = commit_loss
-                loss = loss + commit_loss * self.commitment_weight
+                # loss = loss + commit_loss * self.commitment_weight
 
             if self.margin_weight > 0:  # now skip because it is zero
                 codebook = self._codebook.embed
