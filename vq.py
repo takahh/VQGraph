@@ -843,7 +843,7 @@ class VectorQuantize(nn.Module):
         # sil loss
         embed_ind_for_sil = torch.squeeze(embed_ind)
         latents_for_sil = torch.squeeze(latents)
-        embed_ind, sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2])
+        embed_ind, sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
 
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements

@@ -81,12 +81,12 @@ def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size, batch_size, para
         # Define bin edges to control the size of the bins
         x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
         y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
-        n_bins = 100  # Number of bins for both axes
+        n_bins = 200  # Number of bins for both axes
         # cb_size = 1201
         plt.hist2d(
             embedding_latent[:, 0], embedding_latent[:, 1],
             bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
-            cmap='viridis'
+            cmap='Blues'
         )
 
         plt.colorbar(label='Density')
@@ -94,7 +94,29 @@ def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size, batch_size, para
         title = f"UMAP: n_neibogher {param}, epoch {epoch}, min_dist {param2}, cb {cb_size}, dim {latent_arr.shape[-1]}"
         plt.title(title)
         # Overlay scatter plot
-        plt.scatter(embedding_quantized[:, 0], embedding_quantized[:, 1], s=3, c='red', alpha=1)
+        plt.scatter(embedding_quantized[:, 0], embedding_quantized[:, 1], s=1, c='red', alpha=1)
+        # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
+        plt.show()
+        # plt.savefig(f"./plot_epoch{epoch}")
+
+        plt.figure()
+        # Define bin edges to control the size of the bins
+        x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
+        y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
+        n_bins = 200  # Number of bins for both axes
+        # cb_size = 1201
+        plt.hist2d(
+            embedding_latent[:, 0], embedding_latent[:, 1],
+            bins=[np.linspace(*x_range, n_bins), np.linspace(*y_range, n_bins)],
+            cmap='Blues'
+        )
+
+        plt.colorbar(label='Density')
+
+        title = f"UMAP: n_neibogher {param}, epoch {epoch}, min_dist {param2}, cb {cb_size}, dim {latent_arr.shape[-1]}"
+        plt.title(title)
+        # Overlay scatter plot
+        # plt.scatter(embedding_quantized[:, 0], embedding_quantized[:, 1], s=1, c='red', alpha=1)
         # plt.scatter(embedding[:cb_size, 0], embedding[:cb_size, 1], s=3, c='purple', alpha=1)
         plt.show()
         # plt.savefig(f"./plot_epoch{epoch}")
@@ -111,8 +133,8 @@ def main():
     arr_list = []
     DIMENSION = 512
     BATCH = 8000
-    EPOCH = 3
-    EPOCH2 = 7
+    EPOCH = 2
+    EPOCH2 = 11
 
     # MODE = "tsne"
     MODE = "umap"
@@ -134,7 +156,7 @@ def main():
                 latent_arr = arr
                 print(f"arr.shape {arr.shape}")
 
-        for param in [100]:
+        for param in [10]:
             if MODE == "tsne":
                 plot_graph(cb_arr, latent_arr, MODE, epoch, param, cb_size, BATCH)
             else:
