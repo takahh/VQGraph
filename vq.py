@@ -971,7 +971,7 @@ class VectorQuantize(nn.Module):
                 # ---------------------------------
                 # linearly combine losses !!!!
                 # ---------------------------------
-                loss += self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+                loss = loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
                 # loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * div_ele_loss
                 # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
                 #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
