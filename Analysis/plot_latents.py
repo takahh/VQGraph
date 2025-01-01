@@ -133,7 +133,7 @@ def main():
     arr_list = []
     DIMENSION = 512
     BATCH = 8000
-    EPOCH = 2
+    EPOCH = 7
     EPOCH2 = 11
 
     # MODE = "tsne"
