@@ -186,13 +186,14 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     with torch.no_grad():
         # h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, embed_ind_list
         h_list, logits, _ , dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes = model.inference(data, feats)
-        out = logits.log_softmax(dim=1)
-        if idx_eval is None:
-            loss = criterion(out, labels)
-            score = evaluator(out, labels)
-        else:
-            loss = criterion(out[idx_eval], labels[idx_eval])
-            score = evaluator(out[idx_eval], labels[idx_eval])
+        out, loss, score = None, None, None
+        # out = logits.log_softmax(dim=1)
+        # if idx_eval is None:
+        #     loss = criterion(out, labels)
+        #     score = evaluator(out, labels)
+        # else:
+        #     loss = criterion(out[idx_eval], labels[idx_eval])
+        #     score = evaluator(out[idx_eval], labels[idx_eval])
         #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind
     return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes
 

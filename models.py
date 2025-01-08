@@ -296,7 +296,7 @@ class SAGE(nn.Module):
             h = self.linear(h)
             loss = feature_rec_loss + edge_rec_loss + commit_loss
             h = h[:block.num_dst_nodes()]
-            y[output_nodes] = h
+            # y[output_nodes] = h
 
             torch.cuda.empty_cache()
             # Monitor reserved memory after cleanup
