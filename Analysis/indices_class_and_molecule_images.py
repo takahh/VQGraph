@@ -109,7 +109,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
 
 def main():
-    path = "/Users/taka/Documents/output_of_vqgraph_for_analysis/"
+    path = "/Users/taka/Documents/vqgraphoutput_2025_0107/"
     input_mol_file = f"{path}/molecules.npz"                     # input data
     class_file = f"{path}embed_ind_indices_first8000_1.npz"      # assigned code vector id
     indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
@@ -118,8 +118,10 @@ def main():
     arr_input = getdata(input_mol_file)   # input molecule graph
     arr_indices = getdata(indices_file)   # indices of the input
     arr_class = getdata(class_file)       # assigned quantized code vec indices
-
+    print(f"node id {arr_indices.shape}, class {arr_class.shape}")
     node_indices = arr_indices.tolist()
+    print("node_indices")
+    print(node_indices)
 
     test_indices = arr_indices[:200]
     # -------------------------------------

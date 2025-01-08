@@ -109,9 +109,12 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
             random_state, labels, labelrate_train, labelrate_val
         )
     elif train_or_infer == "infer":
+        print("loading in [infer] mode.......")
         idx_train, idx_val, idx_test = get_train_val_test_split_continuous(
             random_state, labels, labelrate_train, labelrate_val
         )
+        print("idx_test")
+        print(idx_test)
     features = torch.FloatTensor(np.array(features.todense()))
     print(f"{features.shape}  features.shape")
     num_nodes = features.shape[0]
