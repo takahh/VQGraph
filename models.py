@@ -303,7 +303,9 @@ class SAGE(nn.Module):
             input_node_list.append(input_nodes)
             # print(f"node list length {len(input_node_list)}")
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss], latent_list, embed_ind_list, input_node_list
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss,
+                    margin_loss, spread_loss, pair_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
+                                                     h_num_div_loss, sil_loss], latent_list, embed_ind_list, input_node_list
 
 
 class GAT(nn.Module):
