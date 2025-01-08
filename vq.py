@@ -917,65 +917,65 @@ class VectorQuantize(nn.Module):
         ringy_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         h_num_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         silh_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        if self.training:
-            if self.commitment_weight > 0:  # 0.25 is assigned
-                detached_quantize = quantize.detach()
+        # if self.training:
+        if self.commitment_weight > 0:  # 0.25 is assigned
+            detached_quantize = quantize.detach()
 
-                if exists(mask):
-                    # with variable lengthed sequences
-                    commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
+            if exists(mask):
+                # with variable lengthed sequences
+                commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
-                    if is_multiheaded:
-                        mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
-                                      h=commit_loss.shape[1] // mask.shape[0])
+                if is_multiheaded:
+                    mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
+                                  h=commit_loss.shape[1] // mask.shape[0])
 
-                    commit_loss = commit_loss[mask].mean()
-                else:
-                    commit_loss = F.mse_loss(detached_quantize, x)
-                raw_commit_loss = commit_loss
-                # loss = loss + commit_loss * self.commitment_weight
+                commit_loss = commit_loss[mask].mean()
+            else:
+                commit_loss = F.mse_loss(detached_quantize, x)
+            raw_commit_loss = commit_loss
+            # loss = loss + commit_loss * self.commitment_weight
 
-            if self.margin_weight > 0:  # now skip because it is zero
-                codebook = self._codebook.embed
+        if self.margin_weight > 0:  # now skip because it is zero
+            codebook = self._codebook.embed
 
-                if self.orthogonal_reg_active_codes_only:
-                    # only calculate orthogonal loss for the activated codes for this batch
-                    unique_code_ids = torch.unique(embed_ind)
-                    codebook = torch.squeeze(codebook)
-                    codebook = codebook[unique_code_ids]
+            if self.orthogonal_reg_active_codes_only:
+                # only calculate orthogonal loss for the activated codes for this batch
+                unique_code_ids = torch.unique(embed_ind)
+                codebook = torch.squeeze(codebook)
+                codebook = codebook[unique_code_ids]
 
-                num_codes = codebook.shape[0]
-                if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-                    rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-                    codebook = codebook[rand_ids]
-                # ---------------------------------
-                # Calculate Codebook Losses
-                # ---------------------------------
-                # print(f"embed_ind.shape {embed_ind.shape} befpre ")
-                (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-                 ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
-                # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-                # print(f"embed_ind.shape {embed_ind.shape} after ")
-                if embed_ind.ndim == 2:
-                    embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
-                elif embed_ind.ndim == 1:
-                    embed_ind = embed_ind  # Leave as is if already 1D
-                else:
-                    raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
+            num_codes = codebook.shape[0]
+            if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
+                rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
+                codebook = codebook[rand_ids]
+            # ---------------------------------
+            # Calculate Codebook Losses
+            # ---------------------------------
+            # print(f"embed_ind.shape {embed_ind.shape} befpre ")
+            (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
+             ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
+            # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
+            # print(f"embed_ind.shape {embed_ind.shape} after ")
+            if embed_ind.ndim == 2:
+                embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
+            elif embed_ind.ndim == 1:
+                embed_ind = embed_ind  # Leave as is if already 1D
+            else:
+                raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
 
-                # ---------------------------------
-                # Calculate silouhette Losses
-                # ---------------------------------
-                # silh_loss = silhouette_loss(latents, embed_ind, codebook.shape[0])
+            # ---------------------------------
+            # Calculate silouhette Losses
+            # ---------------------------------
+            # silh_loss = silhouette_loss(latents, embed_ind, codebook.shape[0])
 
-                # ---------------------------------
-                # linearly combine losses !!!!
-                # ---------------------------------
-                loss = loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-                # loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * div_ele_loss
-                # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
-                #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
-                loss = loss + self.lamb_sil * silh_loss
+            # ---------------------------------
+            # linearly combine losses !!!!
+            # ---------------------------------
+            loss = loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+            # loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * div_ele_loss
+            # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
+            #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
+            loss = loss + self.lamb_sil * silh_loss
 
         if is_multiheaded:
             if self.separate_codebook_per_head:
