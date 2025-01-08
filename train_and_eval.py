@@ -439,9 +439,11 @@ def run_inductive(
         # This avoids creating certain formats in each data loader process, which saves memory and CPU.
         obs_g.create_formats_()
         g.create_formats_()
-        sampler = dgl.dataloading.MultiLayerNeighborSampler(
-            [eval(fanout) for fanout in conf["fan_out"].split(",")]
-        )
+        # sampler = dgl.dataloading.MultiLayerNeighborSampler(
+        #     [eval(fanout) for fanout in conf["fan_out"].split(",")]
+        # )
+
+        sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
         # obs_dataloader = dgl.dataloading.NodeDataLoader(
         # -------------------------
         # all obs data PARTIAL sampling (for training)
