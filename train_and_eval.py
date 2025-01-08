@@ -411,8 +411,19 @@ def run_inductive(
     set_seed(conf["seed"])
     device = conf["device"]
     batch_size = conf["batch_size"]
+
+    def print_and_shape(tensord, name):
+        print(f"--- {name} ---")
+        print(f"  shape {tensord.shape}")
+        print(f"  data {tensord.shape}")
+
     obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind = indices
     # obs_idx_test start with 20 or 40 ?
+    print_and_shape(obs_idx_train, "obs_idx_train")
+    print_and_shape(obs_idx_val, "obs_idx_val")
+    print_and_shape(obs_idx_test, "obs_idx_test")
+    print_and_shape(idx_obs, "idx_obs")
+    print_and_shape(idx_test_ind, "idx_test_ind")
 
     feats = feats.to(device)
     labels = labels.to(device)

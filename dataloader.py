@@ -89,20 +89,8 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
         data = load_npz_to_sparse_graph(data_path)
     else:
         raise ValueError(f"{data_path} doesn't exist.")
-
-    # remove self loop and extract the largest CC
-    # data = data.standardize()
     adj, features, labels = data.unpack()
-    # print(labels[696], labels[701])
-    # print(features.dtype)
-    # print(adj[165])
-    # print(adj[1989])
-    
-    # print(adj[516])
-    # print(adj[1829])
     labels = binarize_labels(labels)
-    # print(])
-    # print(features[696]==features[701])
     random_state = np.random.RandomState(seed)
     if train_or_infer == "train":
         idx_train, idx_val, idx_test = get_train_val_test_split(
@@ -117,33 +105,14 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
         print(idx_test)
     features = torch.FloatTensor(np.array(features.todense()))
     print(f"{features.shape}  features.shape")
-    num_nodes = features.shape[0]
-    # adj = torch.FloatTensor(np.array(adj.todense()))
-    #print(features)
     labels = torch.LongTensor(labels.argmax(axis=1))
-    # print(labels[696])
-    # for i in range(num_nodes):
-    #     for j in range(i+1, num_nodes):
-    #         if torch.all(torch.eq(labels[i], labels[j])) and torch.all(torch.eq(adj[i], adj[j]))and not torch.all(torch.eq(features[i], features[j])):
-    #                 print(i, j)
-    #                 print("true")
-    # print("here!")
-    # feature_similarity = torch.matmul(features, features.t())
-    # # print(feature_similarity.shape)
-    # feature_similarity.fill_diagonal_(-1)
-    # # get the index of the nodes with the max similarity
-    # feature_similarity = feature_similarity.cpu().detach().numpy()
-    # max_pair = np.unravel_index(np.argmax(feature_similarity), feature_similarity.shape)
-    # print(max_pair)
     adj = normalize_adj(adj)
     adj_sp = adj.tocoo()
     g = dgl.graph((adj_sp.row, adj_sp.col))
     g.ndata["feat"] = features
-    
     idx_train = torch.LongTensor(idx_train)
     idx_val = torch.LongTensor(idx_val)
     idx_test = torch.LongTensor(idx_test)
-    # print(labels)
     return g, labels, idx_train, idx_val, idx_test   # idx_test starts from 40
 
 
