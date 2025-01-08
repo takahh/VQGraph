@@ -37,11 +37,6 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
     start_node_index = node_indices[0]
     node_indices = [x - start_node_index for x in node_indices]
     classes = class_file.tolist()
-    print("node_indices")
-    print(node_indices)
-    print("classes")
-    print(classes)
-
     # Map node indices to classes
     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
 
@@ -119,7 +114,8 @@ def main():
     arr_indices = getdata(indices_file)   # indices of the input
     arr_class = getdata(class_file)       # assigned quantized code vec indices
     print(f"node id {arr_indices.shape}, class {arr_class.shape}")
-    node_indices = arr_indices.tolist()
+    # node_indices = arr_indices.tolist()
+    node_indices = list(range(0, 200))
     print("node_indices")
     print(node_indices)
 
@@ -145,7 +141,7 @@ def main():
     adj_shape = arr_input["adj_shape"]
     # Reconstruct the sparse adjacency matrix
     adj_matrix = csr_matrix((adj_data, adj_indices, adj_indptr), shape=adj_shape)
-    subset_adj_matrix = adj_matrix[node_indices[0]:node_indices[0] + 200, node_indices[0]:node_indices[0] + 200].toarray()
+    subset_adj_matrix = adj_matrix[0:200, 0:200].toarray()
     # subset_adj_matrix = adj_matrix.toarray()
 
     # -------------------------------------

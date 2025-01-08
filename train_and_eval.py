@@ -412,18 +412,18 @@ def run_inductive(
     device = conf["device"]
     batch_size = conf["batch_size"]
 
-    def print_and_shape(tensord, name):
-        print(f"--- {name} ---")
-        print(f"  shape {tensord.shape}")
-        print(f"  data {tensord[:10]}")
-
+    # def print_and_shape(tensord, name):
+    #     print(f"--- {name} ---")
+    #     print(f"  shape {tensord.shape}")
+    #     print(f"  data {tensord[:10]}")
+    #
     obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind = indices
-    # obs_idx_test start with 20 or 40 ?
-    print_and_shape(obs_idx_train, "obs_idx_train")
-    print_and_shape(obs_idx_val, "obs_idx_val")
-    print_and_shape(obs_idx_test, "obs_idx_test")
-    print_and_shape(idx_obs, "idx_obs")
-    print_and_shape(idx_test_ind, "idx_test_ind")
+    # # obs_idx_test start with 20 or 40 ?
+    # print_and_shape(obs_idx_train, "obs_idx_train")
+    # print_and_shape(obs_idx_val, "obs_idx_val")
+    # print_and_shape(obs_idx_test, "obs_idx_test")
+    # print_and_shape(idx_obs, "idx_obs")
+    # print_and_shape(idx_test_ind, "idx_test_ind")
 
     feats = feats.to(device)
     labels = labels.to(device)
@@ -644,9 +644,9 @@ def run_inductive(
             # -----------------------------------------------------
             embed_ind_list_indices = torch.cat([torch.squeeze(x) for x in embed_ind_list_indices])
             # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-            embed_ind_list_indices = embed_ind_list_indices[:8000]
+            embed_ind_list_indices = embed_ind_list_indices[0][:8000]
             np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
-            np.savez(f"./input_nodes_{epoch}", input_nodes)
+            np.savez(f"./input_nodes_{epoch}", input_nodes[0][:8000])
 
         if conf["train_or_infer"] == "train":
 

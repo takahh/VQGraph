@@ -241,6 +241,7 @@ class SAGE(nn.Module):
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
         latent_list = []
+        input_node_list = []
         embed_ind_list = []
         for input_nodes, output_nodes, blocks in dataloader:
             g = dgl.DGLGraph().to(feats.device)
@@ -298,9 +299,9 @@ class SAGE(nn.Module):
 
             torch.cuda.empty_cache()
             # Monitor reserved memory after cleanup
-
+            input_node_list.append(input_nodes)
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss], latent_list, embed_ind_list, input_nodes
+        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss], latent_list, embed_ind_list, input_node_list
 
 
 class GAT(nn.Module):
