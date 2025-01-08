@@ -272,10 +272,10 @@ class SAGE(nn.Module):
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, atom_type_arr)
             latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind.detach().cpu())
-            print(f"embed_ind {embed_ind}")
-            print(f"input_nodes len {len(input_nodes)}")
-            print(f"input_nodes {input_nodes}")
-            print("-------")
+            # print(f"embed_ind {embed_ind}")
+            # print(f"input_nodes len {len(input_nodes)}")
+            # print(f"input_nodes {input_nodes}")
+            # print("-------")
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
@@ -301,7 +301,7 @@ class SAGE(nn.Module):
             torch.cuda.empty_cache()
             # Monitor reserved memory after cleanup
             input_node_list.append(input_nodes)
-            print(f"node list length {len(input_node_list)}")
+            # print(f"node list length {len(input_node_list)}")
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
         return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss], latent_list, embed_ind_list, input_node_list
 
