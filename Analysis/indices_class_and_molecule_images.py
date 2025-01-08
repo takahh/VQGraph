@@ -114,8 +114,8 @@ def main():
     arr_indices = getdata(indices_file)   # indices of the input
     arr_class = getdata(class_file)       # assigned quantized code vec indices
     print(f"node id {arr_indices.shape}, class {arr_class.shape}")
-    # node_indices = arr_indices.tolist()
-    node_indices = list(range(0, 200))
+    node_indices = arr_indices.tolist()
+    # node_indices = list(range(0, 200))
     print("node_indices")
     print(node_indices)
 
