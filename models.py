@@ -273,7 +273,7 @@ class SAGE(nn.Module):
             latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind.detach().cpu())
             print(f"embed_ind {embed_ind}")
-            print(f"input_nodes {input_nodes}")
+            print(f"input_nodes {input_nodes[:50]}")
             print("-------")
 
             dist = torch.squeeze(dist)
