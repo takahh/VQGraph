@@ -599,16 +599,16 @@ def run_inductive(
                     evaluator,
                     obs_idx_train,
                 )
-                loss_val = criterion(
-                    obs_out[obs_idx_val], obs_labels[obs_idx_val]
-                ).item()
-                score_val = evaluator(obs_out[obs_idx_val], obs_labels[obs_idx_val])
-                loss_test_tran = criterion(
-                    obs_out[obs_idx_test], obs_labels[obs_idx_test]
-                ).item()
-                acc_tran = evaluator(
-                    obs_out[obs_idx_test], obs_labels[obs_idx_test]
-                )
+                # loss_val = criterion(
+                #     obs_out[obs_idx_val], obs_labels[obs_idx_val]
+                # ).item()
+                # score_val = evaluator(obs_out[obs_idx_val], obs_labels[obs_idx_val])
+                # loss_test_tran = criterion(
+                #     obs_out[obs_idx_test], obs_labels[obs_idx_test]
+                # ).item()
+                # acc_tran = evaluator(
+                #     obs_out[obs_idx_test], obs_labels[obs_idx_test]
+                # )
 
             # -------------------------------------------------
             # 3. Evaluate the inductive part (idx_test_ind),
@@ -671,19 +671,19 @@ def run_inductive(
             print(f"test_unknown_g, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| div_element_loss: {loss_list1[2].item(): 4f},| commit_loss: {loss_list1[3].item(): 4f}, loss_test_ind {loss_test_ind:.4f}")
 
 
-            loss_and_score += [
-                [
-                    epoch,
-                    loss_train,
-                    loss_val,
-                    loss_test_tran,
-                    loss_test_ind,
-                    score_train,
-                    score_val,
-                    acc_tran,
-                    acc_ind,
-                ]
-            ]
+            # loss_and_score += [
+            #     [
+            #         epoch,
+            #         loss_train,
+            #         loss_val,
+            #         loss_test_tran,
+            #         loss_test_ind,
+            #         score_train,
+            #         score_val,
+            #         acc_tran,
+            #         acc_ind,
+            #     ]
+            # ]
             print(f"loss_total {loss_total:4f}, best_score_val {best_score_val: 5f}")
             # --------------------------------
             # check if edge loss is decreasing
