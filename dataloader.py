@@ -22,7 +22,7 @@ from dgl.data.utils import load_graphs
 from os import path
 from category_encoders import CatBoostEncoder
 from pathlib import Path
-from google_drive_downloader import GoogleDriveDownloader as gdd
+# from google_drive_downloader import GoogleDriveDownloader as gdd
 from sklearn.preprocessing import label_binarize
 from sklearn import preprocessing
 from data_preprocess import (
@@ -52,8 +52,8 @@ def load_data(dataset, dataset_path, **kwargs):
         )
     elif dataset in OGB_data:
         return load_ogb_data(dataset, dataset_path)
-    elif dataset in NonHom_data:
-        return load_nonhom_data(dataset, dataset_path, kwargs["split_idx"])
+    # elif dataset in NonHom_data:
+    #     return load_nonhom_data(dataset, dataset_path, kwargs["split_idx"])
     elif dataset in BGNN_data:
         return load_bgnn_data(dataset, dataset_path, kwargs["split_idx"])
     else:
