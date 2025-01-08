@@ -117,7 +117,7 @@ def main():
     node_indices = arr_indices.tolist()
     # node_indices = list(range(0, 200))
     print("node_indices")
-    print(node_indices)
+    print(node_indices[::-1])
 
     test_indices = arr_indices[:200]
     # -------------------------------------
