@@ -271,6 +271,9 @@ class SAGE(nn.Module):
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, atom_type_arr)
             latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind.detach().cpu())
+            print(f"embed_ind {embed_ind}")
+            print(f"input_nodes {input_nodes}")
+            print("-------")
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist

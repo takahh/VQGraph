@@ -412,6 +412,7 @@ def run_inductive(
     device = conf["device"]
     batch_size = conf["batch_size"]
     obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind = indices
+    # obs_idx_test start with 20 or 40 ?
 
     feats = feats.to(device)
     labels = labels.to(device)
