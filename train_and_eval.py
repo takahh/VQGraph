@@ -644,7 +644,7 @@ def run_inductive(
             # -----------------------------------------------------
             embed_ind_list_indices = torch.cat([torch.squeeze(x) for x in embed_ind_list_indices])
             # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-            embed_ind_list_indices = embed_ind_list_indices[0][:8000]
+            embed_ind_list_indices = embed_ind_list_indices[:8000]
             np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices)
             np.savez(f"./input_nodes_{epoch}", input_nodes[0][:8000])
 
