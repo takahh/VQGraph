@@ -455,7 +455,7 @@ def run_inductive(
             num_workers=conf["num_workers"],
         )
 
-        sampler_eval = dgl.dataloading.MultiLayerFullNeighborSampler(1)
+        sampler_eval = dgl.dataloading.MultiLayerFullNeighborSampler(3)
         # obs_dataloader_eval = dgl.dataloading.NodeDataLoader(
         # -------------------------
         # all obs data FULL sampling (for inference/test)
