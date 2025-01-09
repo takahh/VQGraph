@@ -165,6 +165,7 @@ class SAGE(nn.Module):
         # print(h.shape)
         # print(h[:20])
         init_feat = h
+        print(f"init_feat shape {init_feat.shape}")
         torch.save(h, "/h.pt")
         h_list = []
         g = dgl.DGLGraph().to(h.device)
