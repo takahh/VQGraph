@@ -130,7 +130,7 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
     obs_idx_test = obs_idx_all[N1 + N2 :]
 
     idx_test_ind = torch.tensor(list(range(N1 + N2 + N2, N1 + N2 + N2 + N2 + 1)))
-    return obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind
+    return obs_idx_train, obs_idx_val, obs_idx_test, obs_idx_all, idx_test_ind
 
 
 def get_evaluator(dataset):
