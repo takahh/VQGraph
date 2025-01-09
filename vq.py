@@ -848,6 +848,7 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
+        print(f"init_feat shape {init_feat.shape}")
         atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
         bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
         aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
