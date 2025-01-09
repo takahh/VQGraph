@@ -525,7 +525,7 @@ def run_inductive(
             # run only in train mode
             # --------------------------------
             if conf["train_or_infer"] == "train":
-                print("TRAIN STARAT -------------!")
+                # print("TRAIN STARAT -------------!")
                 # partial sampling, only obs data
                 # this loss is label loss
                 loss, loss_list, latent_train, latents = train_sage(
@@ -593,7 +593,7 @@ def run_inductive(
                 # 1 st evaluate
                 # -----------------------------
                 # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes
-                print("EVAL 1 STARAT -------------!")
+                # print("EVAL 1 STARAT -------------!")
                 obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, embed_ind_list, inp_nodes = evaluate(
                     model,
                     obs_data_eval,
@@ -634,7 +634,7 @@ def run_inductive(
             # 2 nd evaluate
             # -----------------------------
             # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
-            print("EVAL 2 STARAT -------------!")
+            # print("EVAL 2 STARAT -------------!")
             out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
                 model,
                 data_eval,   #
