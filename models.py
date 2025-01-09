@@ -165,7 +165,6 @@ class SAGE(nn.Module):
         # print(h.shape)
         # print(h[:20])
         init_feat = h
-        print(f"init_feat shape {init_feat.shape}")
         torch.save(h, "/h.pt")
         h_list = []
         g = dgl.DGLGraph().to(h.device)
@@ -237,8 +236,6 @@ class SAGE(nn.Module):
         dataloader : The entire graph loaded in blocks with full neighbors for each node.
         feats : The input feats of entire node set.
         """
-        print(f"feat in inference {feats.shape}") # feat in inference torch.Size([861252, 7]) ここまではOK。
-        init_feat = feats
         device = feats.device
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
@@ -258,6 +255,7 @@ class SAGE(nn.Module):
             adj = adj = g.adjacency_matrix().to_dense().to(feats.device)
             h_list = []
             h = feats[input_nodes]
+            init_feat = h
             # atom_type_arr = torch.squeeze(h[:, 0])
             h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
