@@ -672,7 +672,7 @@ class VectorQuantize(nn.Module):
             margin_weight=0.8,
             spread_weight=0.2,
             pair_weight=0.01,
-            lamb_div_ele=1,
+            lamb_div_ele=10,
             lamb_div_bonds=1,
             lamb_div_aroma=1,
             lamb_div_ringy=1,
