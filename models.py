@@ -188,10 +188,11 @@ class SAGE(nn.Module):
         # print(h.shape)
         # print(h[:20])
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
-        (quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
+        (quantized, emb_ind, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
          detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
+        print(f"feats {feats}, emb_ind {emb_ind}")
         # --------------------
         # Feat loss
         # --------------------

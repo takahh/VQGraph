@@ -131,10 +131,10 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    DIMENSION = 512
+    DIMENSION = 1024
     BATCH = 8000
-    EPOCH = 7
-    EPOCH2 = 11
+    EPOCH = 6
+    EPOCH2 = 7
 
     # MODE = "tsne"
     MODE = "umap"

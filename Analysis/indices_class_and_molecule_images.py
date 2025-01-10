@@ -42,7 +42,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
     # Step 2: Identify connected components (molecules)
     n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
-
+    print(n_components)
     # Step 3: Extract and annotate molecules
     images = []
     for i in range(5):
@@ -104,7 +104,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
 
 def main():
-    path = "/Users/taka/Documents/vqgraphoutput_2025_0107/"
+    path = "/Users/taka/Documents/VQGraph_out_for_images_0109/"
     input_mol_file = f"{path}/molecules.npz"                     # input data
     class_file = f"{path}embed_ind_indices_first8000_1.npz"      # assigned code vector id
     indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
@@ -116,8 +116,8 @@ def main():
     print(f"node id {arr_indices.shape}, class {arr_class.shape}")
     node_indices = arr_indices.tolist()
     # node_indices = list(range(0, 200))
-    print("node_indices")
-    print(node_indices[::-1])
+    # print("node_indices")
+    # print(node_indices)
 
     test_indices = arr_indices[:200]
     # -------------------------------------
@@ -128,6 +128,7 @@ def main():
     attr_indptr = arr_input["attr_indptr"]
     attr_shape = arr_input["attr_shape"]
     attr_matrix = csr_matrix((attr_data, attr_indices, attr_indptr), shape=attr_shape)
+    ic(node_indices[0])
     subset_attr_matrix = attr_matrix[node_indices[0]:node_indices[0] + 200, :].toarray()
     # subset_attr_matrix = attr_matrix.toarray()
 
