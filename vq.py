@@ -269,6 +269,27 @@ def batched_embedding(indices, embeds):
     return embeds.gather(2, indices)
 
 
+import torch
+
+
+def compute_contrastive_loss(z, atom_types, margin=1.0):
+    """
+    Contrastive loss to separate different atom types.
+    """
+    # Compute pairwise distances
+    pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
+
+    # Create a mask for same atom types
+    same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
+
+    # Compute positive and negative losses
+    positive_loss = same_type_mask * pairwise_distances ** 2  # Pull same types together
+    negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances,
+                                                         min=0.0) ** 2  # Push apart different types
+    # Combine and return mean loss
+    return (positive_loss + negative_loss).mean()
+
+
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
     device = embed_ind.device
 
@@ -759,6 +780,26 @@ class VectorQuantize(nn.Module):
         codes, = unpack(codes, ps, 'b * d')
         return codes
 
+
+    def compute_contrastive_loss(z, atom_types, margin=1.0):
+        """
+        Contrastive loss to separate different atom types.
+        """
+        # Compute pairwise distances
+        pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
+
+        # Create a mask for same atom types
+        same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
+
+        # Compute positive and negative losses
+        positive_loss = same_type_mask * pairwise_distances ** 2  # Pull same types together
+        negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances,
+                                                             min=0.0) ** 2  # Push apart different types
+
+        # Combine and return mean loss
+        return (positive_loss + negative_loss).mean()
+
+
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Preprocess clusters to ensure the desired number of non-empty clusters
         embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
@@ -848,7 +889,8 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
-        atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
+        # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
+        atom_type_div_loss = compute_contrastive_loss(latents, embed_ind)
         bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
         aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
         ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
