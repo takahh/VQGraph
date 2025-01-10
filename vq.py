@@ -781,12 +781,26 @@ class VectorQuantize(nn.Module):
         return codes
 
 
-    def compute_contrastive_loss(z, atom_types, margin=1.0):
+    def compute_contrastive_loss(self, z, atom_types, margin=1.0):
         """
         Contrastive loss to separate different atom types.
         """
         # Compute pairwise distances
         pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
+
+        # Mask the diagonal (distances to itself)
+        mask = ~torch.eye(pairwise_distances.size(0), dtype=torch.bool)
+        non_diag_distances = pairwise_distances[mask]
+
+        # Compute mean, max, and min distances
+        mean_distance = non_diag_distances.mean().item()
+        max_distance = non_diag_distances.max().item()
+        min_distance = non_diag_distances.min().item()
+
+        # Print results
+        print(f"Mean distance: {mean_distance:.4f}")
+        print(f"Max distance: {max_distance:.4f}")
+        print(f"Min distance: {min_distance:.4f}")
 
         # Create a mask for same atom types
         same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
