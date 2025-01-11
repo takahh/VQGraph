@@ -813,6 +813,7 @@ class VectorQuantize(nn.Module):
         # Combine and return mean loss
         return (positive_loss + negative_loss).mean()
 
+
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Preprocess clusters to ensure the desired number of non-empty clusters
         embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
@@ -850,9 +851,6 @@ class VectorQuantize(nn.Module):
             else:
                 inter_cluster_distances.append(float('inf'))
 
-        # Print the number of empty clusters
-        # print(f"Number of empty clusters: {empty_cluster_count}")
-
         # Convert intra- and inter-cluster distances to tensors
         a = torch.tensor(intra_cluster_distances, device=embeddings.device)
         b = torch.tensor(inter_cluster_distances, device=embeddings.device)
@@ -862,11 +860,11 @@ class VectorQuantize(nn.Module):
         silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
         silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
 
-        # Shift and normalize silhouette coefficients to ensure positivity
-        shifted_coefficients = (silhouette_coefficients + 1) / 2  # Range [0, 1]
+        # Apply ReLU to ensure positivity and preserve gradient information
+        positive_silhouette_coefficients = torch.relu(silhouette_coefficients)
 
-        # Return the mean silhouette loss (positive value)
-        return embed_ind, shifted_coefficients.mean()
+        # Return the mean silhouette loss (positive value with meaningful gradients)
+        return embed_ind, positive_silhouette_coefficients.mean()
 
 
     def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, min_distance=0.5):
