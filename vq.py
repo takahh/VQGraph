@@ -813,7 +813,6 @@ class VectorQuantize(nn.Module):
         # Combine and return mean loss
         return (positive_loss + negative_loss).mean()
 
-
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Preprocess clusters to ensure the desired number of non-empty clusters
         embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
@@ -863,8 +862,11 @@ class VectorQuantize(nn.Module):
         silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
         silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
 
-        # Return the mean silhouette loss
-        return embed_ind, -silhouette_coefficients.mean()
+        # Shift and normalize silhouette coefficients to ensure positivity
+        shifted_coefficients = (silhouette_coefficients + 1) / 2  # Range [0, 1]
+
+        # Return the mean silhouette loss (positive value)
+        return embed_ind, shifted_coefficients.mean()
 
 
     def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, min_distance=0.5):
