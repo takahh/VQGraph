@@ -67,6 +67,12 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Update weights after accumulation_steps
         # ---------------------------------------
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
+            for name, param in model.named_parameters():
+                if param.grad is None:
+                    print(f"No gradient for parameter {name}")
+                elif torch.all(param.grad == 0):
+                    print(f"Zero gradient for parameter {name}")
+
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()  # Reset gradients after optimizer step
