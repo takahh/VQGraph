@@ -698,7 +698,7 @@ class VectorQuantize(nn.Module):
             lamb_div_aroma=1,
             lamb_div_ringy=1,
             lamb_div_h_num=1,
-            lamb_sil=1,
+            lamb_sil=0.1,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
