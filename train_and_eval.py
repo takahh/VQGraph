@@ -67,11 +67,14 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Update weights after accumulation_steps
         # ---------------------------------------
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
+
+            # Check if parameters are used in forward pass
             for name, param in model.named_parameters():
-                if param.grad is None:
-                    print(f"No gradient for parameter {name}")
-                elif torch.all(param.grad == 0):
-                    print(f"Zero gradient for parameter {name}")
+                print(f"{name}: requires_grad={param.requires_grad}, grad=None={param.grad is None}")
+
+            # Ensure optimizer includes all parameters
+            for group in optimizer.param_groups:
+                print(f"Optimizer param group: {[p.shape for p in group['params']]}")
 
             scaler.step(optimizer)
             scaler.update()
