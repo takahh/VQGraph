@@ -1031,10 +1031,11 @@ class VectorQuantize(nn.Module):
         #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
         #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
         loss = loss + self.lamb_div_ele * div_ele_loss
+        print(f"loss 1 {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
         loss = loss + self.lamb_sil * silh_loss
-
+        print(f"loss 2 {loss}")
         if is_multiheaded:
             if self.separate_codebook_per_head:
                 quantize = rearrange(quantize, 'h b n d -> b n (h d)', h=heads)
