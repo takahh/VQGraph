@@ -229,8 +229,10 @@ class SAGE(nn.Module):
         # h = h[:blocks[-1].num_dst_nodes()]
         # x and codebook are saved later...
         raw_feat_loss, raw_edge_rec_loss = None, None
-        return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
+        return h_list, h, loss, dist, codebook, [div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
                                                  bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss], x, detached_quantize, latents
+        # return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
+        #                                          bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss], x, detached_quantize, latents
 
 
     def inference(self, dataloader, feats):
@@ -270,7 +272,7 @@ class SAGE(nn.Module):
             # ----------------
             # Quantize
             # ----------------
-            (quantized, embed_ind, commit_loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
+            (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
              spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
             latent_list.append(latent_vectors.detach().cpu())
@@ -282,23 +284,23 @@ class SAGE(nn.Module):
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist
-            quantized_edge = self.decoder_1(quantized)
-            quantized_node = self.decoder_2(quantized)
+            # quantized_edge = self.decoder_1(quantized)
+            # quantized_node = self.decoder_2(quantized)
 
-            raw_feat_loss = F.mse_loss(h, quantized_node)
-            feature_rec_loss = self.lamb_node * raw_feat_loss
+            # raw_feat_loss = F.mse_loss(h, quantized_node)
+            # feature_rec_loss = self.lamb_node * raw_feat_loss
             # feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
-            adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
-            adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
-
-            raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
-            edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
+            # adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
+            # adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
+            #
+            # raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
+            # edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
             # edge_rec_loss = self.lamb_edge * torch.sqrt(F.mse_loss(adj, adj_quantized))
-            h = self.graph_layer_2(g, quantized_edge)
-            h_list.append(h)
-            h = self.linear(h)
-            loss = feature_rec_loss + edge_rec_loss + commit_loss
-            h = h[:block.num_dst_nodes()]
+            # h = self.graph_layer_2(g, quantized_edge)
+            # h_list.append(h)
+            # h = self.linear(h)
+            # loss = feature_rec_loss + edge_rec_loss + commit_loss
+            # h = h[:block.num_dst_nodes()]
             # y[output_nodes] = h
 
             torch.cuda.empty_cache()
@@ -306,7 +308,7 @@ class SAGE(nn.Module):
             input_node_list.append(input_nodes)
             # print(f"node list length {len(input_node_list)}")
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
-        return h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss,
+        return h_list, y, loss, dist_all, codebook, [div_ele_loss, raw_commit_loss,
                     margin_loss, spread_loss, pair_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
                                                      h_num_div_loss, sil_loss], latent_list, embed_ind_list, input_node_list
 
