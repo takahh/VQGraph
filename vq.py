@@ -904,7 +904,7 @@ class VectorQuantize(nn.Module):
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
         atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
-        # atom_type_div_loss = compute_contrastive_loss(latents, embed_ind)
+        atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
         bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
         aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
         ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
@@ -1027,10 +1027,10 @@ class VectorQuantize(nn.Module):
             # ---------------------------------
             # linearly combine losses !!!!
             # ---------------------------------
-            loss = (loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-             + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-             + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
-            # loss = loss + margin_loss * self.margin_weight + self.lamb_div_ele * div_ele_loss
+            # loss = (loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+            #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+            #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
+            loss = loss + self.lamb_div_ele * div_ele_loss
             # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
             #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
             loss = loss + self.lamb_sil * silh_loss
