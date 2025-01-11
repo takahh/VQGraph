@@ -103,7 +103,7 @@ def get_args():
         "--num_layers", type=int, default=2, help="Model number of layers"
     )
     parser.add_argument(
-        "--hidden_dim", type=int, default=1024, help="Model hidden layer dimensions"
+        "--hidden_dim", type=int, default=256, help="Model hidden layer dimensions"
     )
     parser.add_argument("--dropout_ratio", type=float, default=0)
     parser.add_argument(
