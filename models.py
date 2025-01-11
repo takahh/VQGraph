@@ -224,7 +224,7 @@ class SAGE(nn.Module):
         h = self.graph_layer_2(g, quantized_edge)
         h_list.append(h)
         h = self.linear(h)
-        loss = feature_rec_loss + edge_rec_loss + commit_loss
+        loss = feature_rec_loss + edge_rec_loss
         h = h[:blocks[-1].num_dst_nodes()]
         # x and codebook are saved later...
         return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,

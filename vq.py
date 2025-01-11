@@ -989,7 +989,7 @@ class VectorQuantize(nn.Module):
             else:
                 commit_loss = F.mse_loss(detached_quantize, x)
             raw_commit_loss = commit_loss
-            loss = loss + commit_loss * self.commitment_weight
+            # loss = loss + commit_loss * self.commitment_weight
 
         # if self.margin_weight > 0:  # now skip because it is zero
         codebook = self._codebook.embed
