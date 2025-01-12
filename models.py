@@ -241,6 +241,9 @@ class SAGE(nn.Module):
          detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
+        # ------------------------------
+        # added
+        # ------------------------------
         div_ele_loss = self.feat_elem_divergence_loss(emb_ind, init_feat[:, 0]).clone().detach()
         # print(f"feats {feats[:, 0][:20]}, emb_ind {emb_ind[:20]}")
         # --------------------
