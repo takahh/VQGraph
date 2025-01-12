@@ -185,35 +185,55 @@ class SAGE(nn.Module):
             h = self.norms[0](h)
         h = self.dropout(h)
         h_list.append(h)
-
-        # Pass through the vq module
-        (
-            quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss,
-            pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-            ringy_div_loss, h_num_div_loss, sil_loss
-        ) = self.vq(h, init_feat)
-
-        # Combine losses explicitly
-        total_loss = loss
-        # total_loss += self.lamb_div_ele * div_ele_loss
-        # total_loss += self.lamb_sil * sil_loss
-
-        # Optionally log losses for debugging
-        print(f"Total Loss: {total_loss.item()}")
-
-        # Return outputs and loss
-        return (
-            h_list,
-            h,
-            total_loss,
-            dist,
-            codebook,
-            [div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
-             bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss],
-            x,
-            detached_quantize,
-            latents
-        )
+        # print("h latent")
+        # print(h.shape)
+        # print(h[:20])
+        # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
+        (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
+         detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
+        quantized_edge = self.decoder_1(quantized)
+        quantized_node = self.decoder_2(quantized)
+        # print(f"feats {feats[:, 0][:20]}, emb_ind {emb_ind[:20]}")
+        # --------------------
+        # Feat loss
+        # --------------------
+        raw_feat_loss = F.mse_loss(h, quantized_node)
+        feature_rec_loss = self.lamb_node * raw_feat_loss
+        # --------------------------
+        # diverge element loss (NEW)
+        # --------------------------
+        # div_element_loss = F.mse_loss(h[0, :], quantized_node[0, :])
+        # --------------------
+        # Adj loss (1D to 2D)
+        # --------------------
+        adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
+        # ----------------------------
+        # change values to probability
+        # ----------------------------
+        adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
+        # ----------------------------
+        # Edge recon loss
+        # ----------------------------
+        # raw_edge_rec_loss = torch.sqrt(F.mse_loss(torch.log1p(adj), torch.log1p(adj_quantized)))
+        raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
+        edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
+        # -------------------------
+        # adjust variables to pass
+        # -------------------------
+        # dist = torch.squeeze(dist)
+        # h_list.append(quantized)
+        # h = self.graph_layer_2(g, quantized_edge)
+        # h_list.append(h)
+        # h = self.linear(h)
+        loss = loss + feature_rec_loss
+        # loss = feature_rec_loss + edge_rec_loss
+        # h = h[:blocks[-1].num_dst_nodes()]
+        # x and codebook are saved later...
+        raw_feat_loss, raw_edge_rec_loss = None, None
+        return h_list, h, loss, dist, codebook, [div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
+                                                 bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss], x, detached_quantize, latents
+        # return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
+        #                                          bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss], x, detached_quantize, latents
 
     def inference(self, dataloader, feats):
         """
