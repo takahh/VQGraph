@@ -257,18 +257,14 @@ class SAGE(nn.Module):
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
             latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind.detach().cpu())
-            # print(f"embed_ind {embed_ind}")
-            # print(f"input_nodes len {len(input_nodes)}")
-            # print(f"input_nodes {input_nodes}")
-            # print("-------")
 
-            # dist = torch.squeeze(dist)
-            # dist_all[input_nodes] = dist
+            dist = torch.squeeze(dist)
+            dist_all[input_nodes] = dist
             # quantized_edge = self.decoder_1(quantized)
-            # quantized_node = self.decoder_2(quantized)
+            quantized_node = self.decoder_2(quantized)
 
-            # raw_feat_loss = F.mse_loss(h, quantized_node)
-            # feature_rec_loss = self.lamb_node * raw_feat_loss
+            raw_feat_loss = F.mse_loss(h, quantized_node)
+            feature_rec_loss = self.lamb_node * raw_feat_loss
             # feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
             # adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
             # adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
@@ -280,6 +276,7 @@ class SAGE(nn.Module):
             # h_list.append(h)
             # h = self.linear(h)
             # loss = feature_rec_loss + edge_rec_loss + commit_loss
+            loss = loss + feature_rec_loss
             # h = h[:block.num_dst_nodes()]
             # y[output_nodes] = h
 
