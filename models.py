@@ -189,14 +189,17 @@ class SAGE(nn.Module):
         # print(h.shape)
         # print(h[:20])
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
+
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
          detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
         quantized_edge = self.decoder_1(quantized)
         quantized_node = self.decoder_2(quantized)
+        div_ele_loss = self.feat_elem_divergence_loss(emb_ind, init_feat[:, 0]).clone().detach()
         # print(f"feats {feats[:, 0][:20]}, emb_ind {emb_ind[:20]}")
         # --------------------
         # Feat loss
         # --------------------
+        loss = div_ele_loss
         raw_feat_loss = F.mse_loss(h, quantized_node)
         feature_rec_loss = self.lamb_node * raw_feat_loss
         # --------------------------
@@ -225,7 +228,7 @@ class SAGE(nn.Module):
         # h = self.graph_layer_2(g, quantized_edge)
         # h_list.append(h)
         # h = self.linear(h)
-        loss = loss + feature_rec_loss
+        # loss = loss + feature_rec_loss
         # loss = feature_rec_loss + edge_rec_loss
         # h = h[:blocks[-1].num_dst_nodes()]
         # x and codebook are saved later...
