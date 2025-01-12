@@ -195,8 +195,8 @@ class SAGE(nn.Module):
 
         # Combine losses explicitly
         total_loss = loss
-        total_loss += self.lamb_div_ele * div_ele_loss
-        total_loss += self.lamb_sil * sil_loss
+        # total_loss += self.lamb_div_ele * div_ele_loss
+        # total_loss += self.lamb_sil * sil_loss
 
         # Optionally log losses for debugging
         print(f"Total Loss: {total_loss.item()}")
