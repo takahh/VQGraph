@@ -144,7 +144,7 @@ class SAGE(nn.Module):
         self.output_dim = output_dim
         self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
         # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
-        # self.decoder_1 = nn.Linear(input_dim, input_dim)
+        self.decoder_1 = nn.Linear(input_dim, input_dim)
         # self.decoder_2 = nn.Linear(input_dim, input_dim)
         self.linear = nn.Linear(hidden_dim, output_dim)
         self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
