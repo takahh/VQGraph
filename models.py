@@ -156,7 +156,7 @@ class SAGE(nn.Module):
 
     def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius",
                                   alpha=1.0):
-        embed_ind = torch.tensor(embed_ind, device=init_feat.device) if not isinstance(embed_ind,
+        embed_ind = torch.tensor(embed_ind, device=atom_types.device) if not isinstance(embed_ind,
                                                                                        torch.Tensor) else embed_ind
 
         device = embed_ind.device
