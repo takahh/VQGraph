@@ -918,146 +918,60 @@ class VectorQuantize(nn.Module):
         return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss,
                 ringy_div_loss, h_num_div_loss, sil_loss, embed_ind)
 
-    def forward(
-            self,
+    def forward(self, blocks, feats):
+        h = feats.clone() if not feats.requires_grad else feats  # Ensure h requires gradients
+        init_feat = h
+        torch.save(h.clone(), "/h.pt")  # Save a clone to avoid detachment
+
+        h_list = []
+        g = dgl.DGLGraph().to(h.device)
+        g.add_nodes(h.shape[0])
+        blocks = [blk.int() for blk in blocks]
+
+        for block in blocks:
+            src, dst = block.all_edges()
+            src = src.type(torch.int64)
+            dst = dst.type(torch.int64)
+            g.add_edges(src, dst)
+            g.add_edges(dst, src)
+
+        adj = g.adjacency_matrix().to_dense().to(feats.device)
+        h_list = []
+
+        # Apply linear transformation and graph layer
+        h = self.linear_2(h)
+        h = self.graph_layer_1(g, h)
+
+        if self.norm_type != "none":
+            h = self.norms[0](h)
+        h = self.dropout(h)
+        h_list.append(h)
+
+        # Pass through the vq module
+        (
+            quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss,
+            pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
+            ringy_div_loss, h_num_div_loss, sil_loss
+        ) = self.vq(h, init_feat)
+
+        # Combine losses explicitly
+        total_loss = loss
+        total_loss += self.lamb_div_ele * div_ele_loss
+        total_loss += self.lamb_sil * sil_loss
+
+        # Optionally log losses for debugging
+        print(f"Total Loss: {total_loss.item()}")
+
+        # Return outputs and loss
+        return (
+            h_list,
+            h,
+            total_loss,
+            dist,
+            codebook,
+            [div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
+             bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss],
             x,
-            init_feat,
-            mask=None
-    ):
-        only_one = x.ndim == 2
-
-        if only_one:
-            x = rearrange(x, 'b d -> b 1 d')
-        shape, device, heads, is_multiheaded, codebook_size = x.shape, x.device, self.heads, self.heads > 1, self.codebook_size
-
-        need_transpose = not self.channel_last and not self.accept_image_fmap
-
-        if self.accept_image_fmap:
-            height, width = x.shape[-2:]
-            x = rearrange(x, 'b c h w -> b (h w) c')
-
-        if need_transpose:
-            x = rearrange(x, 'b d n -> b n d')
-
-        x = self.project_in(x)
-        if is_multiheaded:
-            ein_rhs_eq = 'h b n d' if self.separate_codebook_per_head else '1 (b h) n d'
-            x = rearrange(x, f'b n (h d) -> {ein_rhs_eq}', h=heads)
-        # --------------------------------------------------
-        # quantize here
-        # --------------------------------------------------
-        # quantize, embed_ind, dist, self.embed, flatten, init_cb
-        quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
-        # quantize　: 各データに対応する codebook vector
-        # embed_ind : 各データに対応する codebook vector のインデックス
-        # dist      : codebook の距離行列
-        # embed     : codebook  ← これをプロットに使いたい
-        # latents   : 潜在変数ベクトル
-
-        codes = self.get_codes_from_indices(embed_ind)
-        if self.training:
-            quantize = x + (quantize - x).detach()
-
-        loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        # --------------------------------------------------
-        # calculate loss about codebook itself in training
-        # --------------------------------------------------
-        raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        margin_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        spread_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        div_ele_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        pair_distance_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        detached_quantize = torch.tensor([0.], device=device, requires_grad=self.training)
-        bond_num_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        aroma_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        ringy_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        h_num_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        silh_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        # if self.training:
-        if self.commitment_weight > 0:  # 0.25 is assigned
-            detached_quantize = quantize.detach()
-
-            if exists(mask):
-                # with variable lengthed sequences
-                commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
-
-                if is_multiheaded:
-                    mask = repeat(mask, 'b n -> c (b h) n', c=commit_loss.shape[0],
-                                  h=commit_loss.shape[1] // mask.shape[0])
-
-                commit_loss = commit_loss[mask].mean()
-            else:
-                commit_loss = F.mse_loss(detached_quantize, x)
-            raw_commit_loss = commit_loss
-            # loss = loss + commit_loss * self.commitment_weight
-
-        # if self.margin_weight > 0:  # now skip because it is zero
-        codebook = self._codebook.embed
-
-        if self.orthogonal_reg_active_codes_only:
-            # only calculate orthogonal loss for the activated codes for this batch
-            unique_code_ids = torch.unique(embed_ind)
-            codebook = torch.squeeze(codebook)
-            codebook = codebook[unique_code_ids]
-
-        num_codes = codebook.shape[0]
-        if exists(self.orthogonal_reg_max_codes) and num_codes > self.orthogonal_reg_max_codes:
-            rand_ids = torch.randperm(num_codes, device=device)[:self.orthogonal_reg_max_codes]
-            codebook = codebook[rand_ids]
-        # ---------------------------------
-        # Calculate Codebook Losses
-        # ---------------------------------
-        # print(f"embed_ind.shape {embed_ind.shape} befpre ")
-        (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-         ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
-        # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-        # print(f"embed_ind.shape {embed_ind.shape} after ")
-        if embed_ind.ndim == 2:
-            embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
-        elif embed_ind.ndim == 1:
-            embed_ind = embed_ind  # Leave as is if already 1D
-        else:
-            raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
-
-        # ---------------------------------
-        # Calculate silouhette Losses
-        # ---------------------------------
-        # silh_loss = silhouette_loss(latents, embed_ind, codebook.shape[0])
-
-        # ---------------------------------
-        # linearly combine losses !!!!
-        # ---------------------------------
-        # loss = (loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
-        loss = loss + self.lamb_div_ele * div_ele_loss
-        print(f"loss 1 {loss}")
-        # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
-        #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
-        loss = loss + self.lamb_sil * silh_loss
-        print(f"loss 2 {loss}")
-        if is_multiheaded:
-            if self.separate_codebook_per_head:
-                quantize = rearrange(quantize, 'h b n d -> b n (h d)', h=heads)
-                embed_ind = rearrange(embed_ind, 'h b n -> b n h', h=heads)
-            else:
-                quantize = rearrange(quantize, '1 (b h) n d -> b n (h d)', h=heads)
-                embed_ind = rearrange(embed_ind, '1 (b h) n -> b n h', h=heads)
-
-        quantize = self.project_out(quantize)
-
-        if need_transpose:
-            quantize = rearrange(quantize, 'b n d -> b d n')
-
-        if self.accept_image_fmap:
-            quantize = rearrange(quantize, 'b (h w) c -> b c h w', h=height, w=width)
-            embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h=height, w=width)
-
-        if only_one:
-            quantize = rearrange(quantize, 'b 1 d -> b d')
-            if len(embed_ind.shape) == 2:
-                embed_ind = rearrange(embed_ind, 'b 1 -> b')
-        #
-        # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
-        return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
-                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, silh_loss)
+            detached_quantize,
+            latents
+        )
