@@ -957,8 +957,8 @@ class VectorQuantize(nn.Module):
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
             quantize = x + (quantize - x)
-
-        loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        loss = torch.zeros(1, device=device, requires_grad=True)
+        # loss = torch.tensor([0.], device=device, requires_grad=self.training)
         # --------------------------------------------------
         # calculate loss about codebook itself in training
         # --------------------------------------------------
@@ -1012,6 +1012,7 @@ class VectorQuantize(nn.Module):
          ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         # print(f"embed_ind.shape {embed_ind.shape} after ")
+        div_ele_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0]).clone().detach()
         if embed_ind.ndim == 2:
             embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
         elif embed_ind.ndim == 1:
@@ -1030,7 +1031,7 @@ class VectorQuantize(nn.Module):
         # loss = (loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
         #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
         #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
-        loss = loss + self.lamb_div_ele * div_ele_loss
+        loss = self.lamb_div_ele * div_ele_loss
         print(f"loss 1 {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
