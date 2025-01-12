@@ -1049,16 +1049,15 @@ class VectorQuantize(nn.Module):
         if need_transpose:
             quantize = rearrange(quantize, 'b n d -> b d n')
 
-        # Return outputs and loss
-        return (
-            h_list,
-            h,
-            total_loss,
-            dist,
-            codebook,
-            [div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
-             bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss],
-            x,
-            detached_quantize,
-            latents
-        )
+        if self.accept_image_fmap:
+            quantize = rearrange(quantize, 'b (h w) c -> b c h w', h=height, w=width)
+            embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h=height, w=width)
+
+        if only_one:
+            quantize = rearrange(quantize, 'b 1 d -> b d')
+            if len(embed_ind.shape) == 2:
+                embed_ind = rearrange(embed_ind, 'b 1 -> b')
+        #
+        # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
+        return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
+                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, silh_loss)
