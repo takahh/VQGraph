@@ -57,6 +57,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
+        # loss.backward()
         # print(f"sil loss {loss_list[-1]}")
 
         if step % 1 == 0:
@@ -101,13 +102,13 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         loss_list = [l.detach().cpu() for l in loss_list]
 
         # Release memory explicitly
-        del blocks, batch_feats, loss, logits
-        torch.cuda.empty_cache()
+        # del blocks, batch_feats, loss, logits
+        # torch.cuda.empty_cache()
 
     # Average total loss over all steps
     avg_loss = total_loss / len(dataloader)
     del total_loss, scaler
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
     return avg_loss, loss_list, latent_list, latents
 
 
