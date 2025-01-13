@@ -258,7 +258,7 @@ class SAGE(nn.Module):
         # --------------------
         # Feat loss
         # --------------------
-        loss = torch.tensor(div_ele_loss, requires_grad=True).clone().detach()  # Incorrect
+        loss = torch.tensor(div_ele_loss.clone().detach(), requires_grad=True)  # Incorrect
         # raw_feat_loss = F.mse_loss(h, quantized_node)
         # feature_rec_loss = self.lamb_node * raw_feat_loss
         # --------------------------
