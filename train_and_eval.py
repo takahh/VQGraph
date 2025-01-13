@@ -56,15 +56,26 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
-        print(f"logits requires_grad: {logits.requires_grad}")
-        print(f"loss requires_grad: {loss.requires_grad}")
+        scaler.scale(loss).backward()
 
-        scaler.scale(loss).backward()  # Scale gradients for mixed precision
-        # loss.backward()
-        # print(f"sil loss {loss_list[-1]}")
+        # Check gradients before unscaling
         for name, param in model.named_parameters():
             if param.grad is None:
-                print(f"No gradient for {name}")
+                print(f"{name}: Gradient is None!")
+            else:
+                print(f"{name}: Gradient exists.")
+
+        # Unscale gradients
+        scaler.unscale_(optimizer)
+
+        # Check for NaNs or infs
+        for name, param in model.named_parameters():
+            if param.grad is not None:
+                print(
+                    f"{name}: grad has NaNs or infs: {torch.isnan(param.grad).any().item() or torch.isinf(param.grad).any().item()}")
+
+        # Clip gradients (optional)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
         if step % 1 == 0:
             # Code to execute at the first and last step
