@@ -118,42 +118,6 @@ class GCN(nn.Module):
         return h_list, h, loss, dist, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
 
 
-class SAGE(nn.Module):
-    def __init__(
-        self,
-        num_layers,
-        input_dim,
-        hidden_dim,
-        output_dim,
-        dropout_ratio,
-        activation,
-        norm_type,
-        codebook_size,
-        lamb_edge,
-        lamb_node,
-        lamb_div_ele
-    ):
-        super().__init__()
-        self.num_layers = num_layers
-        self.norm_type = norm_type
-        self.dropout = nn.Dropout(dropout_ratio)
-        self.layers = nn.ModuleList()
-        self.norms = nn.ModuleList()
-        self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
-        self.output_dim = output_dim
-        self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
-        # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
-        self.decoder_1 = nn.Linear(input_dim, input_dim)
-        self.decoder_2 = nn.Linear(input_dim, input_dim)
-        self.linear = nn.Linear(hidden_dim, output_dim)
-        self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
-        self.codebook_size = codebook_size
-        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
-        self.lamb_edge = lamb_edge
-        self.lamb_node = lamb_node
-        self.lamb_div_ele = lamb_div_ele
-
     def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius",
                                   alpha=1.0):
 
@@ -207,6 +171,43 @@ class SAGE(nn.Module):
         sparsity_loss = row_entropy.mean()
 
         return sparsity_loss
+
+
+class SAGE(nn.Module):
+    def __init__(
+        self,
+        num_layers,
+        input_dim,
+        hidden_dim,
+        output_dim,
+        dropout_ratio,
+        activation,
+        norm_type,
+        codebook_size,
+        lamb_edge,
+        lamb_node,
+        lamb_div_ele
+    ):
+        super().__init__()
+        self.num_layers = num_layers
+        self.norm_type = norm_type
+        self.dropout = nn.Dropout(dropout_ratio)
+        self.layers = nn.ModuleList()
+        self.norms = nn.ModuleList()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.output_dim = output_dim
+        self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
+        # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
+        self.decoder_1 = nn.Linear(input_dim, input_dim)
+        self.decoder_2 = nn.Linear(input_dim, input_dim)
+        self.linear = nn.Linear(hidden_dim, output_dim)
+        self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
+        self.codebook_size = codebook_size
+        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
+        self.lamb_edge = lamb_edge
+        self.lamb_node = lamb_node
+        self.lamb_div_ele = lamb_div_ele
 
     def reset_kmeans(self):
         self.vq._codebook.reset_kmeans()
