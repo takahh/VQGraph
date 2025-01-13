@@ -82,6 +82,10 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         scaler.step(optimizer)
         scaler.update()
 
+        for name, param in model.named_parameters():
+            if param.grad is None:
+                print(f"{name} is not contributing to the loss computation.")
+
         if step % 1 == 0:
             # Code to execute at the first and last step
             model.encoder.reset_kmeans()
