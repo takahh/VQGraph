@@ -62,6 +62,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
         # loss.backward()
         # print(f"sil loss {loss_list[-1]}")
+        for name, param in model.named_parameters():
+            if param.grad is None:
+                print(f"No gradient for {name}")
 
         if step % 1 == 0:
             # Code to execute at the first and last step
@@ -82,6 +85,10 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             # Ensure optimizer includes all parameters
             for group in optimizer.param_groups:
                 print(f"Optimizer param group: {[p.shape for p in group['params']]}")
+
+            print(f"loss.requires_grad: {loss.requires_grad}")
+            print(f"loss.grad_fn: {loss.grad_fn}")
+            print(f"loss value: {loss.item()}")
 
             scaler.step(optimizer)
             scaler.update()
