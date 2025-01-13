@@ -252,7 +252,7 @@ class SAGE(nn.Module):
         # ------------------------------
         # added
         # ------------------------------
-        div_ele_loss = feat_elem_divergence_loss(emb_ind, init_feat[:, 0]).clone().detach()
+        div_ele_loss = feat_elem_divergence_loss(emb_ind, init_feat[:, 0]).clone()
         # print(f"feats {feats[:, 0][:20]}, emb_ind {emb_ind[:20]}")
         # --------------------
         # Feat loss
