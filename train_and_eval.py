@@ -56,6 +56,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
         # Backpropagation
+        print(f"logits requires_grad: {logits.requires_grad}")
+        print(f"loss requires_grad: {loss.requires_grad}")
+
         scaler.scale(loss).backward()  # Scale gradients for mixed precision
         # loss.backward()
         # print(f"sil loss {loss_list[-1]}")
