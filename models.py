@@ -172,7 +172,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     sparsity_loss = torch.tensor(sparsity_loss, device=atom_types.device) if not isinstance(sparsity_loss,
                                                                                    torch.Tensor) else sparsity_loss
-
+    print(f"sparsity_loss requires_grad: {sparsity_loss.requires_grad}")
     return sparsity_loss
 
 
