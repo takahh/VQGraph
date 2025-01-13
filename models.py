@@ -193,9 +193,9 @@ class SAGE(nn.Module):
         self.output_dim = output_dim
         self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
         # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
-        self.decoder_1 = nn.Linear(input_dim, input_dim)
-        self.decoder_2 = nn.Linear(input_dim, input_dim)
-        self.linear = nn.Linear(hidden_dim, output_dim)
+        # self.decoder_1 = nn.Linear(input_dim, input_dim)
+        # self.decoder_2 = nn.Linear(input_dim, input_dim)
+        # self.linear = nn.Linear(hidden_dim, output_dim)
         self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
         self.codebook_size = codebook_size
         self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
@@ -207,6 +207,11 @@ class SAGE(nn.Module):
         self.vq._codebook.reset_kmeans()
 
     def forward(self, blocks, feats):
+        #
+        # x = self.graph_layer_1(x)
+        # print(f"x after graph_layer_1: requires_grad={x.requires_grad}")
+        # x = self.decoder_1(x)
+        # print(f"x after decoder_1: requires_grad={x.requires_grad}")
         h = feats.clone() if not feats.requires_grad else feats  # Ensure h requires gradients
         init_feat = h
         torch.save(h.clone(), "/h.pt")  # Save a clone to avoid detachment
@@ -228,7 +233,9 @@ class SAGE(nn.Module):
 
         # Apply linear transformation and graph layer
         h = self.linear_2(h)
+        print(f"h after linear_2: requires_grad={h.requires_grad}")
         h = self.graph_layer_1(g, h)
+        print(f"h after graph_layer_1: requires_grad={h.requires_grad}")
 
         if self.norm_type != "none":
             h = self.norms[0](h)
@@ -241,8 +248,8 @@ class SAGE(nn.Module):
 
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
          detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
-        quantized_edge = self.decoder_1(quantized)
-        quantized_node = self.decoder_2(quantized)
+        # quantized_edge = self.decoder_1(quantized)
+        # quantized_node = self.decoder_2(quantized)
         # ------------------------------
         # added
         # ------------------------------
@@ -252,8 +259,8 @@ class SAGE(nn.Module):
         # Feat loss
         # --------------------
         loss = torch.tensor(div_ele_loss, requires_grad=True)  # Incorrect
-        raw_feat_loss = F.mse_loss(h, quantized_node)
-        feature_rec_loss = self.lamb_node * raw_feat_loss
+        # raw_feat_loss = F.mse_loss(h, quantized_node)
+        # feature_rec_loss = self.lamb_node * raw_feat_loss
         # --------------------------
         # diverge element loss (NEW)
         # --------------------------
@@ -261,17 +268,17 @@ class SAGE(nn.Module):
         # --------------------
         # Adj loss (1D to 2D)
         # --------------------
-        adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
+        # adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
         # ----------------------------
         # change values to probability
         # ----------------------------
-        adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
+        # adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
         # ----------------------------
         # Edge recon loss
         # ----------------------------
         # raw_edge_rec_loss = torch.sqrt(F.mse_loss(torch.log1p(adj), torch.log1p(adj_quantized)))
-        raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
-        edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
+        # raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
+        # edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
         # -------------------------
         # adjust variables to pass
         # -------------------------
