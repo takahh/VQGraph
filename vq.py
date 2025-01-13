@@ -41,11 +41,17 @@ def gumbel_noise(t):
     return -log(-log(noise))
 
 
-def gumbel_sample(t, temperature=1., dim=-1):
-    if temperature == 0:
-        return t.argmax(dim=dim)
+# def gumbel_sample(t, temperature=1., dim=-1):
+#     if temperature == 0:
+#         return t.argmax(dim=dim)
+#
+#     return ((t / temperature) + gumbel_noise(t)).argmax(dim=dim)
 
-    return ((t / temperature) + gumbel_noise(t)).argmax(dim=dim)
+
+def gumbel_sample(logits, dim, temperature):
+    gumbels = -torch.empty_like(logits).exponential_().log()  # Sample Gumbel noise
+    noisy_logits = (logits + gumbels) / temperature
+    return torch.softmax(noisy_logits, dim=dim)
 
 
 def laplace_smoothing(x, n_categories, eps=1e-5):
@@ -500,7 +506,8 @@ class EuclideanCodebook(nn.Module):
         # -----------------------------------------------------------------------------
         # prepare for updating centroids
         # -----------------------------------------------------------------------------
-        embed = self.embed if self.learnable_codebook else self.embed.detach()
+        # embed = self.embed if self.learnable_codebook else self.embed.detach()
+        embed = self.embed
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
@@ -524,9 +531,9 @@ class EuclideanCodebook(nn.Module):
             self.embed = torch.nn.Parameter(embed_normalized)
             self.expire_codes_(x)
 
-        if needs_codebook_dim:
-            quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
-            # quantize, embed_ind, dist, embed, latents
+        # if needs_codebook_dim:
+        #     quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
+        #     # quantize, embed_ind, dist, embed, latents
         return quantize, embed_ind, dist, self.embed, flatten, init_cb  # flatten と x はどう違うのか？commitment loss には x をしよう。
 
 
