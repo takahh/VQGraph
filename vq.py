@@ -40,18 +40,29 @@ def gumbel_noise(t):
     noise = torch.zeros_like(t).uniform_(0, 1)
     return -log(-log(noise))
 
+def gumbel_sample(logits, dim=-1, temperature=1.0):
+    """
+    Perform Gumbel sampling to generate integer indices.
 
-# def gumbel_sample(t, temperature=1., dim=-1):
-#     if temperature == 0:
-#         return t.argmax(dim=dim)
-#
-#     return ((t / temperature) + gumbel_noise(t)).argmax(dim=dim)
+    Args:
+        logits (torch.Tensor): The input logits tensor.
+        dim (int): The dimension along which to perform the sampling.
+        temperature (float): The temperature for scaling the logits.
 
+    Returns:
+        torch.Tensor: Integer tensor with sampled indices.
+    """
+    if temperature == 0:
+        return logits.argmax(dim=dim)  # Deterministic sampling when temperature is 0
 
-def gumbel_sample(logits, dim, temperature):
-    gumbels = -torch.empty_like(logits).exponential_().log()  # Sample Gumbel noise
+    # Sample Gumbel noise
+    gumbels = -torch.empty_like(logits).exponential_().log()
+
+    # Add noise to logits and scale by temperature
     noisy_logits = (logits + gumbels) / temperature
-    return torch.softmax(noisy_logits, dim=dim)
+
+    # Return the indices of the maximum values
+    return noisy_logits.argmax(dim=dim)
 
 
 def laplace_smoothing(x, n_categories, eps=1e-5):
