@@ -55,7 +55,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             _, logits, loss, _, cb, loss_list, latent_train, quantized, latents = model(blocks, batch_feats)
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
-        # Backpropagation
+
+        # Backward pass
         scaler.scale(loss).backward()
 
         # Check gradients before unscaling
@@ -66,7 +67,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
                 print(f"{name}: Gradient exists.")
 
         # Unscale gradients
-        # scaler.unscale_(optimizer)
+        scaler.unscale_(optimizer)
 
         # Check for NaNs or infs
         for name, param in model.named_parameters():
@@ -76,6 +77,10 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Clip gradients (optional)
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+        # Optimizer step
+        scaler.step(optimizer)
+        scaler.update()
 
         if step % 1 == 0:
             # Code to execute at the first and last step
