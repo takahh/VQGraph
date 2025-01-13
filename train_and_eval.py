@@ -66,7 +66,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
                 print(f"{name}: Gradient exists.")
 
         # Unscale gradients
-        scaler.unscale_(optimizer)
+        # scaler.unscale_(optimizer)
 
         # Check for NaNs or infs
         for name, param in model.named_parameters():
