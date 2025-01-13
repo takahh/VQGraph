@@ -170,6 +170,9 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # Loss: Average entropy across all rows
     sparsity_loss = row_entropy.mean()
 
+    sparsity_loss = torch.tensor(sparsity_loss, device=atom_types.device) if not isinstance(sparsity_loss,
+                                                                                   torch.Tensor) else sparsity_loss
+
     return sparsity_loss
 
 
