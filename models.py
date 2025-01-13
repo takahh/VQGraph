@@ -117,27 +117,19 @@ class GCN(nn.Module):
         
         return h_list, h, loss, dist, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
 
-
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius",
                               alpha=1.0):
 
     if not isinstance(embed_ind, torch.Tensor):
         raise TypeError(f"embed_ind should be a torch.Tensor, but got {type(embed_ind)}")
 
-    embed_ind = torch.tensor(embed_ind, device=atom_types.device) if not isinstance(embed_ind,
-                                                                                   torch.Tensor) else embed_ind
+    device = atom_types.device
 
-    device = embed_ind.device
+    # Clamp and convert embed_ind to long type
+    embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
 
-    # Validate embed_ind
-    # print(f"embed_ind: min={embed_ind.min().item()}, max={embed_ind.max().item()}, shape={embed_ind.shape}")
-    # print(embed_ind[:30])
-    embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1)
-    embed_ind = embed_ind.long()
-
-    # Validate atom_types
+    # Replace NaNs in atom_types
     atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
-    # print(f"atom_types: min={atom_types.min().item()}, max={atom_types.max().item()}, shape={atom_types.shape}")
     assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
 
     # Map atom_types to sequential indices
@@ -170,7 +162,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # Loss: Average entropy across all rows
     sparsity_loss = row_entropy.mean()
 
-    sparsity_loss = torch.tensor(sparsity_loss, device=atom_types.device, requires_grad=True)
+    # Return the loss directly (do not wrap it with torch.tensor)
     print(f"sparsity_loss requires_grad: {sparsity_loss.requires_grad}")
     return sparsity_loss
 
@@ -254,7 +246,7 @@ class SAGE(nn.Module):
         # ------------------------------
         # added
         # ------------------------------
-        div_ele_loss = feat_elem_divergence_loss(emb_ind, init_feat[:, 0]).clone()
+        div_ele_loss = feat_elem_divergence_loss(emb_ind, init_feat[:, 0])
         # print(f"feats {feats[:, 0][:20]}, emb_ind {emb_ind[:20]}")
         # --------------------
         # Feat loss
