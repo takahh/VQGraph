@@ -5,7 +5,7 @@ from einops import rearrange, repeat, pack, unpack
 from torch import nn, einsum
 from torch.ao.quantization import quantize
 from torch.amp import autocast
-from torch.onnx.symbolic_opset9 import pairwise_distance
+from torch.onnx.symbolic_opset9 import pairwise_distance, one_hot
 from einops import rearrange, repeat
 from torch.distributions import MultivariateNormal
 
@@ -42,36 +42,50 @@ def gumbel_noise(t):
 
 
 def gumbel_sample(logits, dim=-1, temperature=1.0):
-    """
-    Perform Gumbel sampling to generate integer indices.
 
-    Args:
-        logits (torch.Tensor): The input logits tensor.
-        dim (int): The dimension along which to perform the sampling.
-        temperature (float): The temperature for scaling the logits.
-
-    Returns:
-        torch.Tensor: Integer tensor with sampled indices.
-    """
-    print("------ in gamble sample -1 -------")
-    if temperature == 0:
-        return logits.argmax(dim=dim)  # Deterministic sampling when temperature is 0
-
-    print("------ in gamble sample 0 -------")
-    print(f"embed_ind.requires_grad: {logits.requires_grad}")
-    print(f"embed_ind.grad_fn: {logits.grad_fn}")
-    # Sample Gumbel noise
-    gumbels = -torch.empty_like(logits).exponential_().log()
-
-    # Add noise to logits and scale by temperature
-    noisy_logits = (logits + gumbels) / temperature
+    # # Add Gumbel noise for stochastic sampling
+    # gumbels = -torch.empty_like(logits).exponential_().log()
+    # noisy_logits = (logits + gumbels) / temperature
+    #
+    # # Get the indices of the maximum values
+    # indices = noisy_logits.argmax(dim=dim)
+    #
+    # # Convert indices to one-hot encoding (maintains differentiability upstream)
+    # one_hot = torch.nn.functional.one_hot(indices, num_classes=logits.size(dim)).float()
 
     print("------ in gamble sample 1 -------")
-    print(f"embed_ind.requires_grad: {logits.requires_grad}")
-    print(f"embed_ind.grad_fn: {logits.grad_fn}")
+    print(f"one_hot.requires_grad: {logits.requires_grad}")
+    print(f"one_hot.grad_fn: {logits.grad_fn}")
+    print(logits)
+    one_hot = F.gumbel_softmax(logits, tau=temperature, hard=True, dim=dim)
+    print("------ in gamble sample 1 -------")
+    print(f"one_hot.requires_grad: {one_hot.requires_grad}")
+    print(f"one_hot.grad_fn: {one_hot.grad_fn}")
 
-    # Return the indices of the maximum values
-    return noisy_logits.argmax(dim=dim)
+    print(one_hot)
+    return one_hot
+
+#
+# def gumbel_sample(logits, dim=-1, temperature=1.0):
+#     print("------ in gamble sample -1 -------")
+#     if temperature == 0:
+#         return logits.argmax(dim=dim)  # Deterministic sampling when temperature is 0
+#
+#     print("------ in gamble sample 0 -------")
+#     print(f"embed_ind.requires_grad: {logits.requires_grad}")
+#     print(f"embed_ind.grad_fn: {logits.grad_fn}")
+#     # Sample Gumbel noise
+#     gumbels = -torch.empty_like(logits).exponential_().log()
+#
+#     # Add noise to logits and scale by temperature
+#     noisy_logits = (logits + gumbels) / temperature
+#
+#     print("------ in gamble sample 1 -------")
+#     print(f"embed_ind.requires_grad: {logits.requires_grad}")
+#     print(f"embed_ind.grad_fn: {logits.grad_fn}")
+#
+#     # Return the indices of the maximum values
+#     return noisy_logits.argmax(dim=dim)
 
 
 def laplace_smoothing(x, n_categories, eps=1e-5):
