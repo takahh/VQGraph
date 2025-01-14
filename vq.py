@@ -550,8 +550,14 @@ class EuclideanCodebook(nn.Module):
         print("------ after gamble sample -------")
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+        print("embed_ind")
         print(embed_ind)
-        embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
+        # embed_ind = torch.argmax(embed_ind, dim=-1).long()
+
+        embed_onehot = F.one_hot(embed_ind.long(), self.codebook_size).type(dtype)
+
+        print("embed_onehot")
+        print(embed_onehot)
         embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
         # -----------------------------------------------------------------------------
