@@ -1017,6 +1017,10 @@ class VectorQuantize(nn.Module):
         # --------------------------------------------------
         # quantize here
         # --------------------------------------------------
+
+        print("------ before _cpdebook() -------")
+        print(f"x.requires_grad: {x.requires_grad}")
+        print(f"x.grad_fn: {x.grad_fn}")
         # quantize, embed_ind, dist, self.embed, flatten, init_cb
         quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
         # quantize　: 各データに対応する codebook vector
