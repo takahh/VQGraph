@@ -1007,10 +1007,14 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0])
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
-        aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
-        ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
-        h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
+        # bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
+        # aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
+        # ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
+        # h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
+        bond_num_div_loss = None
+        aroma_div_loss = None
+        ringy_div_loss = None
+        h_num_div_loss = None
 
         # bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
         # aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
@@ -1128,6 +1132,12 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # Calculate Codebook Losses
         # ---------------------------------
+
+        print(" &&&&&&&&&&&& before ortho fn ")
+        print(f"init_feat.requires_grad: {init_feat.requires_grad}")
+        print(f"init_feat.grad_fn: {init_feat.grad_fn}")
+        print(f"init_feat.shape: {init_feat.shape}")
+        print(f"init_feat: {init_feat}")
         # print(f"embed_ind.shape {embed_ind.shape} befpre ")
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
          ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
