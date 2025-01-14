@@ -547,7 +547,7 @@ class EuclideanCodebook(nn.Module):
         print(f"dist.grad_fn: {dist.grad_fn}")
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
 
-        print("------ after gamble sample -------")
+        print("------ after gamble sample end of euc -3 -------")
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         print("----------- embed_ind")
@@ -557,13 +557,15 @@ class EuclideanCodebook(nn.Module):
         # Convert to integer type if needed
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
-        print("----------- embed_ind")
-        print(embed_ind)
-        print(embed_ind.shape)
+
+        print("------ after gamble sample end of euc -2 -------")
+        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         embed_ind = embed_ind[:, :, 0].long()
-        print("----------- embed_ind")
-        print(embed_ind)
-        print(embed_ind.shape)
+
+        print("------ after gamble sample end of euc -1 -------")
+        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # Validate values
         if embed_ind.min() < 0:
             raise ValueError("embed_ind contains negative values.")
@@ -574,6 +576,9 @@ class EuclideanCodebook(nn.Module):
         print(f"embed_ind min: {embed_ind.min()}, max: {embed_ind.max()}")
         print(f"embed_ind shape: {embed_ind.shape}")
 
+        print("------ after gamble sample end of euc 0 -------")
+        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
 
         embed_ind = embed_ind.view(*shape[:-1])
@@ -595,6 +600,9 @@ class EuclideanCodebook(nn.Module):
             self.embed = torch.nn.Parameter(embed_normalized)
             self.expire_codes_(x)
 
+        print("------ after gamble sample end of euc 1 -------")
+        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # if needs_codebook_dim:
         #     quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
         #     # quantize, embed_ind, dist, embed, latents
