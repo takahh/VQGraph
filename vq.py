@@ -1179,7 +1179,7 @@ class VectorQuantize(nn.Module):
             print("====================")
             print(f"quantize: {quantize.shape}")
             print(f"quantize: {quantize}")
-            quantize = rearrange(quantize, 'b 1 d -> b d')
+            quantize = rearrange(quantize, '1 b d -> b d')
             if len(embed_ind.shape) == 2:
                 embed_ind = rearrange(embed_ind, 'b 1 -> b')
 
