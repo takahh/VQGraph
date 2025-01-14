@@ -554,10 +554,10 @@ class EuclideanCodebook(nn.Module):
         print(embed_ind)
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
         # Convert to integer type if needed
-        embed_ind = embed_ind.long()
+        embed_ind = embed_ind.long()[:, :, 0]
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
-
+        embed_ind = embed_ind[:, :, 0]
         print("embed_ind")
         print(embed_ind)
         # Validate values
