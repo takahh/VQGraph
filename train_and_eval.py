@@ -129,7 +129,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         cb_list.append(cb.detach().cpu())
 
         # Move loss_list to CPU and release memory
-        loss_list = [l.detach().cpu() for l in loss_list]
+        # loss_list = [l.detach().cpu() for l in loss_list]
+        loss_list = None
 
         # Release memory explicitly
         # del blocks, batch_feats, loss, logits
