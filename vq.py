@@ -346,7 +346,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
         class_indices = torch.arange(num_classes, device=indices.device).float()
         return torch.softmax(-(indices.unsqueeze(-1) - class_indices) ** 2 / temperature, dim=-1)
 
-    embed_ind = soft_one_hot(embed_ind, num_classes=num_codebooks)
+    embed_one_hot = soft_one_hot(embed_ind, num_classes=num_codebooks)
 
     print(" &&&&&&&&&&&& beginning of feat loss 2")
     print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
@@ -361,7 +361,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
 
     # Create one-hot representations
-    embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
+    # embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped,
                                                     num_classes=len(unique_atom_numbers)).float().detach()
     # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
