@@ -565,8 +565,11 @@ class EuclideanCodebook(nn.Module):
 
         indices = embed_ind[:, :, 0]  # Keep the float tensor
         proxy_indices = torch.round(indices)  # Convert to integer for forward pass
+        print(f"$$$$$ proxy_indices dtype: {proxy_indices.dtype}")
+
         embed_ind = proxy_indices + (indices - indices.detach())
 
+        print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")
         print("------ after gamble sample end of euc -1 -------")
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
