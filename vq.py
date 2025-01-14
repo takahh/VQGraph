@@ -362,6 +362,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     sparsity_loss = row_entropy.mean()
 
     # Debug connection to the graph
+    print(" &&&&&&&&&&&& end of feat loss")
     print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
     print(f"sparsity_loss.grad_fn: {sparsity_loss.grad_fn}")
 
@@ -1053,25 +1054,25 @@ class VectorQuantize(nn.Module):
         # dist      : codebook の距離行列
         # embed     : codebook  ← これをプロットに使いたい
         # latents   : 潜在変数ベクトル
-        print("------ after _cpdebook() -------")
+        print(" &&&&&&&&&&&& middle of vq forward 0")
         print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
         print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         quantize = quantize.squeeze(0)
         x_tmp = x.squeeze(1)
         x_tmp = x_tmp.unsqueeze(0)
-        print(f"++++++++++++++++++")
-        print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
-        print(f"quantize {quantize}")
-        print(f"++++++++++++++++++")
-        print(f"x_tmp {x_tmp.shape}")  # [1, 1, 1852, 256])
-        print(f"x_tmp {x_tmp}")
+        # print(f"++++++++++++++++++")
+        # print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
+        # print(f"quantize {quantize}")
+        # print(f"++++++++++++++++++")
+        # print(f"x_tmp {x_tmp.shape}")  # [1, 1, 1852, 256])
+        # print(f"x_tmp {x_tmp}")
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
             quantize = x_tmp + (quantize - x_tmp)
 
-        print(f"++++++++++++++++++")
-        print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
-        print(f"quantize {quantize}")
+        # print(f"++++++++++++++++++")
+        # print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
+        # print(f"quantize {quantize}")
         loss = torch.zeros(1, device=device, requires_grad=True)
         # loss = torch.tensor([0.], device=device, requires_grad=self.training)
         # --------------------------------------------------
@@ -1134,7 +1135,7 @@ class VectorQuantize(nn.Module):
         else:
             raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
 
-        print("------ after orthogonal fn () -------")
+        print(" &&&&&&&&&&&& middle of vq forward 1")
         print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
         print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # ---------------------------------
@@ -1176,9 +1177,9 @@ class VectorQuantize(nn.Module):
 
         if only_one:
             # quantize = torch.squeeze(quantize)
-            print("====================")
-            print(f"quantize: {quantize.shape}")
-            print(f"quantize: {quantize}")
+            # print("====================")
+            # print(f"quantize: {quantize.shape}")
+            # print(f"quantize: {quantize}")
             quantize = rearrange(quantize, '1 b d -> b d')
             if len(embed_ind.shape) == 2:
                 embed_ind = rearrange(embed_ind, 'b 1 -> b')
