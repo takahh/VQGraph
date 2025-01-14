@@ -1062,6 +1062,10 @@ class VectorQuantize(nn.Module):
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
             quantize = x + (quantize - x)
+
+        print(f"++++++++++++++++++")
+        print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
+        print(f"quantize {quantize}")
         loss = torch.zeros(1, device=device, requires_grad=True)
         # loss = torch.tensor([0.], device=device, requires_grad=self.training)
         # --------------------------------------------------
