@@ -101,10 +101,10 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
         idx_train, idx_val, idx_test = get_train_val_test_split_continuous(
             random_state, labels, labelrate_train, labelrate_val
         )
-        print("idx_test")
-        print(idx_test)
+        # print("idx_test")
+        # print(idx_test)
     features = torch.FloatTensor(np.array(features.todense()))
-    print(f"{features.shape}  features.shape")
+    # print(f"{features.shape}  features.shape")
     labels = torch.LongTensor(labels.argmax(axis=1))
     adj = normalize_adj(adj)
     adj_sp = adj.tocoo()

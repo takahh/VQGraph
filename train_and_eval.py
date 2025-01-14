@@ -60,20 +60,20 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         scaler.scale(loss).backward()
 
         # Check gradients before unscaling
-        for name, param in model.named_parameters():
-            if param.grad is None:
-                print(f"{name}: Gradient is None!")
-            else:
-                print(f"{name}: Gradient exists.")
+        # for name, param in model.named_parameters():
+        #     if param.grad is None:
+        #         print(f"{name}: Gradient is None!")
+        #     else:
+        #         print(f"{name}: Gradient exists.")
 
         # Unscale gradients
         scaler.unscale_(optimizer)
 
-        # Check for NaNs or infs
-        for name, param in model.named_parameters():
-            if param.grad is not None:
-                print(
-                    f"{name}: grad has NaNs or infs: {torch.isnan(param.grad).any().item() or torch.isinf(param.grad).any().item()}")
+        # # Check for NaNs or infs
+        # for name, param in model.named_parameters():
+        #     if param.grad is not None:
+        #         print(
+        #             f"{name}: grad has NaNs or infs: {torch.isnan(param.grad).any().item() or torch.isinf(param.grad).any().item()}")
 
         # Clip gradients (optional)
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -82,9 +82,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         scaler.step(optimizer)
         scaler.update()
 
-        for name, param in model.named_parameters():
-            if param.grad is None:
-                print(f"{name} is not contributing to the loss computation.")
+        # for name, param in model.named_parameters():
+        #     if param.grad is None:
+        #         print(f"{name} is not contributing to the loss computation.")
 
         if step % 1 == 0:
             # Code to execute at the first and last step
@@ -94,17 +94,17 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Update weights after accumulation_steps
         # ---------------------------------------
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-            for name, param in model.named_parameters():
-                if param.grad is None:
-                    print(f"No grad for {name}")
-
-            # Check if parameters are used in forward pass
-            for name, param in model.named_parameters():
-                print(f"{name}: requires_grad={param.requires_grad}, grad=None={param.grad is None}")
-
-            # Ensure optimizer includes all parameters
-            for group in optimizer.param_groups:
-                print(f"Optimizer param group: {[p.shape for p in group['params']]}")
+            # for name, param in model.named_parameters():
+            #     if param.grad is None:
+            #         print(f"No grad for {name}")
+            #
+            # # Check if parameters are used in forward pass
+            # for name, param in model.named_parameters():
+            #     print(f"{name}: requires_grad={param.requires_grad}, grad=None={param.grad is None}")
+            #
+            # # Ensure optimizer includes all parameters
+            # for group in optimizer.param_groups:
+            #     print(f"Optimizer param group: {[p.shape for p in group['params']]}")
 
             # print(f"loss.requires_grad: {loss.requires_grad}")
             # print(f"loss.grad_fn: {loss.grad_fn}")
