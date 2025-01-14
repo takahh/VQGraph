@@ -546,13 +546,13 @@ class EuclideanCodebook(nn.Module):
         print(f"dist.requires_grad: {dist.requires_grad}")
         print(f"dist.grad_fn: {dist.grad_fn}")
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
-
+        embed_onehot = embed_ind
         print("------ after gamble sample end of euc -3 -------")
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         print("!!!!!!!!!!!!!!! embed_ind")
         print(embed_ind)
-        print(embed_ind.shape)
+        print(embed_ind.shape)   # orch.Size([1, 1852, 1000])
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
         # Convert to integer type if needed
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
@@ -590,7 +590,7 @@ class EuclideanCodebook(nn.Module):
         print(f"%%%%%%%%%%%% embed_ind {embed_ind}")
         # embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
 
-        embed_ind = embed_ind.view(*shape[:-1])
+        # embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
         # -----------------------------------------------------------------------------
         # Update centroids (in an ML friendly way)
