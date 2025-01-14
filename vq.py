@@ -560,7 +560,7 @@ class EuclideanCodebook(nn.Module):
         print("----------- embed_ind")
         print(embed_ind)
         print(embed_ind.shape)
-        embed_ind = embed_ind[:, :, 0]
+        embed_ind = embed_ind[:, :, 0].long()
         print("----------- embed_ind")
         print(embed_ind)
         print(embed_ind.shape)
