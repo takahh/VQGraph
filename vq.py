@@ -1152,6 +1152,9 @@ class VectorQuantize(nn.Module):
                 quantize = rearrange(quantize, '1 (b h) n d -> b n (h d)', h=heads)
                 embed_ind = rearrange(embed_ind, '1 (b h) n -> b n h', h=heads)
 
+        print("====================")
+        print(f"quantize: {quantize.shape}")
+        print(f"quantize: {quantize}")
         quantize = self.project_out(quantize)
 
         if need_transpose:
