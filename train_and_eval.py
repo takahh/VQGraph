@@ -7,6 +7,8 @@ import dgl.dataloading
 print("dgl.__version__ !!!!!!!!!!!!!!!!!!!!")
 print(dgl.__version__)
 
+dgl.dataloading.enable_cpu_affinity()
+
 
 
 """
