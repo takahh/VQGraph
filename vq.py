@@ -851,6 +851,7 @@ class VectorQuantize(nn.Module):
         return rearrange(codebook, '1 ... -> ...')
 
     def get_codes_from_indices(self, indices):
+        indices = indices.long()
         codebook = self.codebook
         is_multiheaded = codebook.ndim > 2
 
