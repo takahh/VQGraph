@@ -757,14 +757,14 @@ def run_inductive(
             # --------------------------------
             # check if edge loss is decreasing
             # --------------------------------
-            # if loss_list[1].item() < best_score_val:
-            #     best_epoch = epoch
-            #     best_score_val = loss_list[1].item()
-            #     state = copy.deepcopy(model.state_dict())
-            #     cb_at_best = cb_just_trained
-            #     train_latents_at_best = latent_train
-            #     print(f"best epoch is {best_epoch} !!!!!!!!!")
-            #     count = 0
+            if loss_list[1].item() < best_score_val:
+                # best_epoch = epoch
+                # best_score_val = loss_list[1].item()
+                state = copy.deepcopy(model.state_dict())
+                # cb_at_best = cb_just_trained
+                # train_latents_at_best = latent_train
+                # print(f"best epoch is {best_epoch} !!!!!!!!!")
+                # count = 0
             # else:
             #     count += 1
 
