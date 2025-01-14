@@ -1136,6 +1136,8 @@ class VectorQuantize(nn.Module):
 
                 commit_loss = commit_loss[mask].mean()
             else:
+                print(f"x {x.shape}")
+                print(f"detached_quantize {detached_quantize.shape}")
                 commit_loss = F.mse_loss(detached_quantize, x)
             raw_commit_loss = commit_loss
             # loss = loss + commit_loss * self.commitment_weight
