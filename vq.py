@@ -550,19 +550,20 @@ class EuclideanCodebook(nn.Module):
         print("------ after gamble sample -------")
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-        print("embed_ind")
+        print("----------- embed_ind")
         print(embed_ind)
+        print(embed_ind.shape)
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
         # Convert to integer type if needed
-        embed_ind = embed_ind.long()[:, :, 0]
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
-        print("embed_ind")
+        print("----------- embed_ind")
         print(embed_ind)
         print(embed_ind.shape)
         embed_ind = embed_ind[:, :, 0]
-        print("embed_ind")
+        print("----------- embed_ind")
         print(embed_ind)
+        print(embed_ind.shape)
         # Validate values
         if embed_ind.min() < 0:
             raise ValueError("embed_ind contains negative values.")
