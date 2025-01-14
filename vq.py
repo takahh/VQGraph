@@ -589,6 +589,8 @@ class EuclideanCodebook(nn.Module):
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         print(f"%%%%%%%%%%%% embed_ind {embed_ind.shape}")
         print(f"%%%%%%%%%%%% embed_ind {embed_ind}")
+        print(f"%%%%%%%%%%%% self.embed {self.embed.shape}")
+        print(f"%%%%%%%%%%%% self.embed {self.embed}")
         # embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.unsqueeze(0)
         # embed_ind = embed_ind.view(*shape[:-1])
