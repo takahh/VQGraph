@@ -335,6 +335,11 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
     device = embed_ind.device
 
+    print(" &&&&&&&&&&&& beginning of feat loss")
+    print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+    print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+    print(f"atom_types.requires_grad: {atom_types.requires_grad}")
+    print(f"atom_types.grad_fn: {atom_types.grad_fn}")
     # Ensure embed_ind is within valid range
     embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
 
