@@ -555,6 +555,8 @@ class EuclideanCodebook(nn.Module):
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
         # Convert to integer type if needed
         embed_ind = embed_ind.long()
+        indices = embed_ind.argmax(dim=-1)  # Non-differentiable forward pass
+        embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
 
         print("embed_ind")
         print(embed_ind)
@@ -570,8 +572,6 @@ class EuclideanCodebook(nn.Module):
 
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
 
-        print("embed_onehot")
-        print(embed_onehot)
         embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
         # -----------------------------------------------------------------------------
