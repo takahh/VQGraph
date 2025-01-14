@@ -40,6 +40,7 @@ def gumbel_noise(t):
     noise = torch.zeros_like(t).uniform_(0, 1)
     return -log(-log(noise))
 
+
 def gumbel_sample(logits, dim=-1, temperature=1.0):
     """
     Perform Gumbel sampling to generate integer indices.
@@ -52,6 +53,7 @@ def gumbel_sample(logits, dim=-1, temperature=1.0):
     Returns:
         torch.Tensor: Integer tensor with sampled indices.
     """
+    print("------ in gamble sample -1 -------")
     if temperature == 0:
         return logits.argmax(dim=dim)  # Deterministic sampling when temperature is 0
 
