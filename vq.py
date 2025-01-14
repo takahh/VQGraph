@@ -306,21 +306,15 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     # Combine and return mean loss
     return (positive_loss + negative_loss).mean()
 
-def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
+def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
     device = embed_ind.device
 
-    # Clamp embed_ind and ensure it is an integer tensor
+    # Ensure embed_ind is within valid range
     embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
-    print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
 
-    # Replace NaNs in atom_types
-    atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
-    assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
-
-    # Map atom_types to sequential indices using PyTorch-native operations
+    # Map atom_types to sequential indices
     unique_atom_numbers = torch.unique(atom_types, sorted=True)
     atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
-    print(f"atom_types_mapped.requires_grad: {atom_types_mapped.requires_grad}")
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
@@ -328,17 +322,20 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
-    print(f"soft_assignments.requires_grad: {soft_assignments.requires_grad}")
 
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
-    print(f"co_occurrence.requires_grad: {co_occurrence.requires_grad}")
+
+    # Normalize co-occurrence
+    co_occurrence_normalized = co_occurrence / (co_occurrence.sum(dim=1, keepdim=True) + 1e-6)
 
     # Compute row-wise entropy
-    row_entropy = -torch.sum(co_occurrence * torch.log(co_occurrence + 1e-6), dim=1)
+    row_entropy = -torch.sum(co_occurrence_normalized * torch.log(co_occurrence_normalized + 1e-6), dim=1)
 
-    # Loss: Average entropy across all rows
+    # Compute sparsity loss
     sparsity_loss = row_entropy.mean()
+
+    # Debug connection to the graph
     print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
     print(f"sparsity_loss.grad_fn: {sparsity_loss.grad_fn}")
 
