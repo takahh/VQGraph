@@ -553,8 +553,19 @@ class EuclideanCodebook(nn.Module):
         print("embed_ind")
         print(embed_ind)
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
+        # Convert to integer type if needed
+        embed_ind = embed_ind.long()
 
-        embed_onehot = F.one_hot(embed_ind.int(), self.codebook_size).type(dtype)
+        print("embed_ind")
+        print(embed_ind)
+        # Validate values
+        if embed_ind.min() < 0:
+            raise ValueError("embed_ind contains negative values.")
+        if embed_ind.max() >= self.codebook_size:
+            raise ValueError(
+                f"embed_ind contains out-of-range values: max={embed_ind.max()}, codebook_size={self.codebook_size}")
+
+        embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
 
         print("embed_onehot")
         print(embed_onehot)
