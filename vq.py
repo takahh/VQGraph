@@ -518,6 +518,7 @@ class EuclideanCodebook(nn.Module):
         print("------ Euclid forward 0 -------")
         print(f"x.requires_grad: {x.requires_grad}")
         print(f"x.grad_fn: {x.grad_fn}")
+        self.init_embed_(x)
         needs_codebook_dim = x.ndim < 4
         x = x.float()
 
