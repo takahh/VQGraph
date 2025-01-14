@@ -194,16 +194,10 @@ class SAGE(nn.Module):
         self.vq._codebook.reset_kmeans()
 
     def forward(self, blocks, feats):
-        #
-        # x = self.graph_layer_1(x)
-        # print(f"x after graph_layer_1: requires_grad={x.requires_grad}")
-        # x = self.decoder_1(x)
-        # print(f"x after decoder_1: requires_grad={x.requires_grad}")
         h = feats.clone() if not feats.requires_grad else feats  # Ensure h requires gradients
         init_feat = h
         torch.save(h.clone(), "/h.pt")  # Save a clone to avoid detachment
 
-        h_list = []
         g = dgl.DGLGraph().to(h.device)
         g.add_nodes(h.shape[0])
         blocks = [blk.int() for blk in blocks]
@@ -325,16 +319,16 @@ class SAGE(nn.Module):
             (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
              spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
-            latent_list.append(latent_vectors.detach().cpu())
-            embed_ind_list.append(embed_ind)
-
-            dist = torch.squeeze(dist)
-            dist_all[input_nodes] = dist
+            # latent_list.append(latent_vectors.detach().cpu())
+            # embed_ind_list.append(embed_ind)
+            #
+            # dist = torch.squeeze(dist)
+            # dist_all[input_nodes] = dist
             # quantized_edge = self.decoder_1(quantized)
-            quantized_node = self.decoder_2(quantized)
+            # quantized_node = self.decoder_2(quantized)
 
-            raw_feat_loss = F.mse_loss(h, quantized_node)
-            feature_rec_loss = self.lamb_node * raw_feat_loss
+            # raw_feat_loss = F.mse_loss(h, quantized_node)
+            # feature_rec_loss = self.lamb_node * raw_feat_loss
             # feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
             # adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
             # adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
@@ -346,7 +340,7 @@ class SAGE(nn.Module):
             # h_list.append(h)
             # h = self.linear(h)
             # loss = feature_rec_loss + edge_rec_loss + commit_loss
-            loss = loss + feature_rec_loss
+            # loss = loss + feature_rec_loss
             # h = h[:block.num_dst_nodes()]
             # y[output_nodes] = h
 
