@@ -346,7 +346,7 @@ class SAGE(nn.Module):
 
             # torch.cuda.empty_cache()
             # Monitor reserved memory after cleanup
-            # input_node_list.append(input_nodes)
+            input_node_list.append(input_nodes)
             # print(f"node list length {len(input_node_list)}")
             # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
         return h_list, y, loss, dist_all, codebook, [div_ele_loss, raw_commit_loss,
