@@ -564,7 +564,7 @@ class EuclideanCodebook(nn.Module):
         # embed_ind = embed_ind[:, :, 0].long()
 
         indices = embed_ind[:, :, 0]  # Keep the float tensor
-        proxy_indices = torch.round(indices)  # Convert to integer for forward pass
+        proxy_indices = indices.long()  # Convert to integer for forward pass
         print(f"$$$$$ proxy_indices dtype: {proxy_indices.dtype}")
 
         embed_ind = proxy_indices + (indices - indices.detach())
