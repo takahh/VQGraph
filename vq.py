@@ -564,7 +564,7 @@ class EuclideanCodebook(nn.Module):
         # embed_ind = embed_ind[:, :, 0].long()
 
         indices = embed_ind[:, :, 0]  # Keep the float tensor
-        proxy_indices = indices.long()  # Convert to integer for forward pass
+        proxy_indices = torch.round(indices)  # Convert to integer for forward pass
         embed_ind = proxy_indices + (indices - indices.detach())
 
         print("------ after gamble sample end of euc -1 -------")
