@@ -1058,7 +1058,7 @@ class VectorQuantize(nn.Module):
         print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         quantize = quantize.squeeze(0)
         x_tmp = x.squeeze(1)
-        x_tmp = x_tmp.unsqueeze(1)
+        x_tmp = x_tmp.unsqueeze(0)
         print(f"++++++++++++++++++")
         print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
         print(f"quantize {quantize}")
