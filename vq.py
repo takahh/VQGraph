@@ -343,6 +343,10 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # Ensure embed_ind is within valid range
     embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
 
+    print(" &&&&&&&&&&&& beginning of feat loss 2")
+    print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+    print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+
     # Map atom_types to sequential indices
     unique_atom_numbers = torch.unique(atom_types, sorted=True)
     atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
