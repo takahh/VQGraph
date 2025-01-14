@@ -348,17 +348,17 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     embed_one_hot = soft_one_hot(embed_ind, num_classes=num_codebooks)
 
-    print(" &&&&&&&&&&&& beginning of feat loss 2")
-    print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-    print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+    # print(" &&&&&&&&&&&& beginning of feat loss 2")
+    # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+    # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
 
     # Map atom_types to sequential indices
     unique_atom_numbers = torch.unique(atom_types, sorted=True)
     atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
 
-    print(" &&&&&&&&&&&& end of feat loss -3")  # require is False already here
-    print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-    print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+    # print(" &&&&&&&&&&&& end of feat loss -3")  # require is False already here
+    # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+    # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
 
     # Create one-hot representations
     # embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
@@ -366,9 +366,9 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
                                                     num_classes=len(unique_atom_numbers)).float().detach()
     # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
 
-    print(" &&&&&&&&&&&& end of feat loss -2")  # require is False already here
-    print(f"embed_one_hot.requires_grad: {embed_one_hot.requires_grad}")
-    print(f"embed_one_hot.grad_fn: {embed_one_hot.grad_fn}")
+    # print(" &&&&&&&&&&&& end of feat loss -2")  # require is False already here
+    # print(f"embed_one_hot.requires_grad: {embed_one_hot.requires_grad}")
+    # print(f"embed_one_hot.grad_fn: {embed_one_hot.grad_fn}")
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
 
@@ -382,16 +382,16 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     row_entropy = -torch.sum(co_occurrence_normalized * torch.log(co_occurrence_normalized + 1e-6), dim=1)
 
     # Debug connection to the graph
-    print(" &&&&&&&&&&&& end of feat loss -1")
-    print(f"row_entropy.requires_grad: {row_entropy.requires_grad}")
-    print(f"row_entropy.grad_fn: {row_entropy.grad_fn}")
+    # print(" &&&&&&&&&&&& end of feat loss -1")
+    # print(f"row_entropy.requires_grad: {row_entropy.requires_grad}")
+    # print(f"row_entropy.grad_fn: {row_entropy.grad_fn}")
     # Compute sparsity loss
     sparsity_loss = row_entropy.mean()
 
     # Debug connection to the graph
-    print(" &&&&&&&&&&&& end of feat loss")
-    print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
-    print(f"sparsity_loss.grad_fn: {sparsity_loss.grad_fn}")
+    # print(" &&&&&&&&&&&& end of feat loss")
+    # print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
+    # print(f"sparsity_loss.grad_fn: {sparsity_loss.grad_fn}")
 
     return sparsity_loss
 
@@ -543,9 +543,9 @@ class EuclideanCodebook(nn.Module):
 
     @torch.amp.autocast('cuda', enabled=False)
     def forward(self, x):
-        print("------ Euclid forward 0 -------")
-        print(f"x.requires_grad: {x.requires_grad}")
-        print(f"x.grad_fn: {x.grad_fn}")
+        # print("------ Euclid forward 0 -------")
+        # print(f"x.requires_grad: {x.requires_grad}")
+        # print(f"x.grad_fn: {x.grad_fn}")
         needs_codebook_dim = x.ndim < 4
         x = x.float()
 
@@ -556,9 +556,9 @@ class EuclideanCodebook(nn.Module):
         flatten = rearrange(x, 'h ... d -> h (...) d')
 
         self.init_embed_(flatten)
-        print("------ Euclid forward 1 -------")
-        print(f"flatten.requires_grad: {flatten.requires_grad}")
-        print(f"flatten.grad_fn: {flatten.grad_fn}")
+        # print("------ Euclid forward 1 -------")
+        # print(f"flatten.requires_grad: {flatten.requires_grad}")
+        # print(f"flatten.grad_fn: {flatten.grad_fn}")
         # -----------------------------------------------------------------------------
         # run simple k-means to set initial codebook
         # -----------------------------------------------------------------------------
@@ -572,26 +572,26 @@ class EuclideanCodebook(nn.Module):
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
 
-        print("------ before gamble sample 0 -------")
-        print(f"dist.requires_grad: {dist.requires_grad}")
-        print(f"dist.grad_fn: {dist.grad_fn}")
+        # print("------ before gamble sample 0 -------")
+        # print(f"dist.requires_grad: {dist.requires_grad}")
+        # print(f"dist.grad_fn: {dist.grad_fn}")
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
         embed_onehot = embed_ind
-        print("------ after gamble sample end of euc -3 -------")
-        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-        print("!!!!!!!!!!!!!!! embed_ind")
-        print(embed_ind)
-        print(embed_ind.shape)   # orch.Size([1, 1852, 1000])
+        # print("------ after gamble sample end of euc -3 -------")
+        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+        # print("!!!!!!!!!!!!!!! embed_ind")
+        # print(embed_ind)
+        # print(embed_ind.shape)   # orch.Size([1, 1852, 1000])
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
         # Convert to integer type if needed
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
 
-        print("------ after gamble sample end of euc -2 -------")
-        print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")
-        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+        # print("------ after gamble sample end of euc -2 -------")
+        # print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")
+        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # embed_ind = embed_ind[:, :, 0].long()
 
         indices = embed_ind[:, :, 0]  # Keep the float tensor
@@ -599,23 +599,23 @@ class EuclideanCodebook(nn.Module):
 
         embed_ind = proxy_indices + (indices - indices.detach())
 
-        print("------ after gamble sample end of euc -1 -------")
-        print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")  # float32
-        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+        # print("------ after gamble sample end of euc -1 -------")
+        # print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")  # float32
+        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # Validate values
         if embed_ind.min() < 0:
             raise ValueError("embed_ind contains negative values.")
         if embed_ind.max() >= self.codebook_size:
             raise ValueError(
                 f"embed_ind contains out-of-range values: max={embed_ind.max()}, codebook_size={self.codebook_size}")
-        print(f"embed_ind dtype: {embed_ind.dtype}")
-        print(f"embed_ind min: {embed_ind.min()}, max: {embed_ind.max()}")
-        print(f"embed_ind shape: {embed_ind.shape}")
-
-        print("------ after gamble sample end of euc 0 -------")
-        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+        # print(f"embed_ind dtype: {embed_ind.dtype}")
+        # print(f"embed_ind min: {embed_ind.min()}, max: {embed_ind.max()}")
+        # print(f"embed_ind shape: {embed_ind.shape}")
+        #
+        # print("------ after gamble sample end of euc 0 -------")
+        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # print(f"%%%%%%%%%%%% embed_ind {embed_ind.shape}")
         # print(f"%%%%%%%%%%%% embed_ind {embed_ind}")
         # print(f"%%%%%%%%%%%% self.embed {self.embed.shape}")
@@ -644,9 +644,9 @@ class EuclideanCodebook(nn.Module):
             self.embed = torch.nn.Parameter(embed_normalized)
             self.expire_codes_(x)
 
-        print("------ after gamble sample end of euc 1 -------")
-        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+        # print("------ after gamble sample end of euc 1 -------")
+        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # if needs_codebook_dim:
         #     quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
         #     # quantize, embed_ind, dist, embed, latents
@@ -1075,9 +1075,9 @@ class VectorQuantize(nn.Module):
         # quantize here
         # --------------------------------------------------
 
-        print("------ before _cpdebook() -------")
-        print(f"x.requires_grad: {x.requires_grad}")
-        print(f"x.grad_fn: {x.grad_fn}")
+        # print("------ before _cpdebook() -------")
+        # print(f"x.requires_grad: {x.requires_grad}")
+        # print(f"x.grad_fn: {x.grad_fn}")
         # quantize, embed_ind, dist, self.embed, flatten, init_cb
         quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
         # quantize　: 各データに対応する codebook vector
@@ -1085,9 +1085,9 @@ class VectorQuantize(nn.Module):
         # dist      : codebook の距離行列
         # embed     : codebook  ← これをプロットに使いたい
         # latents   : 潜在変数ベクトル
-        print(" &&&&&&&&&&&& middle of vq forward 0")
-        print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
-        print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
+        # print(" &&&&&&&&&&&& middle of vq forward 0")
+        # print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
+        # print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         quantize = quantize.squeeze(0)
         x_tmp = x.squeeze(1)
         x_tmp = x_tmp.unsqueeze(0)
@@ -1155,11 +1155,11 @@ class VectorQuantize(nn.Module):
         # Calculate Codebook Losses
         # ---------------------------------
 
-        print(" &&&&&&&&&&&& before ortho fn ")
-        print(f"init_feat.requires_grad: {init_feat.requires_grad}")
-        print(f"init_feat.grad_fn: {init_feat.grad_fn}")
-        print(f"init_feat.shape: {init_feat.shape}")
-        print(f"init_feat: {init_feat}")
+        # print(" &&&&&&&&&&&& before ortho fn ")
+        # print(f"init_feat.requires_grad: {init_feat.requires_grad}")
+        # print(f"init_feat.grad_fn: {init_feat.grad_fn}")
+        # print(f"init_feat.shape: {init_feat.shape}")
+        # print(f"init_feat: {init_feat}")
         # print(f"embed_ind.shape {embed_ind.shape} befpre ")
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
          ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
@@ -1172,9 +1172,9 @@ class VectorQuantize(nn.Module):
         else:
             raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
 
-        print(" &&&&&&&&&&&& middle of vq forward 1")
-        print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
-        print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
+        # print(" &&&&&&&&&&&& middle of vq forward 1")
+        # print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
+        # print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # ---------------------------------
         # Calculate silouhette Losses
         # ---------------------------------
@@ -1187,11 +1187,11 @@ class VectorQuantize(nn.Module):
         #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
         #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
         loss = self.lamb_div_ele * div_ele_loss
-        print(f"loss 1 {loss}")
+        # print(f"loss 1 {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
         loss = loss + self.lamb_sil * silh_loss
-        print(f"loss 2 {loss}")
+        # print(f"loss 2 {loss}")
         if is_multiheaded:
             if self.separate_codebook_per_head:
                 quantize = rearrange(quantize, 'h b n d -> b n (h d)', h=heads)
@@ -1200,9 +1200,9 @@ class VectorQuantize(nn.Module):
                 quantize = rearrange(quantize, '1 (b h) n d -> b n (h d)', h=heads)
                 embed_ind = rearrange(embed_ind, '1 (b h) n -> b n h', h=heads)
 
-        print("====================")
-        print(f"quantize: {quantize.shape}")
-        print(f"quantize: {quantize}")
+        # print("====================")
+        # print(f"quantize: {quantize.shape}")
+        # print(f"quantize: {quantize}")
         quantize = self.project_out(quantize)
 
         if need_transpose:
@@ -1221,9 +1221,9 @@ class VectorQuantize(nn.Module):
             if len(embed_ind.shape) == 2:
                 embed_ind = rearrange(embed_ind, 'b 1 -> b')
 
-        print("------ the end of vq forward () -------")
-        print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
-        print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
+        # print("------ the end of vq forward () -------")
+        # print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
+        # print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
                 pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, silh_loss)
