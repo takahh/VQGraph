@@ -3,6 +3,10 @@ import copy
 import torch
 import dgl
 from utils import set_seed
+import dgl.dataloading
+
+dgl.dataloading.enable_cpu_affinity()
+
 
 """
 1. Train and eval
