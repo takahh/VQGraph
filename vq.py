@@ -589,7 +589,7 @@ class EuclideanCodebook(nn.Module):
         print(f"%%%%%%%%%%%% embed_ind {embed_ind.shape}")
         print(f"%%%%%%%%%%%% embed_ind {embed_ind}")
         # embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
-
+        embed_ind = embed_ind.unsqueeze(0)
         # embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
         # -----------------------------------------------------------------------------
