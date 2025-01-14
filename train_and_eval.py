@@ -55,7 +55,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             # h_list, h, loss, dist, codebook, losslist, x, detached_quantize, latents
-            _, logits, loss, _, cb, loss_list, latent_train, quantized, latents = model(blocks, batch_feats)
+            _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
@@ -133,7 +133,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
         # Move loss_list to CPU and release memory
         # loss_list = [l.detach().cpu() for l in loss_list]
-        loss_list = None
+        # loss_list = None
+        loss_list.append(loss.detach().cpu())
 
         # Release memory explicitly
         # del blocks, batch_feats, loss, logits
@@ -706,25 +707,26 @@ def run_inductive(
             # loss_total = float(loss_list1[0] + loss_list1[1] + loss_list1[2])
             logger.info(f"------------epoch {epoch:3d} -----------------------")
             # logger.info(f"train_known_g, epoch {epoch:3d}, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}|"
-            logger.info(f" div_element_loss: {loss_list.item(): 4f},|  ")
+            logger.info(f" div_element_loss: {sum(loss_list)/len(loss_list): 4f},|  ")
             # logger.info(f" div_element_loss: {loss_list[0].item(): 4f},| commit_loss: {loss_list[1].item(): 4f}, margin loss {loss_list[4].item(): 4f}, "
             #             f"spread loss {loss_list[3].item(): 4f}, pair loss {loss_list[4].item(): 4f}, "
             #             f"bond_num_div_loss: {loss_list[5].item(): 4f}, aroma_div_loss: {loss_list[6].item(): 4f}, "
             #             f"ringy_div_loss: {loss_list[7].item(): 4f}, h_num_div_loss: {loss_list[8].item(): 4f}, sil_loss: {loss_list[9].item(): 4f}, ")
-            logger.info(f"test_known_g, epoch {epoch:3d}, div_element_loss: {loss_list0[0].item(): 4f},| commit_loss: {loss_list0[1].item(): 4f}")
-            logger.info(f"test_unknown_g, epoch {epoch:3d}, div_element_loss: {loss_list1[0].item(): 4f},| commit_loss: {loss_list1[1].item(): 4f}")
+            # logger.info(f"test_known_g, epoch {epoch:3d}, div_element_loss: {loss_list0[0].item(): 4f},| commit_loss: {loss_list0[1].item(): 4f}")
+            # logger.info(f"test_unknown_g, epoch {epoch:3d}, div_element_loss: {loss_list1[0].item(): 4f},| commit_loss: {loss_list1[1].item(): 4f}")
             # logger.info(f"test_known_g, epoch {epoch:3d}, feature_loss: {loss_list0[0].item(): 4f}| edge_loss: {loss_list0[1].item(): 4f}| div_element_loss: {loss_list0[2].item(): 4f},| commit_loss: {loss_list0[3].item(): 4f}")
             # logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| div_element_loss: {loss_list1[2].item(): 4f},| commit_loss: {loss_list1[3].item(): 4f}")
 
             print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
-            print(f"train_known_g, div_element_loss: {loss_list[0].item(): 4f},| commit_loss: {loss_list[1].item(): 4f},"
-                  f"bond_num_div_loss: {loss_list[5].item(): 4f}, aroma_div_loss: {loss_list[6].item(): 4f}, "
-                  f"ringy_div_loss: {loss_list[7].item(): 4f}, h_num_div_loss: {loss_list[8].item(): 4f}, sil_loss: {loss_list[9].item(): 4f}")
-            print(f"test_known_g, div_element_loss: {loss_list0[0].item(): 4f}, | commit_loss: {loss_list0[1].item(): 4f}")
-            print(f"test_unknown_g, "
-                  f"div_element_loss: {loss_list1[0].item(): 4f},| commit_loss: {loss_list1[1].item(): 4f},"
-                  f"bond_num_div_loss: {loss_list1[5].item(): 4f}, aroma_div_loss: {loss_list1[6].item(): 4f}, "
-                  f"ringy_div_loss: {loss_list1[7].item(): 4f}, h_num_div_loss: {loss_list1[8].item(): 4f}, sil_loss: {loss_list1[9].item(): 4f}")
+            print(f" div_element_loss: {sum(loss_list)/len(loss_list): 4f},|  ")
+            # print(f"train_known_g, div_element_loss: {loss_list[0].item(): 4f},| commit_loss: {loss_list[1].item(): 4f},"
+            #       f"bond_num_div_loss: {loss_list[5].item(): 4f}, aroma_div_loss: {loss_list[6].item(): 4f}, "
+            #       f"ringy_div_loss: {loss_list[7].item(): 4f}, h_num_div_loss: {loss_list[8].item(): 4f}, sil_loss: {loss_list[9].item(): 4f}")
+            # print(f"test_known_g, div_element_loss: {loss_list0[0].item(): 4f}, | commit_loss: {loss_list0[1].item(): 4f}")
+            # print(f"test_unknown_g, "
+            #       f"div_element_loss: {loss_list1[0].item(): 4f},| commit_loss: {loss_list1[1].item(): 4f},"
+            #       f"bond_num_div_loss: {loss_list1[5].item(): 4f}, aroma_div_loss: {loss_list1[6].item(): 4f}, "
+            #       f"ringy_div_loss: {loss_list1[7].item(): 4f}, h_num_div_loss: {loss_list1[8].item(): 4f}, sil_loss: {loss_list1[9].item(): 4f}")
             # print(
             #     f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
             # print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| "
