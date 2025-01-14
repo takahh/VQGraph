@@ -959,6 +959,9 @@ class VectorQuantize(nn.Module):
         # dist      : codebook の距離行列
         # embed     : codebook  ← これをプロットに使いたい
         # latents   : 潜在変数ベクトル
+        print("------ after _cpdebook() -------")
+        print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
+        print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
 
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
@@ -1025,6 +1028,9 @@ class VectorQuantize(nn.Module):
         else:
             raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
 
+        print("------ after orthogonal fn () -------")
+        print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
+        print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # ---------------------------------
         # Calculate silouhette Losses
         # ---------------------------------
@@ -1065,6 +1071,9 @@ class VectorQuantize(nn.Module):
             if len(embed_ind.shape) == 2:
                 embed_ind = rearrange(embed_ind, 'b 1 -> b')
 
+        print("------ the end of vq forward () -------")
+        print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
+        print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
                 pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, silh_loss)
