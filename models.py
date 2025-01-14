@@ -326,7 +326,7 @@ class SAGE(nn.Module):
              spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
             latent_list.append(latent_vectors.detach().cpu())
-            embed_ind_list.append(embed_ind.detach().cpu())
+            embed_ind_list.append(embed_ind)
 
             dist = torch.squeeze(dist)
             dist_all[input_nodes] = dist

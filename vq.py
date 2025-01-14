@@ -55,11 +55,18 @@ def gumbel_sample(logits, dim=-1, temperature=1.0):
     if temperature == 0:
         return logits.argmax(dim=dim)  # Deterministic sampling when temperature is 0
 
+    print("------ in gamble sample 0 -------")
+    print(f"embed_ind.requires_grad: {logits.requires_grad}")
+    print(f"embed_ind.grad_fn: {logits.grad_fn}")
     # Sample Gumbel noise
     gumbels = -torch.empty_like(logits).exponential_().log()
 
     # Add noise to logits and scale by temperature
     noisy_logits = (logits + gumbels) / temperature
+
+    print("------ in gamble sample 1 -------")
+    print(f"embed_ind.requires_grad: {logits.requires_grad}")
+    print(f"embed_ind.grad_fn: {logits.grad_fn}")
 
     # Return the indices of the maximum values
     return noisy_logits.argmax(dim=dim)
@@ -510,6 +517,10 @@ class EuclideanCodebook(nn.Module):
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
+
+        print("------ after gamble sample -------")
+        print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+        print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
