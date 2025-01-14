@@ -305,6 +305,7 @@ def kmeans(
 
 
 def batched_embedding(indices, embeds):
+    indices = indices.long()
     batch, dim = indices.shape[1], embeds.shape[-1]
     indices = repeat(indices, 'h b n -> h b n d', d=dim)
     embeds = repeat(embeds, 'h c d -> h b c d', b=batch)
