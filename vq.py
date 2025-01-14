@@ -310,21 +310,16 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02, normalize="frobenius", alpha=1.0):
     device = embed_ind.device
 
-    # Validate embed_ind
-    # print(f"embed_ind: min={embed_ind.min().item()}, max={embed_ind.max().item()}, shape={embed_ind.shape}")
-    # print(embed_ind[:30])
-    embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1)
-    embed_ind = embed_ind.long()
+    # Clamp embed_ind and ensure it is an integer tensor
+    embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
 
-    # Validate atom_types
+    # Replace NaNs in atom_types
     atom_types = torch.nan_to_num(atom_types, nan=0.0, posinf=1.0, neginf=-1.0)
-    # print(f"atom_types: min={atom_types.min().item()}, max={atom_types.max().item()}, shape={atom_types.shape}")
     assert torch.isfinite(atom_types).all(), "atom_types contains NaNs or Inf values!"
 
-    # Map atom_types to sequential indices
-    unique_atom_numbers = torch.unique(atom_types).tolist()
-    atom_number_to_index = {atom: idx for idx, atom in enumerate(unique_atom_numbers)}
-    atom_types_mapped = torch.tensor([atom_number_to_index[atom] for atom in atom_types.tolist()], device=device)
+    # Map atom_types to sequential indices using PyTorch-native operations
+    unique_atom_numbers = torch.unique(atom_types, sorted=True)
+    atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float().to(device)
@@ -336,7 +331,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
 
-    # Ensure soft_assignments is 2D
+    # Ensure soft_assignments and atom_type_one_hot are 2D
     soft_assignments = soft_assignments.view(-1, soft_assignments.shape[-1])
     atom_type_one_hot = atom_type_one_hot.view(-1, atom_type_one_hot.shape[-1])
 
@@ -350,8 +345,11 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # Loss: Average entropy across all rows
     sparsity_loss = row_entropy.mean()
 
-    return sparsity_loss
+    # Debug connection to the graph
+    print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
+    print(f"sparsity_loss.grad_fn: {sparsity_loss.grad_fn}")
 
+    return sparsity_loss
 
 
 import torch.nn.functional as F
