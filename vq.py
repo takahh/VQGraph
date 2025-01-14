@@ -349,7 +349,9 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
-    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped,
+                                                    num_classes=len(unique_atom_numbers)).float().detach()
+    # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
 
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
