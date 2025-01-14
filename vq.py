@@ -1062,9 +1062,12 @@ class VectorQuantize(nn.Module):
         print(f"++++++++++++++++++")
         print(f"x {x.shape}")  # [1, 1, 1852, 256])
         print(f"x {x}")
+        quantize = quantize.squeeze(0)
+        x_tmp = x.squeeze(1)
+        x_tmp = x_tmp.unsqueeze(1)
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
-            quantize = x + (quantize - x)
+            quantize = x_tmp + (quantize - x_tmp)
 
         print(f"++++++++++++++++++")
         print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
