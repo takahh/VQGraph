@@ -554,7 +554,7 @@ class EuclideanCodebook(nn.Module):
         print(embed_ind)
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
         # Convert to integer type if needed
-        embed_ind = embed_ind.int()
+        embed_ind = embed_ind.long()
 
         print("embed_ind")
         print(embed_ind)
@@ -564,6 +564,9 @@ class EuclideanCodebook(nn.Module):
         if embed_ind.max() >= self.codebook_size:
             raise ValueError(
                 f"embed_ind contains out-of-range values: max={embed_ind.max()}, codebook_size={self.codebook_size}")
+        print(f"embed_ind dtype: {embed_ind.dtype}")
+        print(f"embed_ind min: {embed_ind.min()}, max: {embed_ind.max()}")
+        print(f"embed_ind shape: {embed_ind.shape}")
 
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
 
