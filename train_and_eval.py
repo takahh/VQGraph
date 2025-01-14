@@ -5,7 +5,7 @@ import dgl
 from utils import set_seed
 import dgl.dataloading
 
-dgl.dataloading.enable_cpu_affinity()
+dgl.data.utils.enable_cpu_affinity()
 
 
 """
