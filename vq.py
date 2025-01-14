@@ -341,7 +341,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     print(f"atom_types.requires_grad: {atom_types.requires_grad}")
     print(f"atom_types.grad_fn: {atom_types.grad_fn}")
     # Ensure embed_ind is within valid range
-    embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
+    # embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
 
     print(" &&&&&&&&&&&& beginning of feat loss 2")
     print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
