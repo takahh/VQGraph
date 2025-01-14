@@ -1072,8 +1072,8 @@ class VectorQuantize(nn.Module):
             embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h=height, w=width)
 
         if only_one:
-            quantize = torch.squeeze(quantize)
-            quantize = rearrange(quantize, 'b 1 d -> b d')
+            # quantize = torch.squeeze(quantize)
+            quantize = rearrange(quantize[0], 'b 1 d -> b d')
             if len(embed_ind.shape) == 2:
                 embed_ind = rearrange(embed_ind, 'b 1 -> b')
 
