@@ -353,6 +353,9 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
                                                     num_classes=len(unique_atom_numbers)).float().detach()
     # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
 
+    print(" &&&&&&&&&&&& end of feat loss -2")
+    print(f"embed_one_hot.requires_grad: {embed_one_hot.requires_grad}")
+    print(f"embed_one_hot.grad_fn: {embed_one_hot.grad_fn}")
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
 
@@ -365,6 +368,10 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # Compute row-wise entropy
     row_entropy = -torch.sum(co_occurrence_normalized * torch.log(co_occurrence_normalized + 1e-6), dim=1)
 
+    # Debug connection to the graph
+    print(" &&&&&&&&&&&& end of feat loss -1")
+    print(f"row_entropy.requires_grad: {row_entropy.requires_grad}")
+    print(f"row_entropy.grad_fn: {row_entropy.grad_fn}")
     # Compute sparsity loss
     sparsity_loss = row_entropy.mean()
 
