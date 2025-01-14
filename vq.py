@@ -354,7 +354,8 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Map atom_types to sequential indices
     unique_atom_numbers = torch.unique(atom_types, sorted=True)
-    atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
+    atom_types_mapped = torch.searchsorted(unique_atom_numbers.contiguous(), atom_types.contiguous())
+    # atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
 
     # print(" &&&&&&&&&&&& end of feat loss -3")  # require is False already here
     # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
