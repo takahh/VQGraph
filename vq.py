@@ -1050,7 +1050,9 @@ class VectorQuantize(nn.Module):
         print("------ after _cpdebook() -------")
         print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
         print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
-
+        print(f"++++++++++++++++++")
+        print(f"quantize {quantize.shape}")
+        print(f"quantize {quantize}")
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
             quantize = x + (quantize - x)
