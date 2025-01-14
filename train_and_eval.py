@@ -4,10 +4,6 @@ import torch
 import dgl
 from utils import set_seed
 import dgl.dataloading
-print("dgl.__version__ !!!!!!!!!!!!!!!!!!!!")
-print(dgl.__version__)
-
-dgl.enable_cpu_affinity()
 
 
 
