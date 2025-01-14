@@ -52,6 +52,8 @@ def gumbel_sample(logits, dim=-1, temperature=1.0):
     #
     # # Convert indices to one-hot encoding (maintains differentiability upstream)
     # one_hot = torch.nn.functional.one_hot(indices, num_classes=logits.size(dim)).float()
+    if temperature < 1e-5:
+        temperature = 1e-5
 
     print("------ in gamble sample 1 -------")
     print(f"one_hot.requires_grad: {logits.requires_grad}")
