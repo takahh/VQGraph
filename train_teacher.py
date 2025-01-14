@@ -19,6 +19,15 @@ from utils import (
 )
 from train_and_eval import run_transductive, run_inductive
 
+import os
+import multiprocessing
+
+# Set the number of threads for OpenMP
+os.environ['OMP_NUM_THREADS'] = str(multiprocessing.cpu_count())
+
+# Set thread affinity to improve data loading performance
+os.environ['KMP_AFFINITY'] = 'granularity=fine,compact,1,0'
+
 
 def get_args():
     parser = argparse.ArgumentParser(description="PyTorch DGL implementation")
