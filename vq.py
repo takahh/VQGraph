@@ -496,6 +496,9 @@ class EuclideanCodebook(nn.Module):
 
     @torch.amp.autocast('cuda', enabled=False)
     def forward(self, x):
+        print("------ Euclid forward 0 -------")
+        print(f"x.requires_grad: {x.requires_grad}")
+        print(f"x.grad_fn: {x.grad_fn}")
         needs_codebook_dim = x.ndim < 4
         x = x.float()
 
@@ -504,6 +507,10 @@ class EuclideanCodebook(nn.Module):
 
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
+
+        print("------ Euclid forward 1 -------")
+        print(f"flatten.requires_grad: {flatten.requires_grad}")
+        print(f"flatten.grad_fn: {flatten.grad_fn}")
         # -----------------------------------------------------------------------------
         # run simple k-means to set initial codebook
         # -----------------------------------------------------------------------------
@@ -516,6 +523,10 @@ class EuclideanCodebook(nn.Module):
         embed = self.embed
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
+
+        print("------ before gamble sample 0 -------")
+        print(f"dist.requires_grad: {dist.requires_grad}")
+        print(f"dist.grad_fn: {dist.grad_fn}")
         embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
 
         print("------ after gamble sample -------")
