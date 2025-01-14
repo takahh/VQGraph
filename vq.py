@@ -1138,7 +1138,7 @@ class VectorQuantize(nn.Module):
             else:
                 print(f"x {x.shape}")
                 print(f"detached_quantize {detached_quantize.shape}")
-                commit_loss = F.mse_loss(detached_quantize, x)
+                commit_loss = F.mse_loss(detached_quantize.squeeze(0), x.squeeze(1))
             raw_commit_loss = commit_loss
             # loss = loss + commit_loss * self.commitment_weight
 
