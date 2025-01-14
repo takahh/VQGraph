@@ -554,7 +554,7 @@ class EuclideanCodebook(nn.Module):
         print(embed_ind)
         # embed_ind = torch.argmax(embed_ind, dim=-1).long()
 
-        embed_onehot = F.one_hot(embed_ind.long(), self.codebook_size).type(dtype)
+        embed_onehot = F.one_hot(embed_ind.int(), self.codebook_size).type(dtype)
 
         print("embed_onehot")
         print(embed_onehot)
