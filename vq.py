@@ -347,13 +347,17 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     unique_atom_numbers = torch.unique(atom_types, sorted=True)
     atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
 
+    print(" &&&&&&&&&&&& end of feat loss -3")  # require is False already here
+    print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+    print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+
     # Create one-hot representations
     embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped,
                                                     num_classes=len(unique_atom_numbers)).float().detach()
     # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
 
-    print(" &&&&&&&&&&&& end of feat loss -2")
+    print(" &&&&&&&&&&&& end of feat loss -2")  # require is False already here
     print(f"embed_one_hot.requires_grad: {embed_one_hot.requires_grad}")
     print(f"embed_one_hot.grad_fn: {embed_one_hot.grad_fn}")
     # Compute soft assignments
