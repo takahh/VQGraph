@@ -1059,6 +1059,9 @@ class VectorQuantize(nn.Module):
         print(f"++++++++++++++++++")
         print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
         print(f"quantize {quantize}")
+        print(f"++++++++++++++++++")
+        print(f"x {x.shape}")  # [1, 1, 1852, 256])
+        print(f"x {x}")
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
             quantize = x + (quantize - x)
