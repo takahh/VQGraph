@@ -586,6 +586,7 @@ class EuclideanCodebook(nn.Module):
         print("------ after gamble sample end of euc 0 -------")
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+        print(f"%%%%%%%%%%%% embed_ind {embed_ind.shape}")
         print(f"%%%%%%%%%%%% embed_ind {embed_ind}")
         embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
 
