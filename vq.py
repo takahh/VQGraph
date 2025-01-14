@@ -559,18 +559,18 @@ class EuclideanCodebook(nn.Module):
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
 
         print("------ after gamble sample end of euc -2 -------")
+        print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # embed_ind = embed_ind[:, :, 0].long()
 
         indices = embed_ind[:, :, 0]  # Keep the float tensor
         proxy_indices = indices.long()  # Convert to integer for forward pass
-        print(f"$$$$$ proxy_indices dtype: {proxy_indices.dtype}")
 
         embed_ind = proxy_indices + (indices - indices.detach())
 
-        print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")
         print("------ after gamble sample end of euc -1 -------")
+        print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")  # float32
         print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
         print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # Validate values
