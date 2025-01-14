@@ -593,6 +593,9 @@ class EuclideanCodebook(nn.Module):
         embed_ind = embed_ind.unsqueeze(0)
         # embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
+        print(f"$$$$$$$$$$$$$")
+        print(f"quantize {quantize.shape}")
+        print(f"quantize {quantize}")
         # -----------------------------------------------------------------------------
         # Update centroids (in an ML friendly way)
         # -----------------------------------------------------------------------------
@@ -1051,7 +1054,7 @@ class VectorQuantize(nn.Module):
         print(f"sparsity_loss.requires_grad: {embed_ind.requires_grad}")
         print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         print(f"++++++++++++++++++")
-        print(f"quantize {quantize.shape}")
+        print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
         print(f"quantize {quantize}")
         codes = self.get_codes_from_indices(embed_ind)
         if self.training:
