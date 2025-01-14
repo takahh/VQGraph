@@ -518,7 +518,6 @@ class EuclideanCodebook(nn.Module):
         print("------ Euclid forward 0 -------")
         print(f"x.requires_grad: {x.requires_grad}")
         print(f"x.grad_fn: {x.grad_fn}")
-        self.init_embed_(x)
         needs_codebook_dim = x.ndim < 4
         x = x.float()
 
@@ -528,6 +527,7 @@ class EuclideanCodebook(nn.Module):
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
 
+        self.init_embed_(flatten)
         print("------ Euclid forward 1 -------")
         print(f"flatten.requires_grad: {flatten.requires_grad}")
         print(f"flatten.grad_fn: {flatten.grad_fn}")
