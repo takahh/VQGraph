@@ -220,9 +220,9 @@ class SAGE(nn.Module):
 
         # Apply linear transformation and graph layer
         h = self.linear_2(h)
-        print(f"h after linear_2: requires_grad={h.requires_grad}")
+        # print(f"h after linear_2: requires_grad={h.requires_grad}")
         h = self.graph_layer_1(g, h)
-        print(f"h after graph_layer_1: requires_grad={h.requires_grad}")
+        # print(f"h after graph_layer_1: requires_grad={h.requires_grad}")
 
         if self.norm_type != "none":
             h = self.norms[0](h)

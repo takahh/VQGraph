@@ -55,16 +55,16 @@ def gumbel_sample(logits, dim=-1, temperature=1.0):
     if temperature < 1e-5:
         temperature = 1e-5
 
-    print("------ in gamble sample 1 -------")
-    print(f"one_hot.requires_grad: {logits.requires_grad}")
-    print(f"one_hot.grad_fn: {logits.grad_fn}")
-    print(logits)
+    # print("------ in gamble sample 1 -------")
+    # print(f"one_hot.requires_grad: {logits.requires_grad}")
+    # print(f"one_hot.grad_fn: {logits.grad_fn}")
+    # print(logits)
     one_hot = F.gumbel_softmax(logits, tau=temperature, hard=True, dim=dim)
-    print("------ in gamble sample 1 -------")
-    print(f"one_hot.requires_grad: {one_hot.requires_grad}")
-    print(f"one_hot.grad_fn: {one_hot.grad_fn}")
-
-    print(one_hot)
+    # print("------ in gamble sample 1 -------")
+    # print(f"one_hot.requires_grad: {one_hot.requires_grad}")
+    # print(f"one_hot.grad_fn: {one_hot.grad_fn}")
+    #
+    # print(one_hot)
     return one_hot
 
 #
@@ -154,8 +154,8 @@ def sample_vectors_distributed(local_samples, num):
 
     rank = distributed.get_rank()
     all_num_samples = all_gather_sizes(local_samples, dim=0)
-    print(f"{local_samples} local_samples")
-    print(f"{num} num")
+    # print(f"{local_samples} local_samples")
+    # print(f"{num} num")
 
     if rank == 0:
         samples_per_rank = sample_multinomial(num, all_num_samples / all_num_samples.sum())
@@ -335,11 +335,11 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
     device = embed_ind.device
 
-    print(" &&&&&&&&&&&& beginning of feat loss")
-    print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-    print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-    print(f"atom_types.requires_grad: {atom_types.requires_grad}")
-    print(f"atom_types.grad_fn: {atom_types.grad_fn}")
+    # print(" &&&&&&&&&&&& beginning of feat loss")
+    # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
+    # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
+    # print(f"atom_types.requires_grad: {atom_types.requires_grad}")
+    # print(f"atom_types.grad_fn: {atom_types.grad_fn}")
     # Ensure embed_ind is within valid range
     # embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
     def soft_one_hot(indices, num_classes, temperature=0.02):

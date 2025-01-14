@@ -106,9 +106,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             for group in optimizer.param_groups:
                 print(f"Optimizer param group: {[p.shape for p in group['params']]}")
 
-            print(f"loss.requires_grad: {loss.requires_grad}")
-            print(f"loss.grad_fn: {loss.grad_fn}")
-            print(f"loss value: {loss.item()}")
+            # print(f"loss.requires_grad: {loss.requires_grad}")
+            # print(f"loss.grad_fn: {loss.grad_fn}")
+            # print(f"loss value: {loss.item()}")
 
             scaler.step(optimizer)
             scaler.update()
