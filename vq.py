@@ -342,6 +342,11 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     print(f"atom_types.grad_fn: {atom_types.grad_fn}")
     # Ensure embed_ind is within valid range
     # embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
+    def soft_one_hot(indices, num_classes, temperature=0.02):
+        class_indices = torch.arange(num_classes, device=indices.device).float()
+        return torch.softmax(-(indices.unsqueeze(-1) - class_indices) ** 2 / temperature, dim=-1)
+
+    embed_ind = soft_one_hot(embed_ind, num_classes=num_codebooks)
 
     print(" &&&&&&&&&&&& beginning of feat loss 2")
     print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
