@@ -332,9 +332,9 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     # Combine and return mean loss
     return (positive_loss + negative_loss).mean()
 
+
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
     device = embed_ind.device
-
     # print(" &&&&&&&&&&&& beginning of feat loss")
     # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
     # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
@@ -347,7 +347,6 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
         return torch.softmax(-(indices.unsqueeze(-1) - class_indices) ** 2 / temperature, dim=-1)
 
     embed_one_hot = soft_one_hot(embed_ind, num_classes=num_codebooks)
-
     # print(" &&&&&&&&&&&& beginning of feat loss 2")
     # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
     # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
@@ -363,8 +362,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Create one-hot representations
     # embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
-    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped,
-                                                    num_classes=len(unique_atom_numbers)).float().detach()
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped,                                           num_classes=len(unique_atom_numbers)).float().detach()
     # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
 
     # print(" &&&&&&&&&&&& end of feat loss -2")  # require is False already here
@@ -372,28 +370,22 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # print(f"embed_one_hot.grad_fn: {embed_one_hot.grad_fn}")
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
-
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
-
     # Normalize co-occurrence
     co_occurrence_normalized = co_occurrence / (co_occurrence.sum(dim=1, keepdim=True) + 1e-6)
-
     # Compute row-wise entropy
     row_entropy = -torch.sum(co_occurrence_normalized * torch.log(co_occurrence_normalized + 1e-6), dim=1)
-
     # Debug connection to the graph
     # print(" &&&&&&&&&&&& end of feat loss -1")
     # print(f"row_entropy.requires_grad: {row_entropy.requires_grad}")
     # print(f"row_entropy.grad_fn: {row_entropy.grad_fn}")
     # Compute sparsity loss
     sparsity_loss = row_entropy.mean()
-
     # Debug connection to the graph
     # print(" &&&&&&&&&&&& end of feat loss")
     # print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
     # print(f"sparsity_loss.grad_fn: {sparsity_loss.grad_fn}")
-
     return sparsity_loss
 
 
@@ -1028,12 +1020,12 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
-        atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0])
+        atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
-        aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
-        ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
-        h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
+        bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1], self.codebook_size)
+        aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4], self.codebook_size)
+        ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5], self.codebook_size)
+        h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6], self.codebook_size)
         # bond_num_div_loss = None
         # aroma_div_loss = None
         # ringy_div_loss = None
