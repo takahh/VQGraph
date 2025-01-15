@@ -350,6 +350,10 @@ def differentiable_codebook_loss(atomtypes, embed_ind, num_codebooks):
 
     # Convert embed_ind logits to soft assignments (differentiable)
     soft_assignments = torch.softmax(embed_ind, dim=-1)  # Shape: [num_atoms, num_codebooks]
+    print("soft_assignments.shape")
+    print(soft_assignments.shape)
+    print("soft_assignments")
+    print(soft_assignments[0])
 
     # Initialize loss
     loss = torch.tensor(0.0, device=embed_ind.device)
@@ -1024,7 +1028,7 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
-        atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind)
+        atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
 
         print(" &&&&&&&&&&&& atom_type_div_loss  ")
         print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
