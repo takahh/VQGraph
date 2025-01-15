@@ -1030,14 +1030,14 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0])
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        # bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
-        # aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
-        # ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
-        # h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
-        bond_num_div_loss = None
-        aroma_div_loss = None
-        ringy_div_loss = None
-        h_num_div_loss = None
+        bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1]).clone().detach()
+        aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4]).clone().detach()
+        ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5]).clone().detach()
+        h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6]).clone().detach()
+        # bond_num_div_loss = None
+        # aroma_div_loss = None
+        # ringy_div_loss = None
+        # h_num_div_loss = None
 
         # bond_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 1]))
         # aroma_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 4]))
@@ -1188,14 +1188,14 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # linearly combine losses !!!!
         # ---------------------------------
-        # loss = (loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
-        loss = self.lamb_div_ele * div_ele_loss
+        loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+         + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+         + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
+        # loss = self.lamb_div_ele * div_ele_loss
         # print(f"loss 1 {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
-        loss = loss + self.lamb_sil * silh_loss
+        # loss = loss + self.lamb_sil * silh_loss
         # print(f"loss 2 {loss}")
         if is_multiheaded:
             if self.separate_codebook_per_head:
