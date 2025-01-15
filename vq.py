@@ -950,7 +950,7 @@ class VectorQuantize(nn.Module):
         return embed_ind, positive_silhouette_coefficients.mean()
 
 
-    def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, min_distance=0.5):
+    def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, quantized, min_distance=0.5):
         # Normalize embeddings (optional: remove if not necessary)
         t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
         t = t / t_norm
@@ -987,7 +987,7 @@ class VectorQuantize(nn.Module):
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
         # atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
-        atom_type_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 0])
+        atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
         # print(" &&&&&&&&&&&& atom_type_div_loss  ")
         # print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
         # print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
@@ -996,10 +996,10 @@ class VectorQuantize(nn.Module):
 
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        bond_num_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 1], self.codebook_size)
-        aroma_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 4], self.codebook_size)
-        ringy_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 5], self.codebook_size)
-        h_num_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 6], self.codebook_size)
+        bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1], self.codebook_size)
+        aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4], self.codebook_size)
+        ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5], self.codebook_size)
+        h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6], self.codebook_size)
         # bond_num_div_loss = None
         # aroma_div_loss = None
         # ringy_div_loss = None
@@ -1133,7 +1133,7 @@ class VectorQuantize(nn.Module):
         # print(f"init_feat: {init_feat}")
         # print(f"embed_ind.shape {embed_ind.shape} befpre ")
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-         ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents)
+         ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         # print(f"embed_ind.shape {embed_ind.shape} after ")
         if embed_ind.ndim == 2:
