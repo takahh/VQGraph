@@ -366,8 +366,22 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
         # Compute softmax
         soft_assignments = torch.softmax(logits, dim=-1)
+        print("--------- + ----------- + -------------")
         print(
             f"soft_one_hot - soft_assignments shape: {soft_assignments.shape}, sum of first example: {soft_assignments[0].sum()}")
+        # Inspect indices
+        print(f"indices shape: {indices.shape}, values: {indices[:10]}")
+        # Inspect logits
+        print(f"logits shape: {logits.shape}")
+        print(f"logits sample (first row): {logits[0, :10]}")
+        print("--------- + ----------- + -------------")
+        # Inspect softmax output
+        print(f"soft_assignments shape: {soft_assignments.shape}")
+        print(f"soft_assignments sample (first row): {soft_assignments[0, :10]}")
+
+        # Check sorting behavior
+        print(
+            f"soft_assignments first row sorted: {torch.all(torch.sort(soft_assignments[0])[0] == soft_assignments[0])}")
 
         return soft_assignments
 
@@ -400,6 +414,7 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # print(f"embed_one_hot.grad_fn: {embed_one_hot.grad_fn}")
     # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
+
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
     print(f"co_occurrence shape: {co_occurrence.shape}, requires_grad: {co_occurrence.requires_grad}")
