@@ -333,6 +333,45 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     return (positive_loss + negative_loss).mean()
 
 
+def differentiable_codebook_loss(atomtypes, embed_ind):
+    """
+    A differentiable loss function that penalizes assigning the same codebook vector
+    to atoms with different atom types.
+
+    Args:
+        atomtypes (torch.Tensor): Tensor of atom types (shape: [num_atoms]).
+        embed_ind (torch.Tensor): Tensor of codebook vector IDs (shape: [num_atoms]).
+
+    Returns:
+        torch.Tensor: Scalar tensor representing the differentiable loss.
+    """
+    # Convert to PyTorch tensors if not already
+    # atomtypes = torch.tensor(atomtypes, dtype=torch.float32)
+    # embed_ind = torch.tensor(embed_ind, dtype=torch.long)
+
+    # Initialize loss
+    loss = torch.tensor(0.0, requires_grad=True)
+
+    # Get the maximum codebook index to iterate over all groups
+    max_code_id = embed_ind.max().item()
+
+    for code_id in range(max_code_id + 1):
+        # Get a mask for atoms assigned to this codebook vector
+        mask = (embed_ind == code_id).float()
+
+        if mask.sum() > 1:  # Only compute penalty if there are multiple atoms in the group
+            # Normalize the mask to avoid scaling issues
+            mask = mask / mask.sum()
+            # Compute weighted mean atom type for this group
+            weighted_mean = (mask * atomtypes).sum()
+            # Compute the variance of atom types in the group (differentiable penalty)
+            variance = (mask * (atomtypes - weighted_mean) ** 2).sum()
+            # Add the variance to the loss
+            loss = loss + variance
+
+    return loss
+
+
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
 
     def soft_one_hot(indices, num_classes, temperature=0.1):  # Increased default temperature for stability
@@ -344,10 +383,6 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # embed ind を確率に変更
     embed_one_hot = soft_one_hot(embed_ind, num_classes=num_codebooks)
-    print("embed_one_hot.shape")
-    print(embed_one_hot.shape)
-    print("embed_one_hot")
-    print(embed_one_hot)
     unique_atom_numbers = torch.unique(atom_types, sorted=True)
     atom_types_mapped = torch.searchsorted(unique_atom_numbers.contiguous(), atom_types.contiguous())
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float().detach()
@@ -990,7 +1025,15 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
-        atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
+        atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind)
+
+        print(" &&&&&&&&&&&& atom_type_div_loss  ")
+        print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
+        print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
+        print(f"atom_type_div_loss.shape: {atom_type_div_loss.shape}")
+        print(f"atom_type_div_loss: {atom_type_div_loss}")
+
+        # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
         bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1], self.codebook_size)
         aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4], self.codebook_size)
