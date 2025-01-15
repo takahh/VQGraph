@@ -353,7 +353,7 @@ def differentiable_codebook_loss(atomtypes, embed_ind):
     loss = torch.tensor(0.0, requires_grad=True)
 
     # Get the maximum codebook index to iterate over all groups
-    max_code_id = embed_ind.max().item()
+    max_code_id = int(embed_ind.max().item())
 
     for code_id in range(max_code_id + 1):
         # Get a mask for atoms assigned to this codebook vector
