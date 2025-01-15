@@ -131,10 +131,10 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    DIMENSION = 1024
+    DIMENSION = 256
     BATCH = 8000
-    EPOCH = 6
-    EPOCH2 = 7
+    EPOCH = 4
+    EPOCH2 = 5
 
     # MODE = "tsne"
     MODE = "umap"
@@ -153,7 +153,7 @@ def main():
                 cb_arr = np.reshape(cb_arr, (-1, DIMENSION))
                 print(f"cb_arr.shape {cb_arr.shape}")
             else:
-                latent_arr = arr
+                latent_arr = arr[:2000]
                 print(f"arr.shape {arr.shape}")
 
         for param in [10]:

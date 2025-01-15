@@ -95,7 +95,7 @@ def get_args():
     parser.add_argument("--codebook_size", type=int, default=1000, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_edge",  type=float, default=0.003)  # default=0.03)
     parser.add_argument("--lamb_node", type=float, default=0.00008)  # default=0.001)
-    parser.add_argument("--lamb_div_ele",  type=float, default=0.0002)  # default=0.03)
+    parser.add_argument("--lamb_div_ele",  type=float, default=0.002)  # default=0.03)
 
     # --------------
     # Model
@@ -112,7 +112,7 @@ def get_args():
         "--num_layers", type=int, default=2, help="Model number of layers"
     )
     parser.add_argument(
-        "--hidden_dim", type=int, default=256, help="Model hidden layer dimensions"
+        "--hidden_dim", type=int, default=1024, help="Model hidden layer dimensions"
     )
     parser.add_argument("--dropout_ratio", type=float, default=0)
     parser.add_argument(
@@ -133,7 +133,7 @@ def get_args():
 
     """Optimization"""
     parser.add_argument("--accumulation_steps", type=int, default=2) # default=0.0001)
-    parser.add_argument("--learning_rate", type=float, default=0.0005) # default=0.0001)
+    parser.add_argument("--learning_rate", type=float, default=0.001) # default=0.0001)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument(
         "--max_epoch", type=int, default=5, help="Evaluate once per how many epochs"
