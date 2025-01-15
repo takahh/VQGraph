@@ -1029,7 +1029,6 @@ class VectorQuantize(nn.Module):
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
         atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
-
         print(" &&&&&&&&&&&& atom_type_div_loss  ")
         print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
         print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
