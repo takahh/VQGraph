@@ -52,7 +52,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # print(f"step {step}")
         # run kmeans at the first step and the last step
 
-
         with torch.cuda.amp.autocast():  # Mixed precision forward pass
             # h_list, h, loss, dist, codebook, losslist, x, detached_quantize, latents
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
@@ -757,10 +756,10 @@ def run_inductive(
             # --------------------------------
             # check if edge loss is decreasing
             # --------------------------------
-            if loss_list[1].item() < best_score_val:
+            # if loss_list[1].item() < best_score_val:
                 # best_epoch = epoch
                 # best_score_val = loss_list[1].item()
-                state = copy.deepcopy(model.state_dict())
+            state = copy.deepcopy(model.state_dict())
                 # cb_at_best = cb_just_trained
                 # train_latents_at_best = latent_train
                 # print(f"best epoch is {best_epoch} !!!!!!!!!")
