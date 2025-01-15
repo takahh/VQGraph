@@ -322,15 +322,15 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     # Compute pairwise distances
     pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
 
-    # Calculate mean, min, and max
-    mean_distance = pairwise_distances.mean()
-    min_distance = pairwise_distances.min()
-    max_distance = pairwise_distances.max()
-
-    # Print the values
-    print(f"Distances mean: {mean_distance:.4f}")
-    print(f"Distances min: {min_distance:.4f}")
-    print(f"Distances max: {max_distance:.4f}")
+    # # Calculate mean, min, and max
+    # mean_distance = pairwise_distances.mean()
+    # min_distance = pairwise_distances.min()
+    # max_distance = pairwise_distances.max()
+    #
+    # # Print the values
+    # print(f"Distances mean: {mean_distance:.4f}")
+    # print(f"Distances min: {min_distance:.4f}")
+    # print(f"Distances max: {max_distance:.4f}")
     # 二次元のID合致表を作成
     same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
 
