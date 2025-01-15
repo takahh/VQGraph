@@ -334,114 +334,28 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
 
 
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
-    device = embed_ind.device
-    # print(" &&&&&&&&&&&& beginning of feat loss")
-    # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-    # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-    # print(f"atom_types.requires_grad: {atom_types.requires_grad}")
-    # print(f"atom_types.grad_fn: {atom_types.grad_fn}")
-    # Ensure embed_ind is within valid range
-    # embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
-    print(f"embed_ind shape: {embed_ind.shape}, dtype: {embed_ind.dtype}, requires_grad: {embed_ind.requires_grad}")
-    print(f"embed_ind unique values: {torch.unique(embed_ind)}")
-    print(f"atom_types shape: {atom_types.shape}, dtype: {atom_types.dtype}, requires_grad: {atom_types.requires_grad}")
-    print(f"atom_types unique values: {torch.unique(atom_types)}")
 
     def soft_one_hot(indices, num_classes, temperature=0.1):  # Increased default temperature for stability
-        # Create class indices
         class_indices = torch.arange(num_classes, device=indices.device).float()
-
-        # Debug input indices
-        print(f"soft_one_hot - indices min: {indices.min()}, max: {indices.max()}, mean: {indices.float().mean()}")
-        print(f"soft_one_hot - num_classes: {num_classes}, temperature: {temperature}")
-
-        # Normalize indices to a 0-1 range (optional, helps with stability)
         indices = indices.float() / (indices.max() + 1e-6)
-        print(f"soft_one_hot - normalized indices min: {indices.min()}, max: {indices.max()}")
-
-        # Compute the distance-based logits
         logits = -(indices.unsqueeze(-1) - class_indices) ** 2 / temperature
-        print(
-            f"soft_one_hot - logits shape: {logits.shape}, min: {logits.min()}, max: {logits.max()}, mean: {logits.mean()}")
-
-        # Compute softmax
         soft_assignments = torch.softmax(logits, dim=-1)
-        print("--------- + ----------- + -------------")
-        print(
-            f"soft_one_hot - soft_assignments shape: {soft_assignments.shape}, sum of first example: {soft_assignments[0].sum()}")
-        # Inspect indices
-        print(f"indices shape: {indices.shape}, values: {indices[:10]}")
-        # Inspect logits
-        print(f"logits shape: {logits.shape}")
-        print(f"logits sample (first row): {logits[0, :10]}")
-        print("--------- + ----------- + -------------")
-        # Inspect softmax output
-        print(f"soft_assignments shape: {soft_assignments.shape}")
-        print(f"soft_assignments sample (first row): {soft_assignments[0, :10]}")
-
-        # Check sorting behavior
-        print(
-            f"soft_assignments first row sorted: {torch.all(torch.sort(soft_assignments[0])[0] == soft_assignments[0])}")
-
         return soft_assignments
 
+    # embed ind を確率に変更
     embed_one_hot = soft_one_hot(embed_ind, num_classes=num_codebooks)
-    # print(" &&&&&&&&&&&& beginning of feat loss 2")
-    # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-    # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-
-    # Map atom_types to sequential indices
+    print("embed_one_hot.shape")
+    print(embed_one_hot.shape)
+    print("embed_one_hot")
+    print(embed_one_hot)
     unique_atom_numbers = torch.unique(atom_types, sorted=True)
     atom_types_mapped = torch.searchsorted(unique_atom_numbers.contiguous(), atom_types.contiguous())
-    # atom_types_mapped = torch.searchsorted(unique_atom_numbers, atom_types)
-
-    # print(" &&&&&&&&&&&& end of feat loss -3")  # require is False already here
-    # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-    # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-
-    # Create one-hot representations
-    # embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
     atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float().detach()
-
-    print(f"embed_one_hot shape: {embed_one_hot.shape}, requires_grad: {embed_one_hot.requires_grad}")
-    print(f"embed_one_hot sample values: {embed_one_hot[0]}")
-    print(f"atom_type_one_hot shape: {atom_type_one_hot.shape}, requires_grad: {atom_type_one_hot.requires_grad}")
-    print(f"atom_type_one_hot sample values: {atom_type_one_hot[0]}")
-    # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
-
-    # print(" &&&&&&&&&&&& end of feat loss -2")  # require is False already here
-    # print(f"embed_one_hot.requires_grad: {embed_one_hot.requires_grad}")
-    # print(f"embed_one_hot.grad_fn: {embed_one_hot.grad_fn}")
-    # Compute soft assignments
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
-
-    # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
-    print(f"co_occurrence shape: {co_occurrence.shape}, requires_grad: {co_occurrence.requires_grad}")
-    print(f"co_occurrence sample values: {co_occurrence[0, :5]}")
-
-    # Normalize co-occurrence
     co_occurrence_normalized = co_occurrence / (co_occurrence.sum(dim=1, keepdim=True) + 1e-6)
-    print(f"co_occurrence_normalized shape: {co_occurrence_normalized.shape}")
-    print(f"co_occurrence_normalized sample values: {co_occurrence_normalized[0, :5]}")
-
-    # Compute row-wise entropy
     row_entropy = -torch.sum(co_occurrence_normalized * torch.log(co_occurrence_normalized + 1e-6), dim=1)
-    print(f"row_entropy shape: {row_entropy.shape}, requires_grad: {row_entropy.requires_grad}")
-    print(f"row_entropy sample values: {row_entropy[:5]}")
-
-    # Debug connection to the graph
-    # print(" &&&&&&&&&&&& end of feat loss -1")
-    # print(f"row_entropy.requires_grad: {row_entropy.requires_grad}")
-    # print(f"row_entropy.grad_fn: {row_entropy.grad_fn}")
-    # Compute sparsity loss
     sparsity_loss = row_entropy.mean()
-    print(f"sparsity_loss value: {sparsity_loss.item()}, requires_grad: {sparsity_loss.requires_grad}")
-
-    # Debug connection to the graph
-    # print(" &&&&&&&&&&&& end of feat loss")
-    # print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
-    # print(f"sparsity_loss.grad_fn: {sparsity_loss.grad_fn}")
     return sparsity_loss
 
 
