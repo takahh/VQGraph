@@ -332,30 +332,33 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     # Combine and return mean loss
     return (positive_loss + negative_loss).mean()
 
-
-def differentiable_codebook_loss(atomtypes, embed_ind):
+def differentiable_codebook_loss(atomtypes, embed_ind, num_codebooks):
     """
     A differentiable loss function that penalizes assigning the same codebook vector
     to atoms with different atom types.
 
     Args:
         atomtypes (torch.Tensor): Tensor of atom types (shape: [num_atoms]).
-        embed_ind (torch.Tensor): Tensor of codebook vector IDs (shape: [num_atoms]).
+        embed_ind (torch.Tensor): Tensor of codebook vector logits (shape: [num_atoms, num_codebooks]).
+        num_codebooks (int): Number of codebook vectors.
 
     Returns:
         torch.Tensor: Scalar tensor representing the differentiable loss.
     """
+    # Ensure atomtypes is float for differentiability
+    atomtypes = atomtypes.float()
+
+    # Convert embed_ind logits to soft assignments (differentiable)
+    soft_assignments = torch.softmax(embed_ind, dim=-1)  # Shape: [num_atoms, num_codebooks]
+
     # Initialize loss
     loss = torch.tensor(0.0, device=embed_ind.device)
 
-    # Get the maximum codebook index to iterate over all groups
-    max_code_id = int(embed_ind.max().item())
+    for code_id in range(num_codebooks):
+        # Get soft assignments for this codebook vector
+        mask = soft_assignments[:, code_id]  # Shape: [num_atoms]
 
-    for code_id in range(max_code_id + 1):
-        # Get a mask for atoms assigned to this codebook vector
-        mask = (embed_ind == code_id).float()
-
-        if mask.sum() > 1:  # Only compute penalty if there are multiple atoms in the group
+        if mask.sum() > 1e-6:  # Avoid division by zero for empty groups
             # Normalize the mask to avoid scaling issues
             mask = mask / mask.sum()
             # Compute weighted mean atom type for this group
@@ -363,7 +366,7 @@ def differentiable_codebook_loss(atomtypes, embed_ind):
             # Compute the variance of atom types in the group (differentiable penalty)
             variance = (mask * (atomtypes - weighted_mean) ** 2).sum()
             # Add the variance to the loss
-            loss = loss + variance
+            loss += variance
 
     return loss
 
