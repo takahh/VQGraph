@@ -987,7 +987,7 @@ class VectorQuantize(nn.Module):
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
         # atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
-        atom_type_div_loss = compute_contrastive_loss(latents, embed_ind)
+        atom_type_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 0])
         # print(" &&&&&&&&&&&& atom_type_div_loss  ")
         # print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
         # print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
@@ -996,10 +996,10 @@ class VectorQuantize(nn.Module):
 
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        bond_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 1], self.codebook_size)
-        aroma_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 4], self.codebook_size)
-        ringy_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 5], self.codebook_size)
-        h_num_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 6], self.codebook_size)
+        bond_num_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 1], self.codebook_size)
+        aroma_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 4], self.codebook_size)
+        ringy_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 5], self.codebook_size)
+        h_num_div_loss = compute_contrastive_loss(embed_ind, init_feat[:, 6], self.codebook_size)
         # bond_num_div_loss = None
         # aroma_div_loss = None
         # ringy_div_loss = None
