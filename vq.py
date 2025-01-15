@@ -342,6 +342,11 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     # print(f"atom_types.grad_fn: {atom_types.grad_fn}")
     # Ensure embed_ind is within valid range
     # embed_ind = torch.clamp(embed_ind, min=0, max=num_codebooks - 1).long()
+    print(f"embed_ind shape: {embed_ind.shape}, dtype: {embed_ind.dtype}, requires_grad: {embed_ind.requires_grad}")
+    print(f"embed_ind unique values: {torch.unique(embed_ind)}")
+    print(f"atom_types shape: {atom_types.shape}, dtype: {atom_types.dtype}, requires_grad: {atom_types.requires_grad}")
+    print(f"atom_types unique values: {torch.unique(atom_types)}")
+
     def soft_one_hot(indices, num_classes, temperature=0.02):
         class_indices = torch.arange(num_classes, device=indices.device).float()
         return torch.softmax(-(indices.unsqueeze(-1) - class_indices) ** 2 / temperature, dim=-1)
@@ -362,7 +367,12 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
     # Create one-hot representations
     # embed_one_hot = torch.nn.functional.one_hot(embed_ind, num_classes=num_codebooks).float()
-    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped,                                           num_classes=len(unique_atom_numbers)).float().detach()
+    atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float().detach()
+
+    print(f"embed_one_hot shape: {embed_one_hot.shape}, requires_grad: {embed_one_hot.requires_grad}")
+    print(f"embed_one_hot sample values: {embed_one_hot[0]}")
+    print(f"atom_type_one_hot shape: {atom_type_one_hot.shape}, requires_grad: {atom_type_one_hot.requires_grad}")
+    print(f"atom_type_one_hot sample values: {atom_type_one_hot[0]}")
     # atom_type_one_hot = torch.nn.functional.one_hot(atom_types_mapped, num_classes=len(unique_atom_numbers)).float()
 
     # print(" &&&&&&&&&&&& end of feat loss -2")  # require is False already here
@@ -372,16 +382,27 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     soft_assignments = torch.softmax(embed_one_hot / temperature, dim=-1)
     # Compute co-occurrence matrix
     co_occurrence = torch.einsum("ni,nj->ij", [soft_assignments, atom_type_one_hot])
+    print(f"co_occurrence shape: {co_occurrence.shape}, requires_grad: {co_occurrence.requires_grad}")
+    print(f"co_occurrence sample values: {co_occurrence[0, :5]}")
+
     # Normalize co-occurrence
     co_occurrence_normalized = co_occurrence / (co_occurrence.sum(dim=1, keepdim=True) + 1e-6)
+    print(f"co_occurrence_normalized shape: {co_occurrence_normalized.shape}")
+    print(f"co_occurrence_normalized sample values: {co_occurrence_normalized[0, :5]}")
+
     # Compute row-wise entropy
     row_entropy = -torch.sum(co_occurrence_normalized * torch.log(co_occurrence_normalized + 1e-6), dim=1)
+    print(f"row_entropy shape: {row_entropy.shape}, requires_grad: {row_entropy.requires_grad}")
+    print(f"row_entropy sample values: {row_entropy[:5]}")
+
     # Debug connection to the graph
     # print(" &&&&&&&&&&&& end of feat loss -1")
     # print(f"row_entropy.requires_grad: {row_entropy.requires_grad}")
     # print(f"row_entropy.grad_fn: {row_entropy.grad_fn}")
     # Compute sparsity loss
     sparsity_loss = row_entropy.mean()
+    print(f"sparsity_loss value: {sparsity_loss.item()}, requires_grad: {sparsity_loss.requires_grad}")
+
     # Debug connection to the graph
     # print(" &&&&&&&&&&&& end of feat loss")
     # print(f"sparsity_loss.requires_grad: {sparsity_loss.requires_grad}")
