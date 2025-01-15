@@ -345,12 +345,8 @@ def differentiable_codebook_loss(atomtypes, embed_ind):
     Returns:
         torch.Tensor: Scalar tensor representing the differentiable loss.
     """
-    # Convert to PyTorch tensors if not already
-    # atomtypes = torch.tensor(atomtypes, dtype=torch.float32)
-    # embed_ind = torch.tensor(embed_ind, dtype=torch.long)
-
     # Initialize loss
-    loss = torch.tensor(0.0, requires_grad=True)
+    loss = torch.tensor(0.0, device=embed_ind.device)
 
     # Get the maximum codebook index to iterate over all groups
     max_code_id = int(embed_ind.max().item())
