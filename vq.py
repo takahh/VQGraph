@@ -347,9 +347,29 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
     print(f"atom_types shape: {atom_types.shape}, dtype: {atom_types.dtype}, requires_grad: {atom_types.requires_grad}")
     print(f"atom_types unique values: {torch.unique(atom_types)}")
 
-    def soft_one_hot(indices, num_classes, temperature=0.02):
+    def soft_one_hot(indices, num_classes, temperature=0.1):  # Increased default temperature for stability
+        # Create class indices
         class_indices = torch.arange(num_classes, device=indices.device).float()
-        return torch.softmax(-(indices.unsqueeze(-1) - class_indices) ** 2 / temperature, dim=-1)
+
+        # Debug input indices
+        print(f"soft_one_hot - indices min: {indices.min()}, max: {indices.max()}, mean: {indices.float().mean()}")
+        print(f"soft_one_hot - num_classes: {num_classes}, temperature: {temperature}")
+
+        # Normalize indices to a 0-1 range (optional, helps with stability)
+        indices = indices.float() / (indices.max() + 1e-6)
+        print(f"soft_one_hot - normalized indices min: {indices.min()}, max: {indices.max()}")
+
+        # Compute the distance-based logits
+        logits = -(indices.unsqueeze(-1) - class_indices) ** 2 / temperature
+        print(
+            f"soft_one_hot - logits shape: {logits.shape}, min: {logits.min()}, max: {logits.max()}, mean: {logits.mean()}")
+
+        # Compute softmax
+        soft_assignments = torch.softmax(logits, dim=-1)
+        print(
+            f"soft_one_hot - soft_assignments shape: {soft_assignments.shape}, sum of first example: {soft_assignments[0].sum()}")
+
+        return soft_assignments
 
     embed_one_hot = soft_one_hot(embed_ind, num_classes=num_codebooks)
     # print(" &&&&&&&&&&&& beginning of feat loss 2")
