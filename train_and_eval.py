@@ -718,10 +718,10 @@ def run_inductive(
             # logger.info(f"test_unknown_g, epoch {epoch:3d}, feature_loss: {loss_list1[0].item(): 4f}| edge_loss: {loss_list1[1].item(): 4f}| div_element_loss: {loss_list1[2].item(): 4f},| commit_loss: {loss_list1[3].item(): 4f}")
 
             print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
-            print(f" div_element_loss: {sum(loss_list)/len(loss_list): 4f},|  ")
-            # print(f"train_known_g, div_element_loss: {loss_list[0].item(): 4f},| commit_loss: {loss_list[1].item(): 4f},"
-            #       f"bond_num_div_loss: {loss_list[5].item(): 4f}, aroma_div_loss: {loss_list[6].item(): 4f}, "
-            #       f"ringy_div_loss: {loss_list[7].item(): 4f}, h_num_div_loss: {loss_list[8].item(): 4f}, sil_loss: {loss_list[9].item(): 4f}")
+            # print(f" div_element_loss: {sum(loss_list)/len(loss_list): 4f},|  ")
+            print(f"train_known_g, div_element_loss: {loss_list[0]: 4f}, bond_num_div_loss: {loss_list[5]: 4f}, aroma_div_loss: {loss_list[6]: 4f}, "
+                  f"ringy_div_loss: {loss_list[7]: 4f}, h_num_div_loss: {loss_list[8]: 4f}")
+                  # f"ringy_div_loss: {loss_list[7]: 4f}, h_num_div_loss: {loss_list[8]: 4f}, sil_loss: {loss_list[9].item(): 4f}")
             # print(f"test_known_g, div_element_loss: {loss_list0[0].item(): 4f}, | commit_loss: {loss_list0[1].item(): 4f}")
             # print(f"test_unknown_g, "
             #       f"div_element_loss: {loss_list1[0].item(): 4f},| commit_loss: {loss_list1[1].item(): 4f},"
