@@ -348,12 +348,18 @@ def differentiable_codebook_loss(atomtypes, embed_ind, num_codebooks):
     # Ensure atomtypes is float for differentiability
     atomtypes = atomtypes.float()
 
-    print("embed_ind.shape")
-    print(embed_ind.shape)
-    print("embed_ind")
-    print(embed_ind[0])
+    # Create a tensor of zeros for soft one-hot
+    one_hot = torch.zeros(embed_ind.size(0), num_codebooks, device=embed_ind.device, requires_grad=True)
+
+    # Use scatter to populate the one-hot representation
+    embed_ind_one_hot = one_hot.scatter(1, embed_ind.unsqueeze(1), 1.0)
+
+    print("embed_ind_one_hot.shape")
+    print(embed_ind_one_hot.shape)
+    print("embed_ind_one_hot")
+    print(embed_ind_one_hot[0])
     # Convert embed_ind logits to soft assignments (differentiable)
-    soft_assignments = torch.softmax(embed_ind, dim=-1)  # Shape: [num_atoms, num_codebooks]
+    soft_assignments = torch.softmax(embed_ind_one_hot, dim=-1)  # Shape: [num_atoms, num_codebooks]
     print("soft_assignments.shape")
     print(soft_assignments.shape)
     print("soft_assignments")
