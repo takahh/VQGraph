@@ -332,58 +332,6 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     # Combine and return mean loss
     return (positive_loss + negative_loss).mean()
 
-def differentiable_codebook_loss(atomtypes, embed_ind, num_codebooks):
-    """
-    A differentiable loss function that penalizes assigning the same codebook vector
-    to atoms with different atom types.
-
-    Args:
-        atomtypes (torch.Tensor): Tensor of atom types (shape: [num_atoms]).
-        embed_ind (torch.Tensor): Tensor of codebook vector logits (shape: [num_atoms, num_codebooks]).
-        num_codebooks (int): Number of codebook vectors.
-
-    Returns:
-        torch.Tensor: Scalar tensor representing the differentiable loss.
-    """
-    # Ensure atomtypes is float for differentiability
-    atomtypes = atomtypes.float()
-
-    # Create a tensor of zeros for soft one-hot
-    one_hot = torch.zeros(embed_ind.size(0), num_codebooks, device=embed_ind.device, requires_grad=True)
-
-    # Use scatter to populate the one-hot representation
-    embed_ind_one_hot = one_hot.scatter(1, embed_ind.unsqueeze(1), 1.0)
-
-    print("embed_ind_one_hot.shape")
-    print(embed_ind_one_hot.shape)
-    print("embed_ind_one_hot")
-    print(embed_ind_one_hot[0])
-    # Convert embed_ind logits to soft assignments (differentiable)
-    soft_assignments = torch.softmax(embed_ind_one_hot, dim=-1)  # Shape: [num_atoms, num_codebooks]
-    print("soft_assignments.shape")
-    print(soft_assignments.shape)
-    print("soft_assignments")
-    print(soft_assignments[0])
-
-    # Initialize loss
-    loss = torch.tensor(0.0, device=embed_ind.device)
-
-    for code_id in range(num_codebooks):
-        # Get soft assignments for this codebook vector
-        mask = soft_assignments[:, code_id]  # Shape: [num_atoms]
-
-        if mask.sum() > 1e-6:  # Avoid division by zero for empty groups
-            # Normalize the mask to avoid scaling issues
-            mask = mask / mask.sum()
-            # Compute weighted mean atom type for this group
-            weighted_mean = (mask * atomtypes).sum()
-            # Compute the variance of atom types in the group (differentiable penalty)
-            variance = (mask * (atomtypes - weighted_mean) ** 2).sum()
-            # Add the variance to the loss
-            loss += variance
-
-    return loss
-
 
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
 
@@ -1038,7 +986,8 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
-        atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
+        # atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
+        atom_type_div_loss = compute_contrastive_loss(latents, embed_ind)
         print(" &&&&&&&&&&&& atom_type_div_loss  ")
         print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
         print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
