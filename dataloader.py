@@ -511,36 +511,40 @@ class SparseGraph:
         """Return the (A, X, z) triplet."""
         return self.adj_matrix, self.attr_matrix, self.labels
 
-
-def load_npz_to_sparse_graph(file_name):
-    """Load a SparseGraph from a Numpy binary file.
+def load_npz_to_sparse_graph_partial(file_name, percentage=0.1):
+    """Load a partial SparseGraph from a Numpy binary file.
 
     Parameters
     ----------
     file_name : str
         Name of the file to load.
+    percentage : float
+        Percentage of data to load (e.g., 0.1 for 10%).
 
     Returns
     -------
     sparse_graph : SparseGraph
-        Graph in sparse matrix format.
-
+        Partial graph in sparse matrix format.
     """
     with np.load(file_name, allow_pickle=True) as loader:
         loader = dict(loader)
+        num_nodes = loader["adj_shape"][0]
+        cutoff = int(num_nodes * percentage)
+
         adj_matrix = sp.csr_matrix(
             (loader["adj_data"], loader["adj_indices"], loader["adj_indptr"]),
             shape=loader["adj_shape"],
-        )
+        )[:cutoff, :cutoff]
+
         if "attr_data" in loader:
             # Attributes are stored as a sparse CSR matrix
             attr_matrix = sp.csr_matrix(
                 (loader["attr_data"], loader["attr_indices"], loader["attr_indptr"]),
                 shape=loader["attr_shape"],
-            )
+            )[:cutoff]
         elif "attr_matrix" in loader:
             # Attributes are stored as a (dense) np.ndarray
-            attr_matrix = loader["attr_matrix"]
+            attr_matrix = loader["attr_matrix"][:cutoff]
         else:
             attr_matrix = None
 
@@ -553,12 +557,13 @@ def load_npz_to_sparse_graph(file_name):
                     loader["labels_indptr"],
                 ),
                 shape=loader["labels_shape"],
-            )
+            )[:cutoff]
         elif "labels" in loader:
             # Labels are stored as a numpy array
-            labels = loader["labels"]
+            labels = loader["labels"][:cutoff]
         else:
             labels = None
+
         node_names = loader.get("node_names")
         attr_names = loader.get("attr_names")
         class_names = loader.get("class_names")
