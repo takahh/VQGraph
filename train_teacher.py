@@ -121,7 +121,7 @@ def get_args():
     )
 
     """SAGE Specific"""
-    parser.add_argument("--batch_size", type=int, default=2000)
+    parser.add_argument("--batch_size", type=int, default=4000)
     parser.add_argument(
         "--fan_out",
         type=str,
@@ -134,7 +134,7 @@ def get_args():
 
     """Optimization"""
     parser.add_argument("--accumulation_steps", type=int, default=2) # default=0.0001)
-    parser.add_argument("--learning_rate", type=float, default=0.0001) # default=0.0001)
+    parser.add_argument("--learning_rate", type=float, default=0.0005) # default=0.0001)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument(
         "--max_epoch", type=int, default=5, help="Evaluate once per how many epochs"
