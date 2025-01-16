@@ -30,185 +30,54 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     loss.backward()
     optimizer.step()
     return loss_val, loss_list
-
-#
-# def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
-#     """
-#     Train for GraphSAGE. Process the graph in mini-batches using `dataloader` instead of the entire graph `g`.
-#     lamb: weight parameter lambda
-#     """
-#     accumulation_steps = 2
-#     device = feats.device
-#     model.train()
-#     total_loss = 0
-#     loss_list, latent_list = [], []
-#     cb_list = []
-#     init_cb_list = []
-#     scaler = torch.cuda.amp.GradScaler()  # Initialize scaler outside the loop
-#     #     model.encoder.reset_kmeans()
-#     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-#         blocks = [blk.int().to(device) for blk in blocks]
-#         batch_feats = feats[input_nodes]
-#         # print(f"step {step}")
-#         # run kmeans at the first step and the last step
-#
-#         with torch.cuda.amp.autocast():  # Mixed precision forward pass
-#             # h_list, h, loss, dist, codebook, losslist, x, detached_quantize, latents
-#             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
-#             # [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss]
-#             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
-#
-#         # Backward pass
-#         scaler.scale(loss).backward()
-#
-#         # Check gradients before unscaling
-#         # for name, param in model.named_parameters():
-#         #     if param.grad is None:
-#         #         print(f"{name}: Gradient is None!")
-#         #     else:
-#         #         print(f"{name}: Gradient exists.")
-#
-#         # Unscale gradients
-#         scaler.unscale_(optimizer)
-#
-#         # # Check for NaNs or infs
-#         # for name, param in model.named_parameters():
-#         #     if param.grad is not None:
-#         #         print(
-#         #             f"{name}: grad has NaNs or infs: {torch.isnan(param.grad).any().item() or torch.isinf(param.grad).any().item()}")
-#
-#         # Clip gradients (optional)
-#         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-#
-#         # Optimizer step
-#         scaler.step(optimizer)
-#         scaler.update()
-#
-#         # for name, param in model.named_parameters():
-#         #     if param.grad is None:
-#         #         print(f"{name} is not contributing to the loss computation.")
-#
-#         if step % 1 == 0:
-#             # Code to execute at the first and last step
-#             model.encoder.reset_kmeans()
-#             model.encoder.vq._codebook.init_embed_(latents)
-#         # ---------------------------------------
-#         # Update weights after accumulation_steps
-#         # ---------------------------------------
-#         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-#             # for name, param in model.named_parameters():
-#             #     if param.grad is None:
-#             #         print(f"No grad for {name}")
-#             #
-#             # # Check if parameters are used in forward pass
-#             # for name, param in model.named_parameters():
-#             #     print(f"{name}: requires_grad={param.requires_grad}, grad=None={param.grad is None}")
-#             #
-#             # # Ensure optimizer includes all parameters
-#             # for group in optimizer.param_groups:
-#             #     print(f"Optimizer param group: {[p.shape for p in group['params']]}")
-#
-#             # print(f"loss.requires_grad: {loss.requires_grad}")
-#             # print(f"loss.grad_fn: {loss.grad_fn}")
-#             # print(f"loss value: {loss.item()}")
-#
-#             scaler.step(optimizer)
-#             scaler.update()
-#             optimizer.zero_grad()  # Reset gradients after optimizer step
-#             # model.encoder.reset_kmeans()
-#
-#             # count unique cb vectors
-#             unique_vectors, counts = np.unique(np.squeeze(cb.cpu().detach().numpy()), axis=0, return_counts=True)
-#             # print(f"unique codebook vectors {counts}")
-#             # print(f"feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| commit_loss: {loss_list[2].item(): 4f}, margin loss {loss_list[3].item(): 4f}, spread_loss {loss_list[4].item(): 4f}")
-#         # if step % 5 == 0:
-#         # model.encoder.reset_kmeans()
-#         # Logging
-#         total_loss += loss.item() * accumulation_steps
-#
-#         # Append latent_train to CPU to avoid GPU memory growth
-#         latent_list.append(latent_train.detach().cpu())
-#         cb_list.append(cb.detach().cpu())
-#
-#         # Move loss_list to CPU and release memory
-#         # loss_list = [l.detach().cpu() for l in loss_list]
-#         # loss_list = None
-#         loss_list.append(loss.detach().cpu())
-#
-#         # Release memory explicitly
-#         # del blocks, batch_feats, loss, logits
-#         # torch.cuda.empty_cache()
-#
-#     # Average total loss over all steps
-#     avg_loss = total_loss / len(dataloader)
-#     del total_loss, scaler
-#     # torch.cuda.empty_cache()
-#     return avg_loss, loss_list, latent_list, latents
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     device = feats.device
     model.train()
     total_loss = 0
     loss_list, latent_list = [], []
     cb_list = []
-    scaler = torch.cuda.amp.GradScaler()  # Initialize scaler
+    scaler = torch.cuda.amp.GradScaler()
 
-    optimizer.zero_grad()  # Reset gradients at the start
+    optimizer.zero_grad()
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
 
-        with torch.cuda.amp.autocast():  # Mixed precision forward pass
+        with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
-            loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
-
-        print(" &&&&&&&&&&&& loss in train_sage ")
-        print(f"requires_grad: {loss.requires_grad}")
-        print(f"grad_fn: {loss.grad_fn}")
-        print(f"shape: {loss.shape}")
-        print(f"value: {loss}")
+            loss = loss * lamb / accumulation_steps
 
         if not torch.isfinite(loss):
             print(f"Step {step}, Loss is not finite: {loss}. Skipping step.")
             continue
 
-        # Backward pass
         scaler.scale(loss).backward()
         print(f"Step {step}, Loss scaled and backpropagated.")
 
-        # Check gradients
+        # Debug gradients
         for name, param in model.named_parameters():
             if param.grad is None:
-                print(f"No gradient for parameter: {name} at step {step}")
-            else:
-                print(f"{name} gradient norm: {param.grad.norm()}")
+                print(f"No gradient for parameter: {name}")
+            elif torch.isnan(param.grad).any() or torch.isinf(param.grad).any():
+                print(f"Gradient for parameter {name} is NaN or Inf.")
 
-        # Gradient accumulation
+        # Accumulation steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-            # Unscale gradients
             scaler.unscale_(optimizer)
-            print("Unscaled gradients before clipping.")
-
-            # Clip gradients
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-
-            # Optimizer step
-            print("Performing optimizer step.")
             scaler.step(optimizer)
             scaler.update()
-
-            # Reset gradients after optimizer step
             optimizer.zero_grad()
 
-        # Logging
         total_loss += loss.item() * accumulation_steps
         latent_list.append(latent_train.detach().cpu())
         cb_list.append(cb.detach().cpu())
         loss_list.append(loss.detach().cpu())
 
-    # Average total loss
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list, latent_list, latents
+
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
