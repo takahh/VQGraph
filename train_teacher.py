@@ -67,7 +67,7 @@ def get_args():
     # --------------
     # Dataset
     # --------------
-    parser.add_argument("--percent", type=float, default=1)
+    parser.add_argument("--percent", type=float, default=0.1)
     parser.add_argument("--dataset", type=str, default="cora", help="Dataset")
     parser.add_argument("--data_path", type=str, default="./data", help="Path to data")
     parser.add_argument(
