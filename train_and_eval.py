@@ -71,8 +71,10 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         for i, loss_value in enumerate(loss_list3):
             loss_list_list[i].append(loss_value.item())
 
+        print(f"0..... !!!!!!!!!!!!!!!!!")
         scaler.scale(loss).backward()
 
+        print(f"1..... !!!!!!!!!!!!!!!!!")
         # Accumulation steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             scaler.unscale_(optimizer)
@@ -81,11 +83,13 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             scaler.update()
             optimizer.zero_grad()
 
+        print(f"2..... !!!!!!!!!!!!!!!!!")
         total_loss += loss.item() * accumulation_steps
         latent_list.append(latent_train.detach().cpu())
         cb_list.append(cb.detach().cpu())
         loss_list.append(loss.detach().cpu())
 
+        print(f"3..... !!!!!!!!!!!!!!!!!")
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list_list, latent_list, latents
 
