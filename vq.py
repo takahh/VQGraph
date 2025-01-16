@@ -999,11 +999,11 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
         atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
-        print(" &&&&&&&&&&&& atom_type_div_loss  ")
-        print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
-        print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
-        print(f"atom_type_div_loss.shape: {atom_type_div_loss.shape}")
-        print(f"atom_type_div_loss: {atom_type_div_loss}")
+        # print(" &&&&&&&&&&&& atom_type_div_loss  ")
+        # print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
+        # print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
+        # print(f"atom_type_div_loss.shape: {atom_type_div_loss.shape}")
+        # print(f"atom_type_div_loss: {atom_type_div_loss}")
 
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
@@ -1079,11 +1079,11 @@ class VectorQuantize(nn.Module):
         # if self.training:
         #     quantize = x_tmp + (quantize - x_tmp)
 
-        print(" &&&&&&&&&&&& quantize  ")
-        print(f"quantize.requires_grad: {quantize.requires_grad}")
-        print(f"quantize.grad_fn: {quantize.grad_fn}")
-        print(f"quantize.shape: {quantize.shape}")
-        print(f"quantize: {quantize}")
+        # print(" &&&&&&&&&&&& quantize  ")
+        # print(f"quantize.requires_grad: {quantize.requires_grad}")
+        # print(f"quantize.grad_fn: {quantize.grad_fn}")
+        # print(f"quantize.shape: {quantize.shape}")
+        # print(f"quantize: {quantize}")
         # print(f"++++++++++++++++++")
         # print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
         # print(f"quantize {quantize}")
