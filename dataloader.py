@@ -48,7 +48,8 @@ def load_data(dataset, dataset_path, **kwargs):
             kwargs["seed"],
             kwargs["labelrate_train"],
             kwargs["labelrate_val"],
-            kwargs["train_or_infer"]
+            kwargs["train_or_infer"],
+            kwargs["percent"]
         )
     elif dataset in OGB_data:
         return load_ogb_data(dataset, dataset_path)
@@ -83,10 +84,10 @@ def load_ogb_data(dataset, dataset_path):
     return g, labels, idx_train, idx_val, idx_test
 
 
-def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, train_or_infer):
+def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, train_or_infer, percent):
     data_path = Path.cwd().joinpath(dataset_path, f"{dataset}.npz")
     if os.path.isfile(data_path):
-        data = load_npz_to_sparse_graph(data_path)
+        data = load_npz_to_sparse_graph(data_path, percent)
     else:
         raise ValueError(f"{data_path} doesn't exist.")
     adj, features, labels = data.unpack()

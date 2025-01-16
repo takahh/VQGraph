@@ -113,6 +113,7 @@ def get_args():
     )
 
     """Optimization"""
+    parser.add_argument("--percent", type=float, default=0.05)
     parser.add_argument("--learning_rate", type=float, default=0.01)
     parser.add_argument("--weight_decay", type=float, default=0.0005)
     parser.add_argument(
@@ -254,6 +255,7 @@ def run(args):
         seed=args.seed,
         labelrate_train=args.labelrate_train,
         labelrate_val=args.labelrate_val,
+        percent=args.percent
     )
 
     logger.info(f"Total {g.number_of_nodes()} nodes.")
