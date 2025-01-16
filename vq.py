@@ -1076,9 +1076,14 @@ class VectorQuantize(nn.Module):
         # print(f"x_tmp {x_tmp.shape}")  # [1, 1, 1852, 256])
         # print(f"x_tmp {x_tmp}")
         codes = self.get_codes_from_indices(embed_ind)
-        if self.training:
-            quantize = x_tmp + (quantize - x_tmp)
+        # if self.training:
+        #     quantize = x_tmp + (quantize - x_tmp)
 
+        print(" &&&&&&&&&&&& quantize  ")
+        print(f"quantize.requires_grad: {quantize.requires_grad}")
+        print(f"quantize.grad_fn: {quantize.grad_fn}")
+        print(f"quantize.shape: {quantize.shape}")
+        print(f"quantize: {quantize}")
         # print(f"++++++++++++++++++")
         # print(f"quantize {quantize.shape}")  # [1, 1, 1852, 256])
         # print(f"quantize {quantize}")
@@ -1104,8 +1109,6 @@ class VectorQuantize(nn.Module):
 
             if exists(mask):
                 # with variable lengthed sequences
-                print(f"x {x.shape}")
-                print(f"detached_quantize {detached_quantize.shape}")
                 commit_loss = F.mse_loss(detached_quantize, x, reduction='none')
 
                 if is_multiheaded:
