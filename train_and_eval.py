@@ -144,7 +144,6 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
 #     del total_loss, scaler
 #     # torch.cuda.empty_cache()
 #     return avg_loss, loss_list, latent_list, latents
-
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     device = feats.device
     model.train()
@@ -164,34 +163,36 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
         if not torch.isfinite(loss):
-            print(f"Non-finite loss detected at step {step}. Skipping step.")
+            print(f"Step {step}, Loss is not finite: {loss}. Skipping step.")
             continue
 
         # Backward pass
         scaler.scale(loss).backward()
+        print(f"Step {step}, Loss scaled and backpropagated.")
+
+        # Check gradients
+        for name, param in model.named_parameters():
+            if param.grad is None:
+                print(f"No gradient for parameter: {name} at step {step}")
+            else:
+                print(f"{name} gradient norm: {param.grad.norm()}")
 
         # Gradient accumulation
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
-            # Unscale gradients for clipping and checks
+            # Unscale gradients
             scaler.unscale_(optimizer)
+            print("Unscaled gradients before clipping.")
 
-            # Gradient clipping
+            # Clip gradients
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
             # Optimizer step
+            print("Performing optimizer step.")
             scaler.step(optimizer)
             scaler.update()
 
             # Reset gradients after optimizer step
             optimizer.zero_grad()
-
-        # Debugging: Print loss and gradient state
-        print(f"Step {step}, Loss: {loss.item()}")
-
-        # Optional operations
-        if step == 0 or (step + 1) % accumulation_steps == 0:
-            model.encoder.reset_kmeans()
-            model.encoder.vq._codebook.init_embed_(latents)
 
         # Logging
         total_loss += loss.item() * accumulation_steps
@@ -202,7 +203,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     # Average total loss
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list, latent_list, latents
-
 
 
 def train_mini_batch(model, feats, labels, batch_size, criterion, optimizer, lamb=1):
