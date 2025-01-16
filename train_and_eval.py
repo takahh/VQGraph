@@ -31,6 +31,7 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     optimizer.step()
     return loss_val, loss_list
 
+
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     device = feats.device
     model.train()
@@ -57,7 +58,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps
-
+        print(f"model forward is done..... !!!!!!!!!!!!!!!!!")
         if not torch.isfinite(loss):
             print(f"Step {step}, Loss is not finite: {loss}. Skipping step.")
             continue
