@@ -466,8 +466,8 @@ class EuclideanCodebook(nn.Module):
 
     @torch.jit.ignore
     def init_embed_(self, data):
-        # if self.initted:
-        #     return
+        if self.initted:
+            return
         # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
