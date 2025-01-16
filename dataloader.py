@@ -511,7 +511,7 @@ class SparseGraph:
         """Return the (A, X, z) triplet."""
         return self.adj_matrix, self.attr_matrix, self.labels
 
-def load_npz_to_sparse_graph(file_name, percentage=0.01):
+def load_npz_to_sparse_graph(file_name, percentage=0.05):
     """Load a partial SparseGraph from a Numpy binary file.
 
     Parameters
