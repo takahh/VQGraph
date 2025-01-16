@@ -690,7 +690,7 @@ def run_inductive(
             # --------------------------------
             # check if edge loss is decreasing
             # --------------------------------
-            # if loss_list[1].item() < best_score_val:
+            if loss_list[1].item() < best_score_val:
                 # best_epoch = epoch
                 # best_score_val = loss_list[1].item()
                 state = copy.deepcopy(model.state_dict())
