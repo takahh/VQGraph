@@ -232,7 +232,8 @@ def run(args):
         seed=args.seed,
         labelrate_train=args.labelrate_train,
         labelrate_val=args.labelrate_val,
-        train_or_infer=args.train_or_infer
+        train_or_infer=args.train_or_infer,
+        percent=args.percent
     )
     # logger.info(f"Total {g.number_of_nodes()} nodes.")
     # logger.info(f"Total {g.number_of_edges()} edges.")
