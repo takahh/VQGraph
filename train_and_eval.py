@@ -57,11 +57,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         scaler.scale(loss).backward()
 
         # Debug gradients
-        for name, param in model.named_parameters():
-            if param.grad is None:
-                print(f"No gradient for parameter: {name}")
-            elif torch.isnan(param.grad).any() or torch.isinf(param.grad).any():
-                print(f"Gradient for parameter {name} is NaN or Inf.")
+        # for name, param in model.named_parameters():
+        #     if param.grad is None:
+        #         print(f"No gradient for parameter: {name}")
+        #     elif torch.isnan(param.grad).any() or torch.isinf(param.grad).any():
+        #         print(f"Gradient for parameter {name} is NaN or Inf.")
 
         # Accumulation steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
