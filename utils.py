@@ -119,7 +119,6 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
         Indices start with 'obs_' correspond to the node indices within the observed subgraph,
         where as indices start directly with 'idx_' correspond to the node indices in the original graph
     """
-    print(f"idx_test {idx_test}")
     idx_test_ind, idx_test_tran = idx_split(idx_test, rate, seed, train_or_infer)
 
     idx_obs = torch.cat([idx_train, idx_val, idx_test])
@@ -129,6 +128,10 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
     obs_idx_val = obs_idx_all[N1 : N1 + N2]
     obs_idx_test = obs_idx_all[N1 + N2 :]
 
+    print(f"obs_idx_train {idx_test}")
+    print(f"obs_idx_val {idx_test}")
+    print(f"obs_idx_test {idx_test}")
+    print(f"idx_test_ind {idx_test_ind}")
     idx_test_ind = torch.tensor(list(range(N1 + N2 + N2, N1 + N2 + N2 + N2 + 1)))
     return obs_idx_train, obs_idx_val, obs_idx_test, obs_idx_all, idx_test_ind
 
