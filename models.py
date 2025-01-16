@@ -194,6 +194,7 @@ class SAGE(nn.Module):
         self.vq._codebook.reset_kmeans()
 
     def forward(self, blocks, feats):
+        print(f"RUNNING FORWARD ======================")
         h = feats.clone() if not feats.requires_grad else feats  # Ensure h requires gradients
         init_feat = h
         torch.save(h.clone(), "/h.pt")  # Save a clone to avoid detachment
@@ -285,6 +286,7 @@ class SAGE(nn.Module):
         dataloader : The entire graph loaded in blocks with full neighbors for each node.
         feats : The input feats of entire node set.
         """
+        print(f"RUNNING INFER  ======================")
         device = feats.device
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
