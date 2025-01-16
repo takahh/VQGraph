@@ -45,6 +45,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
+
+        print(f"Total number of batches: {len(dataloader)} ++++++++++++++")
         print(f"------------step {step} -------------------")
         print(f"input_nodes: {input_nodes}")
         print(f"input_nodes.shape: {input_nodes.shape}")
