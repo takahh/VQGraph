@@ -31,13 +31,13 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     optimizer.step()
     return loss_val, loss_list
 
-
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     device = feats.device
     model.train()
     total_loss = 0
     loss_list, latent_list = [], []
     cb_list = []
+    loss_list_list = []  # Initialize a list for tracking loss_list3 over steps
     scaler = torch.cuda.amp.GradScaler()
 
     optimizer.zero_grad()
@@ -54,14 +54,15 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             print(f"Step {step}, Loss is not finite: {loss}. Skipping step.")
             continue
 
-        scaler.scale(loss).backward()
+        # Initialize loss_list_list with empty sublists if it's the first step
+        if step == 0:
+            loss_list_list = [[] for _ in range(len(loss_list3))]
 
-        # Debug gradients
-        # for name, param in model.named_parameters():
-        #     if param.grad is None:
-        #         print(f"No gradient for parameter: {name}")
-        #     elif torch.isnan(param.grad).any() or torch.isinf(param.grad).any():
-        #         print(f"Gradient for parameter {name} is NaN or Inf.")
+        # Append each element from loss_list3 to the corresponding sublist
+        for i, loss_value in enumerate(loss_list3):
+            loss_list_list[i].append(loss_value.item())
+
+        scaler.scale(loss).backward()
 
         # Accumulation steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
@@ -77,7 +78,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         loss_list.append(loss.detach().cpu())
 
     avg_loss = total_loss / len(dataloader)
-    return avg_loss, loss_list, latent_list, latents
+    return avg_loss, loss_list_list, latent_list, latents
 
 
 
@@ -510,7 +511,7 @@ def run_inductive(
                 # print("TRAIN STARAT -------------!")
                 # partial sampling, only obs data
                 # this loss is label loss
-                loss, loss_list, latent_train, latents = train_sage(
+                loss, loss_sum_list, latent_train, latents = train_sage(
                     model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
                 )
                 model.encoder.reset_kmeans()
