@@ -162,6 +162,12 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps  # Scale loss for accumulation
 
+        print(" &&&&&&&&&&&& loss in train_sage ")
+        print(f"requires_grad: {loss.requires_grad}")
+        print(f"grad_fn: {loss.grad_fn}")
+        print(f"shape: {loss.shape}")
+        print(f"value: {loss}")
+
         if not torch.isfinite(loss):
             print(f"Step {step}, Loss is not finite: {loss}. Skipping step.")
             continue
