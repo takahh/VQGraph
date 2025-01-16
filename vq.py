@@ -1076,8 +1076,8 @@ class VectorQuantize(nn.Module):
         # print(f"x_tmp {x_tmp.shape}")  # [1, 1, 1852, 256])
         # print(f"x_tmp {x_tmp}")
         codes = self.get_codes_from_indices(embed_ind)
-        # if self.training:
-        #     quantize = x_tmp + (quantize - x_tmp)
+        if self.training:
+            quantize = x_tmp + (quantize - x_tmp)
 
         # print(" &&&&&&&&&&&& quantize  ")
         # print(f"quantize.requires_grad: {quantize.requires_grad}")
