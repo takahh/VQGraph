@@ -30,6 +30,8 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     loss.backward()
     optimizer.step()
     return loss_val, loss_list
+
+
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     device = feats.device
     model.train()
@@ -53,7 +55,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
             continue
 
         scaler.scale(loss).backward()
-        print(f"Step {step}, Loss scaled and backpropagated.")
 
         # Debug gradients
         for name, param in model.named_parameters():
@@ -74,6 +75,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         latent_list.append(latent_train.detach().cpu())
         cb_list.append(cb.detach().cpu())
         loss_list.append(loss.detach().cpu())
+        print(loss)
 
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list, latent_list, latents
@@ -690,10 +692,10 @@ def run_inductive(
             # --------------------------------
             # check if edge loss is decreasing
             # --------------------------------
-            if loss_list[1].item() < best_score_val:
+            # if loss_list[1].item() < best_score_val:
                 # best_epoch = epoch
                 # best_score_val = loss_list[1].item()
-                state = copy.deepcopy(model.state_dict())
+            state = copy.deepcopy(model.state_dict())
                 # cb_at_best = cb_just_trained
                 # train_latents_at_best = latent_train
                 # print(f"best epoch is {best_epoch} !!!!!!!!!")

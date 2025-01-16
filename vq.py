@@ -335,13 +335,13 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
 
     # sum of distances of the same cb vec ID
-    positive_loss = same_type_mask * pairwise_distances ** 2  # Pull same types together
+    # positive_loss = same_type_mask * pairwise_distances ** 2  # Pull same types together
     # cb vec ID が異なるもの同士が閾値未満の場合ペナルティ
     negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances,
                                                          min=0.0) ** 2  # Push apart different types
     # Combine and return mean loss
-    # return (negative_loss).mean()
-    return (positive_loss + negative_loss).mean()/1000000
+    return (negative_loss).mean()
+    # return (positive_loss + negative_loss).mean()/1000000
 
 
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
@@ -999,11 +999,11 @@ class VectorQuantize(nn.Module):
         # ---------------------------------------------------------------
         # atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
         atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
-        print(" &&&&&&&&&&&& atom_type_div_loss  ")
-        print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
-        print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
-        print(f"atom_type_div_loss.shape: {atom_type_div_loss.shape}")
-        print(f"atom_type_div_loss: {atom_type_div_loss}")
+        # print(" &&&&&&&&&&&& atom_type_div_loss  ")
+        # print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
+        # print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
+        # print(f"atom_type_div_loss.shape: {atom_type_div_loss.shape}")
+        # print(f"atom_type_div_loss: {atom_type_div_loss}")
 
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
@@ -1172,11 +1172,11 @@ class VectorQuantize(nn.Module):
          + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
          + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
 
-        print(" &&&&&&&&&&&& loss  ")
-        print(f"requires_grad: {loss.requires_grad}")
-        print(f"grad_fn: {loss.grad_fn}")
-        print(f"shape: {loss.shape}")
-        print(f"value: {loss}")        # print(f"loss 1 {loss}")
+        # print(" &&&&&&&&&&&& loss  ")
+        # print(f"requires_grad: {loss.requires_grad}")
+        # print(f"grad_fn: {loss.grad_fn}")
+        # print(f"shape: {loss.shape}")
+        # print(f"value: {loss}")        # print(f"loss 1 {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
         # loss = loss + self.lamb_sil * silh_loss
