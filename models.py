@@ -286,7 +286,11 @@ class SAGE(nn.Module):
         dataloader : The entire graph loaded in blocks with full neighbors for each node.
         feats : The input feats of entire node set.
         """
+        import traceback
+
         print(f"RUNNING INFER  ======================")
+        print("Inference called! Call stack:")
+        traceback.print_stack()
         device = feats.device
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
