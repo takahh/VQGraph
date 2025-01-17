@@ -418,6 +418,9 @@ def run_inductive(
     obs_feats = feats[idx_obs]
     obs_labels = labels[idx_obs]
     obs_g = g.subgraph(idx_obs)
+
+    test_label = labels[idx_test_ind]
+    test_feats = feats[idx_test_ind]
     test_g = g.subgraph(idx_test_ind)
 
     if "SAGE" in model.model_name:
@@ -626,8 +629,8 @@ def run_inductive(
             out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
                 model,
                 data_eval,   #
-                feats,       #
-                labels,      #
+                test_feats,       #
+                test_label,      #
                 criterion,
                 evaluator,
                 idx_test_ind
