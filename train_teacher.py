@@ -396,7 +396,8 @@ def main():
     args = get_args()
     if args.num_exp == 1:
         score = run(args)
-        score_str = "".join([f"{s : .4f}\t" for s in score])
+        score_str = ""
+        # score_str = "".join([f"{s : .4f}\t" for s in score])
 
     elif args.num_exp > 1:
         score_mean, score_std = repeat_run(args)
