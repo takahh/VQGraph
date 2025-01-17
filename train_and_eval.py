@@ -481,6 +481,7 @@ def run_inductive(
         obs_data_eval = obs_dataloader_eval
         data_eval = dataloader_eval
         print(f"@@@@@@@@@@  len(dataloader_eval): {dataloader_eval}")
+        print(f"@@@@@@@@@@  len(test_g): {test_g}")
     elif "MLP" in model.model_name:
         feats_train, labels_train = obs_feats[obs_idx_train], obs_labels[obs_idx_train]
         feats_val, labels_val = obs_feats[obs_idx_val], obs_labels[obs_idx_val]
