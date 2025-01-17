@@ -341,8 +341,6 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
                                                          min=0.0) ** 2  # Push apart different types
     # Combine and return mean loss
     # return (negative_loss).mean()/1000000
-    print("negative_loss")
-    print(negative_loss)
     return (negative_loss).mean()
     # return (positive_loss + negative_loss).mean()/1000000
 
@@ -1170,10 +1168,10 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # linearly combine losses !!!!
         # ---------------------------------
-        loss = self.lamb_div_ele * div_ele_loss
-        # loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
+        # loss = self.lamb_div_ele * div_ele_loss
+        loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+         + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+         + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
 
         # print(" &&&&&&&&&&&& loss  ")
         # print(f"requires_grad: {loss.requires_grad}")
