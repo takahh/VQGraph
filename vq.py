@@ -333,16 +333,11 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     # print(f"Distances max: {max_distance:.4f}")
     # 二次元のID合致表を作成
     same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
-    print("pairwise_distances")
-    print(pairwise_distances.shape)
-    print("pairwise_distances[0]")
-    print(pairwise_distances[0].shape)
-    print("same_type_mask")
-    print(same_type_mask.shape)
+
     # sum of distances of the same cb vec ID
     # positive_loss = same_type_mask * pairwise_distances ** 2  # Pull same types together
     # cb vec ID が異なるもの同士が閾値未満の場合ペナルティ
-    negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances,
+    negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances[0],
                                                          min=0.0) ** 2  # Push apart different types
     # Combine and return mean loss
     # return (negative_loss).mean()/1000000
