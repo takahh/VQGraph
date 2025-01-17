@@ -495,7 +495,7 @@ def run_inductive(
 
         obs_data = obs_g
         obs_data_eval = obs_g
-        data_eval = g
+        # data_eval = g
     state = None
     best_epoch, best_score_val, count = 0, 100, 0
     cb_at_best, train_latents_at_best = None, None
