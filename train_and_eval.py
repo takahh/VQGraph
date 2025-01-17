@@ -484,9 +484,6 @@ def run_inductive(
         print(f"@@@@@@@@@@  len(test_g): {test_g}")
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader_eval):
             print(f"Batch {idx}:")
-            print(f"  Input Nodes: {input_nodes.shape}")
-            print(f"  Output Nodes: {output_nodes.shape}")
-            print(f"  Number of Blocks: {len(blocks)}")
     elif "MLP" in model.model_name:
         feats_train, labels_train = obs_feats[obs_idx_train], obs_labels[obs_idx_train]
         feats_val, labels_val = obs_feats[obs_idx_val], obs_labels[obs_idx_val]
