@@ -194,7 +194,7 @@ class SAGE(nn.Module):
         self.vq._codebook.reset_kmeans()
 
     def forward(self, blocks, feats):
-        print(f"RUNNING FORWARD ======================")
+        # print(f"RUNNING FORWARD ======================")
         h = feats.clone() if not feats.requires_grad else feats  # Ensure h requires gradients
         init_feat = h
         torch.save(h.clone(), "/h.pt")  # Save a clone to avoid detachment

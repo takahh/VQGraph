@@ -98,7 +98,7 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
             random_state, labels, labelrate_train, labelrate_val
         )
     elif train_or_infer == "infer":
-        print("loading in [infer] mode.......")
+        # print("loading in [infer] mode.......")
         idx_train, idx_val, idx_test = get_train_val_test_split_continuous(
             random_state, labels, labelrate_train, labelrate_val
         )
@@ -531,8 +531,8 @@ def load_npz_to_sparse_graph(file_name, percentage=0.05):
         loader = dict(loader)
         num_nodes = loader["adj_shape"][0]
         cutoff = int(num_nodes * percentage)
-        print(f"original nodes: {int(num_nodes)}")
-        print(f"reduced nodes: {cutoff}")
+        # print(f"original nodes: {int(num_nodes)}")
+        # print(f"reduced nodes: {cutoff}")
 
         adj_matrix = sp.csr_matrix(
             (loader["adj_data"], loader["adj_indices"], loader["adj_indptr"]),
@@ -567,7 +567,7 @@ def load_npz_to_sparse_graph(file_name, percentage=0.05):
         else:
             labels = None
 
-        print(f"labels : {labels.shape}")
+        # print(f"labels : {labels.shape}")
         node_names = loader.get("node_names")
         attr_names = loader.get("attr_names")
         class_names = loader.get("class_names")
@@ -622,7 +622,7 @@ def get_train_val_test_split(
     # test_size=1484900,
 ):
     num_samples, num_classes = labels.shape
-    print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
+    # print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
     remaining_indices = list(range(num_samples))
     if train_examples_per_class is not None:
         print("train_examples_per_class is not None:")
@@ -716,7 +716,7 @@ def get_train_val_test_split_continuous(
     # test_size=1484900,
 ):
     num_samples, num_classes = labels.shape
-    print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
+    # print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
     remaining_indices = list(range(num_samples))
     # ----------------
     # get train indices

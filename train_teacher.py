@@ -186,8 +186,8 @@ def run(args):
     """ Set seed, device, and logger """
     set_seed(args.seed)
 
-    print("Is GPU available?", torch.cuda.is_available())
-    print("Current device:", torch.cuda.current_device())
+    # print("Is GPU available?", torch.cuda.is_available())
+    # print("Current device:", torch.cuda.current_device())
     if torch.cuda.is_available() and args.device >= 0:
         print(f"$$$$$$$$$$$$$$$$$$$  USING GPU !!!!! $$$$$$$$$$$$$$$$$$$")
         device = torch.device("cuda:" + str(args.device))
