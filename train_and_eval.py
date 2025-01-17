@@ -89,7 +89,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         cb_list.append(cb.detach().cpu())
         loss_list.append(loss.detach().cpu())
 
-        print(f"3..... !!!!!!!!!!!!!!!!!")
+    print(f"3..... !!!!!!!!!!!!!!!!!")
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list_list, latent_list, latents
 
