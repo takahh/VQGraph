@@ -1168,10 +1168,10 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # linearly combine losses !!!!
         # ---------------------------------
-        # loss = self.lamb_div_ele * div_ele_loss
-        loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-         + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-         + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
+        loss = self.lamb_div_ele * div_ele_loss
+        # loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+        #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+        #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
 
         # print(" &&&&&&&&&&&& loss  ")
         # print(f"requires_grad: {loss.requires_grad}")
