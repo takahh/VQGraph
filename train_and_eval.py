@@ -47,6 +47,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
+        print(f"input_nodes {input_nodes}")
+        print(f"batch_feats {batch_feats}")
         with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps
