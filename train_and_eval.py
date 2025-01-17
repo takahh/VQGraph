@@ -418,6 +418,7 @@ def run_inductive(
     obs_feats = feats[idx_obs]
     obs_labels = labels[idx_obs]
     obs_g = g.subgraph(idx_obs)
+    test_g = g.subgraph(idx_test_ind)
 
     if "SAGE" in model.model_name:
         # Create dataloader for SAGE
@@ -464,7 +465,7 @@ def run_inductive(
         # all data, FULL sampling
         # -------------------------
         dataloader_eval = dgl.dataloading.DataLoader(
-            g,
+            test_g,
             torch.arange(g.num_nodes()),
             sampler_eval,
             batch_size=batch_size,
