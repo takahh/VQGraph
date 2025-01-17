@@ -630,7 +630,7 @@ def run_inductive(
             # 2 nd evaluate
             # -----------------------------
             # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
-            # print("EVAL 2 STARAT -------------!")
+            print("EVAL 2 STARAT -------------!")
             out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
                 model,
                 data_eval,   #
