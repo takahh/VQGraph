@@ -43,19 +43,14 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
 
     optimizer.zero_grad()
 
-    print(f"Total number of batches: {len(dataloader)} ++++++++++++++")
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
-        print(f"len(blocks)  {len(blocks)}")
-
-        print(f"------------step {step} -------------------")
         with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps
         if not torch.isfinite(loss):
-            print(f"Step {step}, Loss is not finite: {loss}. Skipping step.")
             continue
 
         # Initialize loss_list_list with empty sublists if it's the first step
@@ -467,7 +462,6 @@ def run_inductive(
         # -------------------------
         # all data, FULL sampling
         # -------------------------
-        print(f"conf[num_workers] {conf['num_workers']}")
         dataloader_eval = dgl.dataloading.DataLoader(
             test_g,
             torch.arange(test_g.num_nodes()),
@@ -481,8 +475,6 @@ def run_inductive(
         obs_data = obs_dataloader
         obs_data_eval = obs_dataloader_eval
         data_eval = dataloader_eval
-        print(f"++++++++++++++++++++ data_eval -2 {len(data_eval)}")
-        print(f"@@@@@@@@@@  len(test_g): {test_g}")
 
     elif "MLP" in model.model_name:
         feats_train, labels_train = obs_feats[obs_idx_train], obs_labels[obs_idx_train]
@@ -501,7 +493,6 @@ def run_inductive(
         obs_data_eval = obs_g
         # data_eval = g
 
-    print(f"++++++++++++++++++++ data_eval -1 {len(data_eval)}")
     state = None
     best_epoch, best_score_val, count = 0, 100, 0
     cb_at_best, train_latents_at_best = None, None
@@ -631,8 +622,6 @@ def run_inductive(
             # 2 nd evaluate
             # -----------------------------
             # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
-            print("EVAL 2 STARAT -------------!")
-            print(f"++++++++++++++++++++ data_eval 0 {len(data_eval)}")
             out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
                 model,
                 data_eval,   #

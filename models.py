@@ -288,7 +288,6 @@ class SAGE(nn.Module):
         """
         import traceback
 
-        print(f"RUNNING INFER  ======================")
         # print("Inference called! Call stack:")
         # traceback.print_stack()
         device = feats.device
@@ -297,9 +296,7 @@ class SAGE(nn.Module):
         latent_list = []
         input_node_list = []
         embed_ind_list = []
-        print(f"len(dataloader) {len(dataloader)}")  # 23
         for input_nodes, output_nodes, blocks in dataloader:
-            print(f"len(blocks)  {len(blocks)}")
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
             block = blocks[0].int().to(device)
