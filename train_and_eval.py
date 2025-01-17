@@ -40,9 +40,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     cb_list = []
     loss_list_list = []  # Initialize a list for tracking loss_list3 over steps
     scaler = torch.cuda.amp.GradScaler()
-
     optimizer.zero_grad()
-
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
@@ -441,7 +439,7 @@ def run_inductive(
             obs_idx_train,
             sampler,
             batch_size=batch_size,
-            shuffle=True,
+            shuffle=False,
             drop_last=False,
             num_workers=conf["num_workers"],
         )
