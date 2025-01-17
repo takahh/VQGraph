@@ -1177,7 +1177,7 @@ class VectorQuantize(nn.Module):
         # print(f"requires_grad: {loss.requires_grad}")
         # print(f"grad_fn: {loss.grad_fn}")
         # print(f"shape: {loss.shape}")
-        # print(f"value: {loss}")        # print(f"loss 1 {loss}")
+        print(f"value: {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
         # loss = loss + self.lamb_sil * silh_loss
