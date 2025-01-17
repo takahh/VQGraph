@@ -487,10 +487,6 @@ def run_inductive(
             print(f"  Input Nodes: {input_nodes.shape}")
             print(f"  Output Nodes: {output_nodes.shape}")
             print(f"  Number of Blocks: {len(blocks)}")
-            for i, block in enumerate(blocks):
-                print(f"    Block {i}: {block}")
-                print(f"      Src Nodes: {block.srcdata['_ID'].shape}")
-                print(f"      Dst Nodes: {block.dstdata['_ID'].shape}")
     elif "MLP" in model.model_name:
         feats_train, labels_train = obs_feats[obs_idx_train], obs_labels[obs_idx_train]
         feats_val, labels_val = obs_feats[obs_idx_val], obs_labels[obs_idx_val]
