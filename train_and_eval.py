@@ -467,9 +467,10 @@ def run_inductive(
         # -------------------------
         # all data, FULL sampling
         # -------------------------
+        print(f"conf[num_workers] {conf['num_workers']}")
         dataloader_eval = dgl.dataloading.DataLoader(
             test_g,
-            torch.arange(g.num_nodes()),
+            torch.arange(test_g.num_nodes()),
             sampler_eval,
             batch_size=batch_size,
             shuffle=False,
