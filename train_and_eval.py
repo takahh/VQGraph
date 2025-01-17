@@ -480,7 +480,7 @@ def run_inductive(
         obs_data = obs_dataloader
         obs_data_eval = obs_dataloader_eval
         data_eval = dataloader_eval
-        print(f"@@@@@@@@@@  len(dataloader_eval): {dataloader_eval}")
+        print(f"@@@@@@@@@@  len(data_eval): {data_eval}")
         print(f"@@@@@@@@@@  len(test_g): {test_g}")
 
     elif "MLP" in model.model_name:
@@ -629,6 +629,7 @@ def run_inductive(
             # -----------------------------
             # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
             print("EVAL 2 STARAT -------------!")
+            print(f"data_eval 0 {len(data_eval)}")
             out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
                 model,
                 data_eval,   #

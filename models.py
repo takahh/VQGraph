@@ -297,7 +297,7 @@ class SAGE(nn.Module):
         latent_list = []
         input_node_list = []
         embed_ind_list = []
-        print(f"len(dataloader) {len(dataloader)}")
+        print(f"len(dataloader) {len(dataloader)}")  # 23
         for input_nodes, output_nodes, blocks in dataloader:
             print(f"len(blocks)  {len(blocks)}")
             g = dgl.DGLGraph().to(feats.device)
