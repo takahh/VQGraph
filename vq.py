@@ -333,7 +333,8 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     # print(f"Distances max: {max_distance:.4f}")
     # 二次元のID合致表を作成
     same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
-
+    print("pairwise_distances")
+    print(pairwise_distances)
     print("same_type_mask")
     print(same_type_mask)
     # sum of distances of the same cb vec ID
