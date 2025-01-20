@@ -64,8 +64,11 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
             atom_idx = mol.AddAtom(atom)
 
             # Annotate the atom label with its class
+            # Annotate the atom label with its class
             class_label = node_to_class.get(idx, "Unknown")
-            atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}({class_label})"
+            atom_labels[
+                atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}:{class_label}"  # Removed parentheses
+
 
         # Add bonds
         for x, y in zip(*np.where(mol_adj > 0)):
@@ -78,6 +81,8 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         # Draw molecule with atom labels
         drawer = Draw.MolDraw2DCairo(400, 400)  # Set the size of the image
         options = drawer.drawOptions()
+        # Set the font size for labels
+        options.atomLabelFontSize = 20
         for idx, label in atom_labels.items():
             options.atomLabels[idx] = label  # Assign custom labels to atoms
 
@@ -104,7 +109,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
 
 def main():
-    path = "/Users/taka/Documents/VQGraph_out_for_images_0109/"
+    path = "/Users/taka/Documents/VQGraph_out_for_images_0117/"
     input_mol_file = f"{path}/molecules.npz"                     # input data
     class_file = f"{path}embed_ind_indices_first8000_1.npz"      # assigned code vector id
     indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
