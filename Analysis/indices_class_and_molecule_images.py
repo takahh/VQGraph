@@ -88,6 +88,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         options.scaleBondWidth = True  # Scale bond width relative to image size
         # Set the font size for labels
         options.atomLabelFontSize = 20
+        drawer.SetScale(1.0)
         for idx, label in atom_labels.items():
             options.atomLabels[idx] = label  # Assign custom labels to atoms
 
