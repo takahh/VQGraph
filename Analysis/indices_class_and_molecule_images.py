@@ -79,8 +79,13 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         Chem.SanitizeMol(mol)
 
         # Draw molecule with atom labels
-        drawer = Draw.MolDraw2DCairo(400, 400)  # Set the size of the image
+        # drawer = Draw.MolDraw2DCairo(400, 400)  # Set the size of the image
+        # Draw molecule with atom labels
+        drawer = Draw.MolDraw2DCairo(800, 800)  # Increase the size (width, height)
+
         options = drawer.drawOptions()
+        options.bondLineWidth = 2  # Make bonds thicker if needed
+        options.scaleBondWidth = True  # Scale bond width relative to image size
         # Set the font size for labels
         options.atomLabelFontSize = 20
         for idx, label in atom_labels.items():
