@@ -7,6 +7,7 @@ from scipy.sparse.csgraph import connected_components
 import numpy as np
 from icecream import ic
 import matplotlib.pyplot as plt
+from rdkit.Geometry import Point2D
 
 
 def getdata(filename):
@@ -17,6 +18,15 @@ def getdata(filename):
         arr = np.load(f"{filename}")["arr_0"]
     # arr = np.squeeze(arr)
     return arr
+
+
+def to_superscript(number):
+    """Convert a number to its Unicode superscript representation."""
+    superscript_map = {
+        "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+        "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹"
+    }
+    return "".join(superscript_map.get(char, char) for char in str(number))
 
 
 def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, class_file):
@@ -36,7 +46,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
     node_indices = indices_file.tolist()
     start_node_index = node_indices[0]
     node_indices = [x - start_node_index for x in node_indices]
-    classes = class_file.tolist()
+    classes = [int(x) for x in class_file.tolist()]
     # Map node indices to classes
     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
 
@@ -63,12 +73,15 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
             atom = Chem.Atom(atomic_num)
             atom_idx = mol.AddAtom(atom)
 
-            # Annotate the atom label with its class
-            # Annotate the atom label with its class
+            # Annotate with superscript class label
             class_label = node_to_class.get(idx, "Unknown")
-            atom_labels[
-                atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}:{class_label}"  # Removed parentheses
-
+            if class_label != "Unknown":
+                class_label_sup = to_superscript(class_label)
+                print(class_label_sup)
+                atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
+            else:
+                atom_labels[atom_idx] = Chem.GetPeriodicTable().GetElementSymbol(atomic_num)
+                # Annotate with inline format
 
         # Add bonds
         for x, y in zip(*np.where(mol_adj > 0)):
@@ -77,18 +90,14 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
         # Sanitize molecule
         Chem.SanitizeMol(mol)
-
-        # Draw molecule with atom labels
-        # drawer = Draw.MolDraw2DCairo(400, 400)  # Set the size of the image
-        # Draw molecule with atom labels
-        drawer = Draw.MolDraw2DCairo(800, 800)  # Increase the size (width, height)
-
+        drawer = Draw.MolDraw2DCairo(1000, 1000)  # Increase the size (width, height)
         options = drawer.drawOptions()
         options.bondLineWidth = 2  # Make bonds thicker if needed
         options.scaleBondWidth = True  # Scale bond width relative to image size
-        # Set the font size for labels
-        options.atomLabelFontSize = 20
-        drawer.SetScale(1.0)
+        options.atomLabelFontSize = 10
+        options.atomLabelPadding = 0.4  # Default is 0.2; increase for more space between labels
+        # options.fontFile = "/path/to/your/font.ttf"  # Specify the path to a font file that supports superscripts
+
         for idx, label in atom_labels.items():
             options.atomLabels[idx] = label  # Assign custom labels to atoms
 
