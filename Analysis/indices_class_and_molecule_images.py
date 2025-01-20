@@ -95,7 +95,9 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
             atomic_num = int(features[0])  # First element is the atomic number
             atom = Chem.Atom(atomic_num)
             atom_idx = mol.AddAtom(atom)
-
+            print("------")
+            print(atom_idx)
+            print(features)
             # Annotate with superscript class label
             class_label = node_to_class.get(idx, "Unknown")
             if class_label != "Unknown":
@@ -103,6 +105,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
                 atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
             else:
                 atom_labels[atom_idx] = Chem.GetPeriodicTable().GetElementSymbol(atomic_num)
+            print(atom_labels[atom_idx])
                 # Annotate with inline format
 
         # Add bonds
