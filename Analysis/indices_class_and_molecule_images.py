@@ -9,6 +9,10 @@ from icecream import ic
 import matplotlib.pyplot as plt
 from rdkit.Geometry import Point2D
 
+CANVAS_WIDTH = 2000
+CANVAS_HEIGHT = 1300
+FONTSIZE = 40
+
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -18,6 +22,25 @@ def getdata(filename):
         arr = np.load(f"{filename}")["arr_0"]
     # arr = np.squeeze(arr)
     return arr
+
+from rdkit import Chem
+from rdkit.Chem import Draw
+from rdkit.Chem import AllChem
+
+def compute_molecule_bounds(mol):
+    """Calculate the bounding box for a molecule."""
+    try:
+        conformer = mol.GetConformer()  # Attempt to get the conformer
+    except ValueError:
+        # Fallback: Generate 2D coordinates and retry
+        AllChem.Compute2DCoords(mol)
+        conformer = mol.GetConformer()
+    positions = conformer.GetPositions()
+    x_coords = positions[:, 0]
+    y_coords = positions[:, 1]
+    minv = Point2D(min(x_coords), min(y_coords))
+    maxv = Point2D(max(x_coords), max(y_coords))
+    return minv, maxv
 
 
 def to_superscript(number):
@@ -77,7 +100,6 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
             class_label = node_to_class.get(idx, "Unknown")
             if class_label != "Unknown":
                 class_label_sup = to_superscript(class_label)
-                print(class_label_sup)
                 atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
             else:
                 atom_labels[atom_idx] = Chem.GetPeriodicTable().GetElementSymbol(atomic_num)
@@ -90,17 +112,48 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
         # Sanitize molecule
         Chem.SanitizeMol(mol)
-        drawer = Draw.MolDraw2DCairo(1000, 1000)  # Increase the size (width, height)
+        drawer = Draw.MolDraw2DCairo(CANVAS_WIDTH, CANVAS_HEIGHT)  # Increase the size (width, height)
         options = drawer.drawOptions()
         options.bondLineWidth = 2  # Make bonds thicker if needed
         options.scaleBondWidth = True  # Scale bond width relative to image size
-        options.atomLabelFontSize = 10
+        options.atomLabelFontSize = FONTSIZE
         options.atomLabelPadding = 0.4  # Default is 0.2; increase for more space between labels
-        # options.fontFile = "/path/to/your/font.ttf"  # Specify the path to a font file that supports superscripts
 
         for idx, label in atom_labels.items():
             options.atomLabels[idx] = label  # Assign custom labels to atoms
 
+        # Calculate and set the scale
+        minv, maxv = compute_molecule_bounds(mol)
+
+        # Set canvas dimensions
+        canvas_width = CANVAS_WIDTH
+        canvas_height = CANVAS_HEIGHT
+
+        # Calculate molecule dimensions
+        mol_width = maxv.x - minv.x
+        mol_height = maxv.y - minv.y
+
+        # Add padding
+        padding = 0.1
+        mol_width_with_padding = mol_width * (1 + padding)
+        mol_height_with_padding = mol_height * (1 + padding)
+
+        # Calculate scale
+        scale_x = canvas_width / mol_width_with_padding
+        scale_y = canvas_height / mol_height_with_padding
+        scale = min(scale_x, scale_y)
+
+        # Center the molecule
+        center_x = (canvas_width / scale - mol_width) / 2 - minv.x
+        center_y = (canvas_height / scale - mol_height) / 2 - minv.y
+
+        # Center the molecule (convert to integers for SetOffset)
+        center_x = int((canvas_width / scale - mol_width) / 2 - minv.x)
+        center_y = int((canvas_height / scale - mol_height) / 2 - minv.y)
+
+        drawer.SetOffset(center_x, center_y)
+
+        # Draw the molecule
         drawer.DrawMolecule(mol)
         drawer.FinishDrawing()
 
@@ -116,10 +169,11 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
     # Step 4: Display images
     for i, img in enumerate(images):
-        plt.figure()
+        plt.figure(dpi=150)
         plt.title(f"Molecule {i+1}")
         plt.imshow(img)
         plt.axis("off")
+    plt.tight_layout()  # Automatically adjust spacing
     plt.show()
 
 
