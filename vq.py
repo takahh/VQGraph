@@ -59,7 +59,20 @@ def gumbel_sample(logits, dim=-1, temperature=1.0):
     # print(f"one_hot.requires_grad: {logits.requires_grad}")
     # print(f"one_hot.grad_fn: {logits.grad_fn}")
     # print(logits)
-    one_hot = F.gumbel_softmax(logits, tau=temperature, hard=True, dim=dim)
+    # one_hot = F.gumbel_softmax(logits, tau=temperature, hard=True, dim=dim)
+
+    def deterministic_hard(logits):
+        # Directly compute the argmax of logits (without softmax or temperature)
+        hard_out = torch.argmax(logits, dim=-1, keepdim=True)
+
+        # Create a one-hot tensor
+        one_hot_out = torch.zeros_like(logits).scatter_(-1, hard_out, 1.0)
+
+        # Straight-through estimator: pretend the one-hot output is continuous for backprop
+        return one_hot_out - logits.detach() + logits
+
+    one_hot = deterministic_hard(logits)
+
     # print("------ in gamble sample 1 -------")
     # print(f"one_hot.requires_grad: {one_hot.requires_grad}")
     # print(f"one_hot.grad_fn: {one_hot.grad_fn}")
