@@ -481,8 +481,8 @@ class EuclideanCodebook(nn.Module):
 
     @torch.jit.ignore
     def init_embed_(self, data):
-        if self.initted:
-            return
+        # if self.initted:
+        #     return
         # embed, cluster_size = gmm(
         #     data,
         #     self.codebook_size,
@@ -536,11 +536,16 @@ class EuclideanCodebook(nn.Module):
 
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
-
+        # ----------------------------------------------------
+        # set the initial codebook vectors by kmeans
+        # ----------------------------------------------------
         self.init_embed_(flatten)
         embed = self.embed
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
+        # ----------------------------------------------------
+        # get codebook ID assigned
+        # ----------------------------------------------------
         embed_ind = get_ind(dist)
         embed_onehot = embed_ind
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
@@ -556,6 +561,9 @@ class EuclideanCodebook(nn.Module):
             raise ValueError(
                 f"embed_ind contains out-of-range values: max={embed_ind.max()}, codebook_size={self.codebook_size}")
         embed_ind = embed_ind.unsqueeze(0)
+        # ----------------------------------------------------
+        # set the initial codebook vectors by kmeans
+        # ----------------------------------------------------
         quantize = batched_embedding(embed_ind, self.embed)
         # -----------------------------------------------------------------------------
         # Update centroids (in an ML friendly way)
