@@ -221,7 +221,7 @@ class SAGE(nn.Module):
 
         if self.norm_type != "none":
             h = self.norms[0](h)
-        h = self.dropout(h)
+        # h = self.dropout(h)
         h_list.append(h)
         # print("h latent")
         # print(h.shape)
@@ -286,10 +286,6 @@ class SAGE(nn.Module):
         dataloader : The entire graph loaded in blocks with full neighbors for each node.
         feats : The input feats of entire node set.
         """
-        import traceback
-
-        # print("Inference called! Call stack:")
-        # traceback.print_stack()
         device = feats.device
         dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
@@ -305,12 +301,9 @@ class SAGE(nn.Module):
             dst = dst.type(torch.int64)
             g.add_edges(src,dst)
             g.add_edges(dst,src)
-            # print(g)
-            adj = adj = g.adjacency_matrix().to_dense().to(feats.device)
             h_list = []
             h = feats[input_nodes]
             init_feat = h
-            # atom_type_arr = torch.squeeze(h[:, 0])
             h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
             if self.norm_type != "none":
@@ -324,36 +317,8 @@ class SAGE(nn.Module):
             (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
              spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
-            # latent_list.append(latent_vectors.detach().cpu())
             embed_ind_list.append(embed_ind)
-            #
-            # dist = torch.squeeze(dist)
-            # dist_all[input_nodes] = dist
-            # quantized_edge = self.decoder_1(quantized)
-            # quantized_node = self.decoder_2(quantized)
-
-            # raw_feat_loss = F.mse_loss(h, quantized_node)
-            # feature_rec_loss = self.lamb_node * raw_feat_loss
-            # feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
-            # adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
-            # adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
-            #
-            # raw_edge_rec_loss = torch.sqrt(F.mse_loss(adj, adj_quantized))
-            # edge_rec_loss = self.lamb_edge * raw_edge_rec_loss
-            # edge_rec_loss = self.lamb_edge * torch.sqrt(F.mse_loss(adj, adj_quantized))
-            # h = self.graph_layer_2(g, quantized_edge)
-            # h_list.append(h)
-            # h = self.linear(h)
-            # loss = feature_rec_loss + edge_rec_loss + commit_loss
-            # loss = loss + feature_rec_loss
-            # h = h[:block.num_dst_nodes()]
-            # y[output_nodes] = h
-
-            # torch.cuda.empty_cache()
-            # Monitor reserved memory after cleanup
             input_node_list.append(input_nodes)
-            # print(f"node list length {len(input_node_list)}")
-            # h_list, logits, _ , dist, codebook, loss_list, latent_vectors
         return h_list, y, loss, dist_all, codebook, [div_ele_loss, raw_commit_loss,
                     margin_loss, spread_loss, pair_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
                                                      h_num_div_loss, sil_loss], latent_list, embed_ind_list, input_node_list

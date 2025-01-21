@@ -630,9 +630,10 @@ def get_train_val_test_split(
     else:
         print("train_examples_per_class is None:")
         # select train examples with no respect to class distribution
-        train_indices = random_state.choice(
-            remaining_indices, train_size, replace=False
-        )
+        train_indices = remaining_indices[:train_size]
+        # train_indices = random_state.choice(
+        #     remaining_indices, train_size, replace=False
+        # )
         print(f"remaining_indices {len(remaining_indices)}")
     if val_examples_per_class is not None:
         val_indices = sample_per_class(
@@ -643,7 +644,8 @@ def get_train_val_test_split(
         )
     else:
         remaining_indices = np.setdiff1d(remaining_indices, train_indices)
-        val_indices = random_state.choice(remaining_indices, val_size, replace=False)
+        val_indices = remaining_indices[train_size:(train_size + val_size)]
+        # val_indices = random_state.choice(remaining_indices, val_size, replace=False)
 
     forbidden_indices = np.concatenate((train_indices, val_indices))
     if test_examples_per_class is not None:
@@ -657,7 +659,8 @@ def get_train_val_test_split(
         remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
         test_indices = random_state.choice(remaining_indices, test_size, replace=False)
     else:
-        test_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+        # test_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+        test_indices = remaining_indices[(train_size + val_size):(train_size + val_size + test_size)]
 
     # assert that there are no duplicates in sets
     assert len(set(train_indices)) == len(train_indices)
