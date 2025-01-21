@@ -169,6 +169,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
         # h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, embed_ind_list
         h_list, logits, _ , dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes = model.inference(data, feats)
         out, loss, score = None, None, None
+
         # out = logits.log_softmax(dim=1)
         # if idx_eval is None:
         #     loss = criterion(out, labels)
@@ -670,11 +671,11 @@ def run_inductive(
             #       f"bond_num_div_loss: {loss_list1[5].item(): 4f}, aroma_div_loss: {loss_list1[6].item(): 4f}, "
             #       f"ringy_div_loss: {loss_list1[7].item(): 4f}, h_num_div_loss: {loss_list1[8].item(): 4f}, sil_loss: {loss_list1[9].item(): 4f}")
 
-            print(f"train_known_g, div_element_loss: {sum(loss_list1[0])/len(loss_list1[0]): 7f}, "
-                  f"bond_num_div_loss: {sum(loss_list1[5])/len(loss_list1[5]): 7f},"
-                  f" aroma_div_loss: {sum(loss_list1[6])/len(loss_list1[6]): 7f}, "
-                  f"ringy_div_loss: {sum(loss_list1[7])/len(loss_list1[7]): 7f}, "
-                  f"h_num_div_loss: {sum(loss_list1[8])/len(loss_list1[8]): 7f}")
+            print(f"train_known_g, div_element_loss: {loss_list1[0]:7f}"
+                  f"bond_num_div_loss: {loss_list1[5]: 7f}"
+                  f" aroma_div_loss: {loss_list1[6]: 7f}"
+                  f"ringy_div_loss: {loss_list1[7]: 7f}"
+                  f"h_num_div_loss: {loss_list1[8]: 7f}")
             # print(
             #     f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
             # print(f"train_known_g, feature_loss: {loss_list[0].item(): 4f}| edge_loss: {loss_list[1].item(): 4f}| "
