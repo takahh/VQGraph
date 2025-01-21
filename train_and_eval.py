@@ -660,7 +660,7 @@ def run_inductive(
             print(f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los
             # print(f" div_element_loss: {sum(loss_list)/len(loss_list): 4f},|  ")
             print(f"train_known_g, div_element_loss: {sum(loss_list_list[0])/len(loss_list_list[0]): 7f}, "
-                  f"bond_num_div_loss: {sum(loss_list_list[5])/len(loss_list_list[5]): 7f},"
+                  f"bond_num_div_loss: {sum(loss_list_list[5])/len(loss_list_list[5]): 7f}, "
                   f" aroma_div_loss: {sum(loss_list_list[6])/len(loss_list_list[6]): 7f}, "
                   f"ringy_div_loss: {sum(loss_list_list[7])/len(loss_list_list[7]): 7f}, "
                   f"h_num_div_loss: {sum(loss_list_list[8])/len(loss_list_list[8]): 7f}")
@@ -671,10 +671,10 @@ def run_inductive(
             #       f"bond_num_div_loss: {loss_list1[5].item(): 4f}, aroma_div_loss: {loss_list1[6].item(): 4f}, "
             #       f"ringy_div_loss: {loss_list1[7].item(): 4f}, h_num_div_loss: {loss_list1[8].item(): 4f}, sil_loss: {loss_list1[9].item(): 4f}")
 
-            print(f"train_known_g, div_element_loss: {loss_list1[0]:7f}"
-                  f"bond_num_div_loss: {loss_list1[5]: 7f}"
-                  f" aroma_div_loss: {loss_list1[6]: 7f}"
-                  f"ringy_div_loss: {loss_list1[7]: 7f}"
+            print(f"train_known_g, div_element_loss: {loss_list1[0]:7f}, "
+                  f"bond_num_div_loss: {loss_list1[5]: 7f}, "
+                  f" aroma_div_loss: {loss_list1[6]: 7f}, "
+                  f"ringy_div_loss: {loss_list1[7]: 7f}, "
                   f"h_num_div_loss: {loss_list1[8]: 7f}")
             # print(
             #     f"------------epoch {epoch:3d} -----------------------")  # raw_feat_loss, raw_edge_rec_loss, raw_commit_loss, margin_loss, spread_loss, pair_los

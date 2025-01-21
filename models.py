@@ -292,6 +292,11 @@ class SAGE(nn.Module):
         latent_list = []
         input_node_list = []
         embed_ind_list = []
+        div_ele_loss_list = []
+        bond_num_div_loss_list = []
+        aroma_div_loss_list = []
+        ringy_div_loss_list = []
+        h_num_div_loss_list = []
         for input_nodes, output_nodes, blocks in dataloader:
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
@@ -319,9 +324,21 @@ class SAGE(nn.Module):
              ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
             embed_ind_list.append(embed_ind)
             input_node_list.append(input_nodes)
-        return h_list, y, loss, dist_all, codebook, [div_ele_loss, raw_commit_loss,
-                    margin_loss, spread_loss, pair_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-                                                     h_num_div_loss, sil_loss], latent_list, embed_ind_list, input_node_list
+            div_ele_loss_list.append(div_ele_loss)
+            bond_num_div_loss_list.append(bond_num_div_loss)
+            aroma_div_loss_list.append(aroma_div_loss)
+            ringy_div_loss_list.append(ringy_div_loss)
+            h_num_div_loss_list.append(h_num_div_loss)
+
+        div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
+        bond_num_div_loss_avg = sum(bond_num_div_loss_list) / len(bond_num_div_loss_list)
+        aroma_div_loss_avg = sum(aroma_div_loss_list) / len(aroma_div_loss_list)
+        ringy_div_loss_avg = sum(ringy_div_loss_list) / len(ringy_div_loss_list)
+        h_num_div_loss_avg = sum(h_num_div_loss_list) / len(h_num_div_loss_list)
+
+        return h_list, y, loss, dist_all, codebook, [div_ele_loss_avg, raw_commit_loss,
+                    margin_loss, spread_loss, pair_loss, bond_num_div_loss_avg, aroma_div_loss_avg, ringy_div_loss_avg,
+                                                     h_num_div_loss_avg, sil_loss], latent_list, embed_ind_list, input_node_list
 
 
 class GAT(nn.Module):
