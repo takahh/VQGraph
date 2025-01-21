@@ -41,7 +41,7 @@ def gumbel_noise(t):
     return -log(-log(noise))
 
 
-def gumbel_sample(logits, dim=-1, temperature=1.0):
+def get_ind(logits):
 
     # # Add Gumbel noise for stochastic sampling
     # gumbels = -torch.empty_like(logits).exponential_().log()
@@ -528,9 +528,6 @@ class EuclideanCodebook(nn.Module):
 
     @torch.amp.autocast('cuda', enabled=False)
     def forward(self, x):
-        # print("------ Euclid forward 0 -------")
-        # print(f"x.requires_grad: {x.requires_grad}")
-        # print(f"x.grad_fn: {x.grad_fn}")
         needs_codebook_dim = x.ndim < 4
         x = x.float()
 
@@ -541,77 +538,25 @@ class EuclideanCodebook(nn.Module):
         flatten = rearrange(x, 'h ... d -> h (...) d')
 
         self.init_embed_(flatten)
-        # print("------ Euclid forward 1 -------")
-        # print(f"flatten.requires_grad: {flatten.requires_grad}")
-        # print(f"flatten.grad_fn: {flatten.grad_fn}")
-        # -----------------------------------------------------------------------------
-        # run simple k-means to set initial codebook
-        # -----------------------------------------------------------------------------
-        # if self.training:
-        #     self.init_embed_(flatten)
-        # -----------------------------------------------------------------------------
-        # prepare for updating centroids
-        # -----------------------------------------------------------------------------
-        # embed = self.embed if self.learnable_codebook else self.embed.detach()
         embed = self.embed
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
-
-        # print("------ before gamble sample 0 -------")
-        # print(f"dist.requires_grad: {dist.requires_grad}")
-        # print(f"dist.grad_fn: {dist.grad_fn}")
-        embed_ind = gumbel_sample(dist, dim=-1, temperature=self.sample_codebook_temp)
+        embed_ind = get_ind(dist)
         embed_onehot = embed_ind
-        # print("------ after gamble sample end of euc -3 -------")
-        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-        # print("!!!!!!!!!!!!!!! embed_ind")
-        # print(embed_ind)
-        # print(embed_ind.shape)   # orch.Size([1, 1852, 1000])
-        # embed_ind = torch.argmax(embed_ind, dim=-1).long()
-        # Convert to integer type if needed
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
-
-        # print("------ after gamble sample end of euc -2 -------")
-        # print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")
-        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-        # embed_ind = embed_ind[:, :, 0].long()
-
         indices = embed_ind[:, :, 0]  # Keep the float tensor
         proxy_indices = indices.long()  # Convert to integer for forward pass
-
         embed_ind = proxy_indices + (indices - indices.detach())
 
-        # print("------ after gamble sample end of euc -1 -------")
-        # print(f"$$$$$ embed_ind dtype: {embed_ind.dtype}")  # float32
-        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
         # Validate values
         if embed_ind.min() < 0:
             raise ValueError("embed_ind contains negative values.")
         if embed_ind.max() >= self.codebook_size:
             raise ValueError(
                 f"embed_ind contains out-of-range values: max={embed_ind.max()}, codebook_size={self.codebook_size}")
-        # print(f"embed_ind dtype: {embed_ind.dtype}")
-        # print(f"embed_ind min: {embed_ind.min()}, max: {embed_ind.max()}")
-        # print(f"embed_ind shape: {embed_ind.shape}")
-        #
-        # print("------ after gamble sample end of euc 0 -------")
-        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-        # print(f"%%%%%%%%%%%% embed_ind {embed_ind.shape}")
-        # print(f"%%%%%%%%%%%% embed_ind {embed_ind}")
-        # print(f"%%%%%%%%%%%% self.embed {self.embed.shape}")
-        # print(f"%%%%%%%%%%%% self.embed {self.embed[0, 0, :255]}")
-        # embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.unsqueeze(0)
-        # embed_ind = embed_ind.view(*shape[:-1])
         quantize = batched_embedding(embed_ind, self.embed)
-        # print(f"$$$$$$$$$$$$$")
-        # print(f"quantize {quantize.shape}")
-        # print(f"quantize {quantize}")
         # -----------------------------------------------------------------------------
         # Update centroids (in an ML friendly way)
         # -----------------------------------------------------------------------------
@@ -628,14 +573,7 @@ class EuclideanCodebook(nn.Module):
             embed_normalized = self.embed_avg / rearrange(cluster_size, '... -> ... 1')
             self.embed = torch.nn.Parameter(embed_normalized)
             self.expire_codes_(x)
-
-        # print("------ after gamble sample end of euc 1 -------")
-        # print(f"embed_ind.requires_grad: {embed_ind.requires_grad}")
-        # print(f"embed_ind.grad_fn: {embed_ind.grad_fn}")
-        # if needs_codebook_dim:
-        #     quantize, embed_ind = map(lambda t: rearrange(t, '1 ... -> ...'), (quantize, embed_ind))
-        #     # quantize, embed_ind, dist, embed, latents
-        return quantize, embed_ind, dist, self.embed, flatten, init_cb  # flatten と x はどう違うのか？commitment loss には x をしよう。
+        return quantize, embed_ind, dist, self.embed, flatten, init_cb
 
 
 class CosineSimCodebook(nn.Module):

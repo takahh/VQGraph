@@ -78,7 +78,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
     print(n_components)
     # Step 3: Extract and annotate molecules
     images = []
-    for i in range(5):
+    for i in range(n_components - 2):
         # Get node indices for this molecule
         component_indices = np.where(labels == i)[0]
 
@@ -95,9 +95,9 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
             atomic_num = int(features[0])  # First element is the atomic number
             atom = Chem.Atom(atomic_num)
             atom_idx = mol.AddAtom(atom)
-            print("------")
-            print(atom_idx)
-            print(features)
+            # print("------")
+            # print(atom_idx)
+            # print(features)
             # Annotate with superscript class label
             class_label = node_to_class.get(idx, "Unknown")
             if class_label != "Unknown":
@@ -105,7 +105,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
                 atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
             else:
                 atom_labels[atom_idx] = Chem.GetPeriodicTable().GetElementSymbol(atomic_num)
-            print(atom_labels[atom_idx])
+            # print(atom_labels[atom_idx])
                 # Annotate with inline format
 
         # Add bonds
@@ -192,11 +192,7 @@ def main():
     arr_class = getdata(class_file)       # assigned quantized code vec indices
     print(f"node id {arr_indices.shape}, class {arr_class.shape}")
     node_indices = arr_indices.tolist()
-    # node_indices = list(range(0, 200))
-    # print("node_indices")
-    # print(node_indices)
 
-    test_indices = arr_indices[:200]
     # -------------------------------------
     # rebuild attr matrix
     # -------------------------------------
