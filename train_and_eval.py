@@ -671,7 +671,7 @@ def run_inductive(
             #       f"bond_num_div_loss: {loss_list1[5].item(): 4f}, aroma_div_loss: {loss_list1[6].item(): 4f}, "
             #       f"ringy_div_loss: {loss_list1[7].item(): 4f}, h_num_div_loss: {loss_list1[8].item(): 4f}, sil_loss: {loss_list1[9].item(): 4f}")
 
-            print(f"train_known_g, div_element_loss: {loss_list1[0]:7f}, "
+            print(f"test_unknown_g, div_element_loss: {loss_list1[0]:7f}, "
                   f"bond_num_div_loss: {loss_list1[5]: 7f}, "
                   f" aroma_div_loss: {loss_list1[6]: 7f}, "
                   f"ringy_div_loss: {loss_list1[7]: 7f}, "
