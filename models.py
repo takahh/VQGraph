@@ -332,8 +332,8 @@ class SAGE(nn.Module):
             if idx == 0:
                 torch.set_printoptions(profile="full")
                 print(f"-------------------------")
-                print(f"batch_feats {init_feat[:10]}")
-                print(f"latents (input to cb) {h[:, :10]}")
+                print(f"batch_feats {init_feat.shape}")
+                print(f"latents (input to cb) {h.shape}")
 
         div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
         bond_num_div_loss_avg = sum(bond_num_div_loss_list) / len(bond_num_div_loss_list)
