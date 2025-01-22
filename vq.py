@@ -327,38 +327,29 @@ def batched_embedding(indices, embeds):
 
 import torch
 
-
-def compute_contrastive_loss(z, atom_types, margin=1.0):
+def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5):
     """
-    Contrastive loss to separate different atom types.
+    Contrastive loss to separate different atom types using 7-dimensional vectors.
     """
-    # Compute pairwise distances
-    print(f"atom_types: {atom_types.shape}")
-    print(f"z: {z.shape}")
+    # Compute pairwise distances for the z vectors
     pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
 
-    # # Calculate mean, min, and max
-    # mean_distance = pairwise_distances.mean()
-    # min_distance = pairwise_distances.min()
-    # max_distance = pairwise_distances.max()
-    #
-    # # Print the values
-    # print(f"Distances mean: {mean_distance:.4f}")
-    # print(f"Distances min: {min_distance:.4f}")
-    # print(f"Distances max: {max_distance:.4f}")
-    # 二次元のID合致表を作成
-    same_type_mask = (atom_types[:, None] == atom_types[None, :]).float()  # Mask for same atom type
+    # Compute pairwise similarity for the atom_types (7-dimensional vectors)
+    atom_types = atom_types / (torch.norm(atom_types, dim=1, keepdim=True) + 1e-8)  # Normalize the vectors
+    pairwise_similarities = torch.mm(atom_types, atom_types.T)  # Cosine similarity
 
-    # sum of distances of the same cb vec ID
-    positive_loss = same_type_mask * pairwise_distances ** 2  # Pull same types together
-    # cb vec ID が異なるもの同士が閾値未満の場合ペナルティ
-    negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances[0],
-                                                         min=0.0) ** 2  # Push apart different types
+    # Create the mask for "same type" based on similarity threshold
+    same_type_mask = (pairwise_similarities >= threshold).float()  # 1 if similarity >= threshold, else 0
+
+    # Compute positive loss (pull same types together)
+    positive_loss = same_type_mask * pairwise_distances ** 2
+
+    # Compute negative loss (push different types apart)
+    negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances[0], min=0.0) ** 2
+
     # Combine and return mean loss
-    # return (negative_loss).mean()/1000000
-    # print((negative_loss).mean())
-    # return (negative_loss).mean() * 1000
-    return (positive_loss + negative_loss).mean()/10000
+    return (positive_loss + negative_loss).mean() / 10000
+
 
 
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
@@ -961,7 +952,7 @@ class VectorQuantize(nn.Module):
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
         # atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
-        atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
+        atom_type_div_loss = compute_contrastive_loss(quantized, init_feat)
         # print(f"init_feat: {init_feat.shape}")
         # print(f"init_feat: {init_feat[0]}")
         # print(f"quantized: {quantized.shape}")
@@ -969,10 +960,14 @@ class VectorQuantize(nn.Module):
 
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
-        aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
-        ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
-        h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6])
+        # bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
+        # aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
+        # ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
+        # h_num_div_loss = None
+        # bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
+        # aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
+        # ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
+        # h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6])
         # bond_num_div_loss = None
         # aroma_div_loss = None
         # ringy_div_loss = None
@@ -983,8 +978,7 @@ class VectorQuantize(nn.Module):
         # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
         # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
 
-        return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss,
-                ringy_div_loss, h_num_div_loss, sil_loss, embed_ind)
+        return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, sil_loss, embed_ind)
 
     def forward(
             self,
@@ -1108,8 +1102,7 @@ class VectorQuantize(nn.Module):
         # print(f"init_feat.shape: {init_feat.shape}")
         # print(f"init_feat: {init_feat}")
         # print(f"embed_ind.shape {embed_ind.shape} befpre ")
-        (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-         ringy_div_loss, h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
+        (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         # print(f"embed_ind.shape {embed_ind.shape} after ")
         if embed_ind.ndim == 2:
@@ -1178,4 +1171,4 @@ class VectorQuantize(nn.Module):
         # print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
-                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, silh_loss)
+                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, silh_loss)
