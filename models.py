@@ -331,10 +331,6 @@ class SAGE(nn.Module):
                 print(f"latents (input to cb) {h[:10, :20]}")
                 print(f"embed_ind_{embed_ind[:10]}")
         div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
-        bond_num_div_loss_avg = sum(bond_num_div_loss_list) / len(bond_num_div_loss_list)
-        aroma_div_loss_avg = sum(aroma_div_loss_list) / len(aroma_div_loss_list)
-        ringy_div_loss_avg = sum(ringy_div_loss_list) / len(ringy_div_loss_list)
-        h_num_div_loss_avg = sum(h_num_div_loss_list) / len(h_num_div_loss_list)
 
         return h_list, y, loss, dist_all, codebook, [div_ele_loss_avg, raw_commit_loss,
                     margin_loss, spread_loss, pair_loss, sil_loss], latent_list, embed_ind_list, input_node_list
