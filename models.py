@@ -307,8 +307,6 @@ class SAGE(nn.Module):
             g.add_edges(src,dst)
             g.add_edges(dst,src)
             h_list = []
-            print(f"feats shape {feats.shape}")
-            # print(f"input_nodes {input_nodes}")
             h = feats[input_nodes]
             init_feat = h
             h = self.linear_2(h)
@@ -335,7 +333,7 @@ class SAGE(nn.Module):
                 torch.set_printoptions(profile="full")
                 print(f"-------------------------")
                 print(f"batch_feats {init_feat[:10]}")
-                print(f"latents (input to cb) {h[:10]}")
+                print(f"embed_ind_{embed_ind[:10]}")
 
         div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
         bond_num_div_loss_avg = sum(bond_num_div_loss_list) / len(bond_num_div_loss_list)
