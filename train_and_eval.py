@@ -56,10 +56,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         # Initialize loss_list_list with empty sublists if it's the first step
         if step == 0:
             loss_list_list = [[] for _ in range(len(loss_list3))]
-            torch.set_printoptions(profile="full")
-            print(f"-------------------------")
-            print(f"batch_feats {batch_feats[:10]}")
-            print(f"latents (output of cb) {latents[:, :10]}")
 
         # Append each element from loss_list3 to the corresponding sublist
         for i, loss_value in enumerate(loss_list3):

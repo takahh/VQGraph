@@ -297,7 +297,7 @@ class SAGE(nn.Module):
         aroma_div_loss_list = []
         ringy_div_loss_list = []
         h_num_div_loss_list = []
-        for input_nodes, output_nodes, blocks in dataloader:
+        for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
             block = blocks[0].int().to(device)
@@ -329,6 +329,11 @@ class SAGE(nn.Module):
             aroma_div_loss_list.append(aroma_div_loss)
             ringy_div_loss_list.append(ringy_div_loss)
             h_num_div_loss_list.append(h_num_div_loss)
+            if idx == 0:
+                torch.set_printoptions(profile="full")
+                print(f"-------------------------")
+                print(f"batch_feats {init_feat[:10]}")
+                print(f"latents (input to cb) {h[:, :10]}")
 
         div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
         bond_num_div_loss_avg = sum(bond_num_div_loss_list) / len(bond_num_div_loss_list)
