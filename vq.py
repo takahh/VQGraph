@@ -333,6 +333,8 @@ def compute_contrastive_loss(z, atom_types, margin=1.0):
     Contrastive loss to separate different atom types.
     """
     # Compute pairwise distances
+    print(f"atom_types: {atom_types.shape}")
+    print(f"z: {z.shape}")
     pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
 
     # # Calculate mean, min, and max
