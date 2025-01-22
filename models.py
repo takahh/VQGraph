@@ -320,15 +320,10 @@ class SAGE(nn.Module):
             # Quantize
             # ----------------
             (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
-             spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-             ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
+             spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, sil_loss) = self.vq(h, init_feat)
             embed_ind_list.append(embed_ind)
             input_node_list.append(input_nodes)
             div_ele_loss_list.append(div_ele_loss)
-            bond_num_div_loss_list.append(bond_num_div_loss)
-            aroma_div_loss_list.append(aroma_div_loss)
-            ringy_div_loss_list.append(ringy_div_loss)
-            h_num_div_loss_list.append(h_num_div_loss)
             if idx == 0:
                 torch.set_printoptions(profile="full")
                 print(f"-------------------------")
