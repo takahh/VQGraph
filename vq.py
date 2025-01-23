@@ -868,7 +868,7 @@ class VectorQuantize(nn.Module):
         embed_ind.data.copy_(embed_ind)
 
         # Compute pairwise distances for all points
-        # print(f"embedding {embeddings.shape}")
+        print(f"embedding {embeddings.shape}")
         pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
 
         # Initialize lists to store distances for non-empty clusters
