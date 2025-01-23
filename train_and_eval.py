@@ -32,6 +32,49 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     return loss_val, loss_list
 
 
+def transform_node_feats(a):
+    transformed = torch.empty_like(a)
+    transformed[:, 0] = torch.where(a[:, 0] == 6, 1,
+                        torch.where(a[:, 0] == 8, 20, torch.where(a[:, 0] == 7, 10,
+                        torch.where(a[:, 0] == 17, 5, torch.where(a[:, 0] == 9, 15,
+                        torch.where(a[:, 0] == 35, 8, torch.where(a[:, 0] == 16, 3,
+                        torch.where(a[:, 0] == 15, 12, torch.where(a[:, 0] == 1, 18,
+                        torch.where(a[:, 0] == 5, 2, torch.where(a[:, 0] == 53, 16,
+                        torch.where(a[:, 0] == 14, 4, torch.where(a[:, 0] == 34, 6,
+                        torch.where(a[:, 0] == 19, 7, torch.where(a[:, 0] == 11, 9,
+                        torch.where(a[:, 0] == 3, 11, torch.where(a[:, 0] == 30, 13,
+                        torch.where(a[:, 0] == 33, 14, torch.where(a[:, 0] == 12, 17,
+                        torch.where(a[:, 0] == 52, 19, -2))))))))))))))))))))
+
+    transformed[:, 1] = torch.where(a[:, 1] == 1, 1,
+    torch.where(a[:, 1] == 2, 20, torch.where(a[:, 1] == 3, 10,
+    torch.where(a[:, 1] == 0, 15, torch.where(a[:, 1] == 4, 5,
+    torch.where(a[:, 1] == 6, 7,
+    torch.where(a[:, 1] == 5, 12, -2)))))))
+
+    transformed[:, 2] = torch.where(a[:, 2] == 0, 1,
+    torch.where(a[:, 2] == 1, 20, torch.where(a[:, 2] == -1, 10,
+    torch.where(a[:, 2] == 3, 5,
+    torch.where(a[:, 2] == 2, 15, -2)))))
+
+    transformed[:, 3] = torch.where(a[:, 3] == 4, 1,
+    torch.where(a[:, 3] == 3, 20, torch.where(a[:, 3] == 1, 10,
+    torch.where(a[:, 3] == 2, 5, torch.where(a[:, 3] == 7, 15,
+    torch.where(a[:, 3] == 6, 18, -2))))))
+
+    transformed[:, 4] = torch.where(a[:, 4] == 0, 1,
+    torch.where(a[:, 4] == 1, 20, -2))
+
+    transformed[:, 5] = torch.where(a[:, 5] == 0, 1,
+    torch.where(a[:, 5] == 1, 20, -2))
+
+    transformed[:, 6] = torch.where(a[:, 6] == 3, 1,
+    torch.where(a[:, 6] == 0, 20, torch.where(a[:, 6] == 1, 10,
+    torch.where(a[:, 6] == 2, 15, torch.where(a[:, 6] == 4, 5, -2)))))
+
+    return transformed
+
+
 def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
     device = feats.device
     model.train()
@@ -45,8 +88,10 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
+        print(f"batch_feats {batch_feats}")
+        batch_feats = transform_node_feats(batch_feats)
         # print(f"input_nodes {input_nodes}")
-        # print(f"batch_feats {batch_feats}")
+        print(f"transformed_feats {batch_feats}")
         with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
             loss = loss * lamb / accumulation_steps
