@@ -646,7 +646,8 @@ def get_train_val_test_split(
     else:
         # remaining_indices = np.setdiff1d(remaining_indices, train_indices)
         val_indices = remaining_indices[train_size:(train_size + val_size)]
-        print(f"val_indices {val_indices}")
+        print(f"val_indices {len(val_indices)}")
+        print(f"val_indices {val_indices[-10:]}")
         # val_indices = random_state.choice(remaining_indices, val_size, replace=False)
 
     forbidden_indices = np.concatenate((train_indices, val_indices))
@@ -661,7 +662,7 @@ def get_train_val_test_split(
         remaining_indices = np.setdiff1d(remaining_indices, forbidden_indices)
         test_indices = random_state.choice(remaining_indices, test_size, replace=False)
     else:
-        # test_indices = np.setdiff1d(remaining_indices, forbidden_indices)
+        test_indices = np.setdiff1d(remaining_indices, forbidden_indices)
         test_indices = remaining_indices[(train_size + val_size):(train_size + val_size + test_size)]
 
     # assert that there are no duplicates in sets
