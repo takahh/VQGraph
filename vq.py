@@ -1101,10 +1101,10 @@ class VectorQuantize(nn.Module):
         # print(f"init_feat.grad_fn: {init_feat.grad_fn}")
         # print(f"init_feat.shape: {init_feat.shape}")
         # print(f"init_feat: {init_feat}")
-        # print(f"embed_ind.shape {embed_ind.shape} befpre ")
+        print(f"embed_ind.shape {embed_ind.shape} befpre ")
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-        # print(f"embed_ind.shape {embed_ind.shape} after ")
+        print(f"embed_ind.shape {embed_ind.shape} after ")
         if embed_ind.ndim == 2:
             embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
         elif embed_ind.ndim == 1:
