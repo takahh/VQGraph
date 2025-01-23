@@ -1002,6 +1002,9 @@ class VectorQuantize(nn.Module):
             x = rearrange(x, 'b d n -> b n d')
 
         x = self.project_in(x)
+        ##############################################################
+        # ここまで見た
+        ##############################################################
         if is_multiheaded:
             ein_rhs_eq = 'h b n d' if self.separate_codebook_per_head else '1 (b h) n d'
             x = rearrange(x, f'b n (h d) -> {ein_rhs_eq}', h=heads)
@@ -1101,7 +1104,7 @@ class VectorQuantize(nn.Module):
         # print(f"init_feat.grad_fn: {init_feat.grad_fn}")
         # print(f"init_feat.shape: {init_feat.shape}")
         # print(f"init_feat: {init_feat}")
-        (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
+        (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, silh_loss, embed_ind_tmp) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         embed_ind = embed_ind.reshape(embed_ind.shape[-1], 1)
         if embed_ind.ndim == 2:
