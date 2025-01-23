@@ -644,7 +644,7 @@ def get_train_val_test_split(
             forbidden_indices=train_indices,
         )
     else:
-        remaining_indices = np.setdiff1d(remaining_indices, train_indices)
+        # remaining_indices = np.setdiff1d(remaining_indices, train_indices)
         val_indices = remaining_indices[train_size:(train_size + val_size)]
         print(f"val_indices {val_indices}")
         # val_indices = random_state.choice(remaining_indices, val_size, replace=False)
