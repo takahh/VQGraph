@@ -623,6 +623,7 @@ def get_train_val_test_split(
 ):
     num_samples, num_classes = labels.shape
     print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
+    print(f"train_size = {train_size}, val_size = {val_size}, test_size = {test_size}")
     remaining_indices = list(range(num_samples))
     if train_examples_per_class is not None:
         print("train_examples_per_class is not None:")
