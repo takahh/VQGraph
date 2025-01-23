@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from dgl.nn import GraphConv, SAGEConv, APPNPConv, GATConv
 from vq import VectorQuantize
 import dgl
+from train_and_eval import transform_node_feats
 
 class MLP(nn.Module):
     def __init__(
@@ -308,6 +309,7 @@ class SAGE(nn.Module):
             g.add_edges(dst,src)
             h_list = []
             h = feats[input_nodes]
+            h = transform_node_feats(h)
             init_feat = h
             h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
