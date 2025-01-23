@@ -1003,6 +1003,7 @@ class VectorQuantize(nn.Module):
             x = rearrange(x, 'b d n -> b n d')
 
         x = self.project_in(x)
+        print(f"x.shape {x.shape}")
         ##############################################################
         # ここまで見た
         ##############################################################
