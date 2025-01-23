@@ -79,6 +79,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
     # Step 3: Extract and annotate molecules
     images = []
     for i in range(n_components - 2):
+        print(f"$$$$$$$$$$$$$$$$$$$. {i}")
         # Get node indices for this molecule
         component_indices = np.where(labels == i)[0]
 
@@ -95,9 +96,9 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
             atomic_num = int(features[0])  # First element is the atomic number
             atom = Chem.Atom(atomic_num)
             atom_idx = mol.AddAtom(atom)
-            # print("------")
-            # print(atom_idx)
-            # print(features)
+            print("------")
+            print(atom_idx)
+            print(features)
             # Annotate with superscript class label
             class_label = node_to_class.get(idx, "Unknown")
             if class_label != "Unknown":
