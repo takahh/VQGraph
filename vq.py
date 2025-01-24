@@ -868,10 +868,9 @@ class VectorQuantize(nn.Module):
         embed_ind.data.copy_(embed_ind)
 
         # Compute pairwise distances for all points
-        # print(f"embedding {embeddings.shape}")
         pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
 
-        # Initialize lists to store distances for non-empty clusters
+        # Initialize tensors to store distances for non-empty clusters
         intra_cluster_distances = []
         inter_cluster_distances = []
         empty_cluster_count = 0  # Counter for empty clusters
@@ -888,21 +887,24 @@ class VectorQuantize(nn.Module):
             # Compute intra-cluster distances
             cluster_distances = pairwise_distances[cluster_indices][:, cluster_indices]
             if cluster_distances.numel() > 1:
-                intra_cluster_distances.append(cluster_distances.mean().item())
+                intra_cluster_distances.append(cluster_distances.mean())  # Keep as tensor
             else:
-                intra_cluster_distances.append(0)
+                intra_cluster_distances.append(torch.tensor(0.0, device=embeddings.device))  # Tensor with gradient
 
             # Compute inter-cluster distances
             other_mask = ~cluster_mask
             if other_mask.sum() > 0:
                 other_distances = pairwise_distances[cluster_indices][:, other_mask]
-                inter_cluster_distances.append(other_distances.mean().item())
+                inter_cluster_distances.append(other_distances.mean())  # Keep as tensor
             else:
-                inter_cluster_distances.append(float('inf'))
+                inter_cluster_distances.append(
+                    torch.tensor(float('inf'), device=embeddings.device))  # Tensor with gradient
 
-        # Convert intra- and inter-cluster distances to tensors
-        a = torch.tensor(intra_cluster_distances, device=embeddings.device)
-        b = torch.tensor(inter_cluster_distances, device=embeddings.device)
+        # Stack intra- and inter-cluster distances into tensors
+        a = torch.stack(intra_cluster_distances, dim=0) if intra_cluster_distances else torch.tensor([],
+                                                                                                     device=embeddings.device)
+        b = torch.stack(inter_cluster_distances, dim=0) if inter_cluster_distances else torch.tensor([],
+                                                                                                     device=embeddings.device)
 
         # Compute silhouette coefficients
         epsilon = 1e-6  # To avoid division by zero
