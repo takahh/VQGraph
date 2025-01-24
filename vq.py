@@ -745,7 +745,7 @@ class VectorQuantize(nn.Module):
             lamb_div_aroma=1,
             lamb_div_ringy=1,
             lamb_div_h_num=1,
-            lamb_sil=0.1,
+            lamb_sil=1,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
             sample_codebook_temp=0.,
@@ -1140,7 +1140,7 @@ class VectorQuantize(nn.Module):
         # print(f"value: {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
-        # loss = loss + self.lamb_sil * silh_loss
+        loss = loss + self.lamb_sil * silh_loss
         # print(f"loss 2 {loss}")
         if is_multiheaded:
             if self.separate_codebook_per_head:
