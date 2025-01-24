@@ -214,7 +214,7 @@ class SAGE(nn.Module):
         adj = g.adjacency_matrix().to_dense().to(feats.device)
         h_list = []
 
-        print(f"h.shape 0 {h.shape}")
+        # print(f"h.shape 0 {h.shape}")
 
         # Apply linear transformation and graph layer
         h = self.linear_2(h)
@@ -231,7 +231,7 @@ class SAGE(nn.Module):
         # print(h[:20])
         # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
 
-        print(f"h.shape 1 {h.shape}")
+        # print(f"h.shape 1 {h.shape}")
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
          detached_quantize, x, init_cb, div_ele_loss, sil_loss) = self.vq(h, init_feat)
         # quantized_edge = self.decoder_1(quantized)
