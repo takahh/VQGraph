@@ -493,7 +493,7 @@ def run_inductive(
         # -------------------------
         obs_dataloader_eval = dgl.dataloading.DataLoader(
             obs_g,
-            torch.arange(obs_g.num_nodes()),
+            obs_idx_val,
             sampler_eval,
             batch_size=batch_size,
             shuffle=False,
