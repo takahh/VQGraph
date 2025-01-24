@@ -261,7 +261,7 @@ def run(args):
     model = Model(conf)
 
     if conf["train_or_infer"] == "infer":
-        model.load_state_dict(torch.load("./model_epoch_99.pth", weights_only=False))
+        model.load_state_dict(torch.load("./model_epoch_34.pth", weights_only=False))
 
     optimizer = optim.Adam(
         model.parameters(), lr=conf["learning_rate"], weight_decay=conf["weight_decay"]
