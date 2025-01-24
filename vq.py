@@ -386,6 +386,7 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
     non_empty_clusters = [k for k, size in cluster_sizes if size > 0]
     current_non_empty_count = len(non_empty_clusters)
 
+    # クラスタ数が　５００以下の場合だけ実行
     if current_non_empty_count < target_non_empty_clusters:
         # print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
         new_embed_ind = embed_ind.clone()
@@ -546,7 +547,10 @@ class EuclideanCodebook(nn.Module):
         embed_onehot = embed_ind
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
+        print("------------------")
+        print(f"embed_ind: {embed_ind}")
         indices = embed_ind[:, :, 0]  # Keep the float tensor
+        print(f"indices: {indices}")
         proxy_indices = indices.long()  # Convert to integer for forward pass
         embed_ind = proxy_indices + (indices - indices.detach())
 
@@ -557,6 +561,7 @@ class EuclideanCodebook(nn.Module):
             raise ValueError(
                 f"embed_ind contains out-of-range values: max={embed_ind.max()}, codebook_size={self.codebook_size}")
         embed_ind = embed_ind.unsqueeze(0)
+        print(f"embed_ind unsqueezed: {embed_ind.shape}")
         # ----------------------------------------------------
         # set the initial codebook vectors by kmeans
         # ----------------------------------------------------
@@ -958,13 +963,7 @@ class VectorQuantize(nn.Module):
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
 
-        print("------ quantized -------")
-        print(f"quantized.requires_grad: {quantized.requires_grad}")
-        print(f"quantized.grad_fn: {quantized.grad_fn}")
         atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
-        print("------ atom_type_div_loss　-------")
-        print(f"atom_type_div_loss.requires_grad: {atom_type_div_loss.requires_grad}")
-        print(f"atom_type_div_loss.grad_fn: {atom_type_div_loss.grad_fn}")
         bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
         aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
         ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
@@ -1115,8 +1114,10 @@ class VectorQuantize(nn.Module):
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         embed_ind = embed_ind.reshape(embed_ind.shape[-1], 1)
         if embed_ind.ndim == 2:
+            print("embed_ind.ndim == 2")
             embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
         elif embed_ind.ndim == 1:
+            print("embed_ind.ndim == 1")
             embed_ind = embed_ind  # Leave as is if already 1D
         else:
             raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
@@ -1152,6 +1153,7 @@ class VectorQuantize(nn.Module):
                 quantize = rearrange(quantize, 'h b n d -> b n (h d)', h=heads)
                 embed_ind = rearrange(embed_ind, 'h b n -> b n h', h=heads)
             else:
+                print("separate_codebook_per_head NO !!!!!!!")
                 quantize = rearrange(quantize, '1 (b h) n d -> b n (h d)', h=heads)
                 embed_ind = rearrange(embed_ind, '1 (b h) n -> b n h', h=heads)
 
@@ -1161,17 +1163,16 @@ class VectorQuantize(nn.Module):
         quantize = self.project_out(quantize)
 
         if need_transpose:
+            print("need_transpose !!!!!!!")
             quantize = rearrange(quantize, 'b n d -> b d n')
 
         if self.accept_image_fmap:
+            print("accept_image_fmap !!!!!!!")
             quantize = rearrange(quantize, 'b (h w) c -> b c h w', h=height, w=width)
             embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h=height, w=width)
 
         if only_one:
-            # quantize = torch.squeeze(quantize)
-            # print("====================")
-            # print(f"quantize: {quantize.shape}")
-            # print(f"quantize: {quantize}")
+            print("only_one !!!!!!!")
             quantize = rearrange(quantize, '1 b d -> b d')
             if len(embed_ind.shape) == 2:
                 embed_ind = rearrange(embed_ind, 'b 1 -> b')
