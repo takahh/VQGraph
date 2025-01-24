@@ -456,11 +456,9 @@ def run_inductive(
     obs_feats = feats[idx_obs]
     obs_labels = labels[idx_obs]
     obs_g = g.subgraph(idx_obs)
-    print(f"@@@@ idx_obs: {idx_obs[:10]}")
-    print(f"@@@@ idx_test_ind {idx_test_ind[:10]}")
-    test_label = labels[idx_test_ind]
-    # test_feats = feats[idx_test_ind]
-    test_g = g.subgraph(idx_test_ind)
+    test_label = labels[obs_idx_test]
+    test_feats = feats[obs_idx_test]
+    test_g = g.subgraph(obs_idx_test)
 
     if "SAGE" in model.model_name:
         # Create dataloader for SAGE

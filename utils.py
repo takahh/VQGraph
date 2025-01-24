@@ -121,12 +121,12 @@ def graph_split(idx_train, idx_val, idx_test, rate, seed, train_or_infer):
     """
     idx_test_ind, idx_test_tran = idx_split(idx_test, rate, seed, train_or_infer)
 
-    idx_obs = torch.cat([idx_train, idx_val, idx_test])
+    idx_obs = torch.cat([idx_train, idx_val])
     N1, N2 = idx_train.shape[0], idx_val.shape[0]
     obs_idx_all = torch.arange(idx_obs.shape[0])
     obs_idx_train = obs_idx_all[:N1]
     obs_idx_val = obs_idx_all[N1 : N1 + N2]
-    obs_idx_test = obs_idx_all[N1 + N2 :]
+    obs_idx_test = idx_test
 
     print(f"obs_idx_train {obs_idx_train}")
     print(f"obs_idx_train {obs_idx_train.shape}")
