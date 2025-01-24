@@ -621,22 +621,22 @@ def get_train_val_test_split(
     # val_size=1484900,
     # test_size=1484900,
 ):
-    print(f"val_examples_per_class {val_examples_per_class}")
+    # print(f"val_examples_per_class {val_examples_per_class}")
     num_samples, num_classes = labels.shape
-    print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
-    print(f"train_size = {train_size}, val_size = {val_size}, test_size = {test_size}")
+    # print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
+    # print(f"train_size = {train_size}, val_size = {val_size}, test_size = {test_size}")
     remaining_indices = list(range(num_samples))
     if train_examples_per_class is not None:
-        print("train_examples_per_class is not None:")
+        # print("train_examples_per_class is not None:")
         train_indices = sample_per_class(random_state, labels, train_examples_per_class)
     else:
-        print("train_examples_per_class is None:")
+        # print("train_examples_per_class is None:")
         # select train examples with no respect to class distribution
         train_indices = remaining_indices[:train_size]
         # train_indices = random_state.choice(
         #     remaining_indices, train_size, replace=False
         # )
-        print(f"remaining_indices {len(remaining_indices)}")
+        # print(f"remaining_indices {len(remaining_indices)}")
     if val_examples_per_class is not None:
         val_indices = sample_per_class(
             random_state,
@@ -647,8 +647,8 @@ def get_train_val_test_split(
     else:
         # remaining_indices = np.setdiff1d(remaining_indices, train_indices)
         val_indices = remaining_indices[train_size:(train_size + val_size)]
-        print(f"val_indices {len(val_indices)}")
-        print(f"val_indices {val_indices[-10:]}")
+        # print(f"val_indices {len(val_indices)}")
+        # print(f"val_indices {val_indices[-10:]}")
         # val_indices = random_state.choice(remaining_indices, val_size, replace=False)
 
     forbidden_indices = np.concatenate((train_indices, val_indices))
