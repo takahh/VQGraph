@@ -740,7 +740,7 @@ class VectorQuantize(nn.Module):
             margin_weight=0.8,
             spread_weight=0.2,
             pair_weight=0.01,
-            lamb_div_ele=1,
+            lamb_div_ele=10,
             lamb_div_bonds=1,
             lamb_div_aroma=1,
             lamb_div_ringy=1,
@@ -961,14 +961,15 @@ class VectorQuantize(nn.Module):
 
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        # bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
-        # aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
-        # ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
+        atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
+        bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
+        aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
+        ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
+        h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6])
         # h_num_div_loss = None
         # bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
         # aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
         # ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
-        # h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6])
         # bond_num_div_loss = None
         # aroma_div_loss = None
         # ringy_div_loss = None
@@ -979,7 +980,7 @@ class VectorQuantize(nn.Module):
         # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
         # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
 
-        return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, sil_loss, embed_ind)
+        return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss, embed_ind)
 
     def forward(
             self,
@@ -1105,7 +1106,8 @@ class VectorQuantize(nn.Module):
         # print(f"init_feat.grad_fn: {init_feat.grad_fn}")
         # print(f"init_feat.shape: {init_feat.shape}")
         # print(f"init_feat: {init_feat}")
-        (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, silh_loss, embed_ind_tmp) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
+        (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
+          h_num_div_loss, silh_loss, embed_ind_tmp) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         embed_ind = embed_ind.reshape(embed_ind.shape[-1], 1)
         if embed_ind.ndim == 2:
@@ -1126,10 +1128,10 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # linearly combine losses !!!!
         # ---------------------------------
-        loss = self.lamb_div_ele * div_ele_loss
-        # loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-        #  + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
+        # loss = self.lamb_div_ele * div_ele_loss
+        loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+         + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+         + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
 
         # print(" &&&&&&&&&&&& loss  ")
         # print(f"requires_grad: {loss.requires_grad}")
