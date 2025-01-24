@@ -911,7 +911,8 @@ class VectorQuantize(nn.Module):
 
         # Compute silhouette coefficients
         epsilon = 1e-6  # To avoid division by zero
-        silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
+        # silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
+        silhouette_coefficients = (b) / (b + epsilon)
         silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
 
         # Apply ReLU to ensure positivity and preserve gradient information
