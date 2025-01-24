@@ -560,14 +560,14 @@ class Model(nn.Module):
                 norm_type=conf["norm_type"],
             ).to(conf["device"])
 
-    def forward(self, data, feats):
+    def forward(self, data, feats, epoch):
         """
         data: a graph `g` or a `dataloader` of blocks
         """
         if "MLP" in self.model_name:
             return self.encoder(feats)
         else:
-            return self.encoder(data, feats)
+            return self.encoder(data, feats, epoch)
 
     def forward_fitnet(self, data, feats):
         """
