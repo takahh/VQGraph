@@ -1176,4 +1176,5 @@ class VectorQuantize(nn.Module):
         # print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
-                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, silh_loss)
+                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
+          h_num_div_loss, silh_loss)
