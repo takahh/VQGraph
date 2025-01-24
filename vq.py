@@ -375,6 +375,8 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
 
 import torch.nn.functional as F
+
+
 def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters=500, min_cluster_size=5):
     # Count the size of each cluster
     cluster_sizes = [(k, (embed_ind == k).sum().item()) for k in range(num_clusters)]
@@ -419,6 +421,7 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
     else:
         # print(f"No need to increase clusters; current count is {current_non_empty_count}.")
         return embed_ind
+
 
 class EuclideanCodebook(nn.Module):
     def __init__(
@@ -955,7 +958,7 @@ class VectorQuantize(nn.Module):
         # print(f"x.grad_fn: {latents_for_sil.grad_fn}")
         # print(f"x.requires_grad: {embed_ind_for_sil.requires_grad}")
         # print(f"x.grad_fn: {embed_ind_for_sil.grad_fn}")
-        embed_ind_tmp, sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
+        embed_ind, sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
         # print("------ after (fast_silhouette_loss) -------")
         # print(f"x.requires_grad: {sil_loss.requires_grad}")
         # print(f"x.grad_fn: {sil_loss.grad_fn}")
@@ -1118,7 +1121,7 @@ class VectorQuantize(nn.Module):
         # print(f"init_feat.shape: {init_feat.shape}")
         # print(f"init_feat: {init_feat}")
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-          h_num_div_loss, silh_loss, embed_ind_tmp) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
+          h_num_div_loss, silh_loss, embed_ind) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         embed_ind = embed_ind.reshape(embed_ind.shape[-1], 1)
         if embed_ind.ndim == 2:
