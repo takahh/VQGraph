@@ -194,7 +194,7 @@ class SAGE(nn.Module):
     def reset_kmeans(self):
         self.vq._codebook.reset_kmeans()
 
-    def forward(self, blocks, feats):
+    def forward(self, blocks, feats, epoch):
         # print(f"RUNNING FORWARD ======================")
         h = feats.clone() if not feats.requires_grad else feats  # Ensure h requires gradients
         init_feat = h
@@ -234,7 +234,7 @@ class SAGE(nn.Module):
         # print(f"h.shape 1 {h.shape}")
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
          detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-          h_num_div_loss, sil_loss) = self.vq(h, init_feat)
+          h_num_div_loss, sil_loss) = self.vq(h, init_feat, epoch)
         # quantized_edge = self.decoder_1(quantized)
         # quantized_node = self.decoder_2(quantized)
         # ------------------------------

@@ -75,7 +75,7 @@ def transform_node_feats(a):
     return transformed
 
 
-def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulation_steps=1, lamb=1):
+def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, accumulation_steps=1, lamb=1):
     device = feats.device
     model.train()
     total_loss = 0
@@ -90,7 +90,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, accumulat
         batch_feats = feats[input_nodes]
         batch_feats = transform_node_feats(batch_feats)
         with torch.cuda.amp.autocast():
-            _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats)
+            _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats, epoch)
             loss = loss * lamb / accumulation_steps
         if not torch.isfinite(loss):
             continue
@@ -559,7 +559,7 @@ def run_inductive(
                 # partial sampling, only obs data
                 # this loss is label loss
                 loss, loss_list_list, latent_train, latents = train_sage(
-                    model, obs_data, obs_feats, obs_labels, criterion, optimizer, accumulation_steps
+                    model, obs_data, obs_feats, obs_labels, criterion, optimizer, epoch, accumulation_steps
                 )
                 model.encoder.reset_kmeans()
                 cb_new = model.encoder.vq._codebook.init_embed_(latents)
