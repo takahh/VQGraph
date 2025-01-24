@@ -133,8 +133,8 @@ def main():
     arr_list = []
     DIMENSION = 256
     BATCH = 8000
-    EPOCH = 19
-    EPOCH2 = 20
+    EPOCH = 23
+    EPOCH2 = 24
 
     # MODE = "tsne"
     MODE = "umap"
