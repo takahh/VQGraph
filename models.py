@@ -302,6 +302,7 @@ class SAGE(nn.Module):
         aroma_div_loss_list = []
         ringy_div_loss_list = []
         h_num_div_loss_list = []
+        sil_loss_list = []
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
@@ -335,6 +336,7 @@ class SAGE(nn.Module):
             aroma_div_loss_list.append(aroma_div_loss)
             ringy_div_loss_list.append(ringy_div_loss)
             h_num_div_loss_list.append(h_num_div_loss)
+            sil_loss_list.append(sil_loss)
             if idx == 0:
                 torch.set_printoptions(profile="full")
                 print(f"-------------------------")
@@ -345,7 +347,7 @@ class SAGE(nn.Module):
         div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
 
         return h_list, y, loss, dist_all, codebook, [div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
-          h_num_div_loss_list, raw_commit_loss, margin_loss, spread_loss, pair_loss, sil_loss], latent_list, embed_ind_list, input_node_list
+          h_num_div_loss_list, raw_commit_loss, margin_loss, spread_loss, pair_loss, sil_loss_list], latent_list, embed_ind_list, input_node_list
 
 
 class GAT(nn.Module):
