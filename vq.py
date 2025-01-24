@@ -333,7 +333,7 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5):
     """
     # Compute pairwise distances for the z vectors
     pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
-
+    print(f"atom_types {atom_types.shape}")
     # Compute pairwise similarity for the atom_types (7-dimensional vectors)
     atom_types = atom_types / (torch.norm(atom_types, dim=1, keepdim=True) + 1e-8)  # Normalize the vectors
     pairwise_similarities = torch.mm(atom_types, atom_types.T)  # Cosine similarity
@@ -953,7 +953,7 @@ class VectorQuantize(nn.Module):
         # loss to assign different codes for different chemical elements
         # ---------------------------------------------------------------
         # atom_type_div_loss = differentiable_codebook_loss(init_feat[:, 0], embed_ind, self.codebook_size)
-        atom_type_div_loss = compute_contrastive_loss(quantized, init_feat)
+        # atom_type_div_loss = compute_contrastive_loss(quantized, init_feat)
         # print(f"init_feat: {init_feat.shape}")
         # print(f"init_feat: {init_feat[0]}")
         # print(f"quantized: {quantized.shape}")
