@@ -873,53 +873,34 @@ class VectorQuantize(nn.Module):
         # Compute pairwise distances for all points
         pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
 
-        # Initialize tensors to store distances for non-empty clusters
-        intra_cluster_distances = []
         inter_cluster_distances = []
-        empty_cluster_count = 0  # Counter for empty clusters
 
         # Iterate over clusters
         for k in range(num_clusters):
-            cluster_mask = (embed_ind == k)  # Mask for cluster k
+            cluster_mask = (embed_ind == k)
             cluster_indices = cluster_mask.nonzero(as_tuple=True)[0]
 
-            if cluster_indices.numel() == 0:  # If the cluster is empty
-                empty_cluster_count += 1  # Increment the empty cluster count
-                continue
-
-            # Compute intra-cluster distances
-            cluster_distances = pairwise_distances[cluster_indices][:, cluster_indices]
-            if cluster_distances.numel() > 1:
-                intra_cluster_distances.append(cluster_distances.mean())  # Keep as tensor
-            else:
-                intra_cluster_distances.append(torch.tensor(0.0, device=embeddings.device))  # Tensor with gradient
+            if cluster_indices.numel() == 0:
+                continue  # Skip empty clusters
 
             # Compute inter-cluster distances
             other_mask = ~cluster_mask
             if other_mask.sum() > 0:
                 other_distances = pairwise_distances[cluster_indices][:, other_mask]
-                inter_cluster_distances.append(other_distances.mean())  # Keep as tensor
+                inter_cluster_distances.append(other_distances.mean())
             else:
-                inter_cluster_distances.append(
-                    torch.tensor(float('inf'), device=embeddings.device))  # Tensor with gradient
+                inter_cluster_distances.append(torch.tensor(float('inf'), device=embeddings.device))
 
-        # Stack intra- and inter-cluster distances into tensors
-        a = torch.stack(intra_cluster_distances, dim=0) if intra_cluster_distances else torch.tensor([],
-                                                                                                     device=embeddings.device)
+        # Stack inter-cluster distances into a tensor
         b = torch.stack(inter_cluster_distances, dim=0) if inter_cluster_distances else torch.tensor([],
                                                                                                      device=embeddings.device)
 
-        # Compute silhouette coefficients
-        epsilon = 1e-6  # To avoid division by zero
-        # silhouette_coefficients = (b - a) / torch.max(a + epsilon, b + epsilon)
-        silhouette_coefficients = (b) / (b + epsilon)
-        silhouette_coefficients = torch.nan_to_num(silhouette_coefficients, nan=0.0)
+        # Compute inter-cluster loss
+        epsilon = 1e-6  # Small value to avoid division by zero
+        b_normalized = b / (b.max() + epsilon)  # Normalize distances
+        loss = -torch.mean(torch.log(b_normalized + epsilon))  # Maximize inter-cluster distances
 
-        # Apply ReLU to ensure positivity and preserve gradient information
-        positive_silhouette_coefficients = torch.relu(silhouette_coefficients)
-
-        # Return the mean silhouette loss (positive value with meaningful gradients)
-        return embed_ind, positive_silhouette_coefficients.mean()
+        return embed_ind, loss
 
 
     def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, quantized, min_distance=0.5):
