@@ -1008,7 +1008,7 @@ class VectorQuantize(nn.Module):
             self,
             x,
             init_feat,
-            epoch,
+            epoch=None,
             mask=None
     ):
         only_one = x.ndim == 2
@@ -1162,12 +1162,13 @@ class VectorQuantize(nn.Module):
         # print(f"value: {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
-        if epoch > 10:
-            loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-             + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-             + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
-        else:
-            loss = loss + self.lamb_sil * silh_loss
+        if self.training:
+            if epoch > 10:
+                loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+                 + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+                 + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
+            else:
+                loss = loss + self.lamb_sil * silh_loss
         # print(f"loss 2 {loss}")
         if is_multiheaded:
             if self.separate_codebook_per_head:
