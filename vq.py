@@ -1135,10 +1135,10 @@ class VectorQuantize(nn.Module):
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         embed_ind = embed_ind.reshape(embed_ind.shape[-1], 1)
         if embed_ind.ndim == 2:
-            print("embed_ind.ndim == 2")
+            # print("embed_ind.ndim == 2")
             embed_ind = rearrange(embed_ind, 'b 1 -> b')  # Reduce if 2D with shape [b, 1]
         elif embed_ind.ndim == 1:
-            print("embed_ind.ndim == 1")
+            # print("embed_ind.ndim == 1")
             embed_ind = embed_ind  # Leave as is if already 1D
         else:
             raise ValueError(f"Unexpected shape for embed_ind: {embed_ind.shape}")
@@ -1184,16 +1184,16 @@ class VectorQuantize(nn.Module):
         quantize = self.project_out(quantize)
 
         if need_transpose:
-            print("need_transpose !!!!!!!")
+            # print("need_transpose !!!!!!!")
             quantize = rearrange(quantize, 'b n d -> b d n')
 
         if self.accept_image_fmap:
-            print("accept_image_fmap !!!!!!!")
+            # print("accept_image_fmap !!!!!!!")
             quantize = rearrange(quantize, 'b (h w) c -> b c h w', h=height, w=width)
             embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h=height, w=width)
 
         if only_one:
-            print("only_one !!!!!!!")
+            # print("only_one !!!!!!!")
             quantize = rearrange(quantize, '1 b d -> b d')
             if len(embed_ind.shape) == 2:
                 embed_ind = rearrange(embed_ind, 'b 1 -> b')

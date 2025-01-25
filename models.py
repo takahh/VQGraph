@@ -337,13 +337,13 @@ class SAGE(nn.Module):
             ringy_div_loss_list.append(ringy_div_loss)
             h_num_div_loss_list.append(h_num_div_loss)
             sil_loss_list.append(sil_loss)
-            if idx == 0:
-                torch.set_printoptions(profile="full")
-                print(f"-------------------------")
-                print(f"batch_feats {init_feat[:10]}")
-                print(f"latents (input to cb) {h[:10, :20]}")
-                print(f"embed_ind_{embed_ind[:10]}")
-                print()
+            # if idx == 0:
+            #     torch.set_printoptions(profile="full")
+            #     print(f"-------------------------")
+            #     print(f"batch_feats {init_feat[:10]}")
+            #     print(f"latents (input to cb) {h[:10, :20]}")
+            #     print(f"embed_ind_{embed_ind[:10]}")
+            #     print()
         div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
 
         return h_list, y, loss, dist_all, codebook, [div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
