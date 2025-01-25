@@ -403,7 +403,7 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
     non_empty_clusters = [k for k, size in cluster_sizes if size > 0]
     current_non_empty_count = len(non_empty_clusters)
 
-    # クラスタ数が　５００以下の場合だけ実行
+    # クラスタ数が設定値以下の場合だけ実行
     if current_non_empty_count < target_non_empty_clusters:
         print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
         new_embed_ind = embed_ind.clone()
@@ -892,7 +892,7 @@ class VectorQuantize(nn.Module):
 
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Preprocess clusters to ensure the desired number of non-empty clusters
-        embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
+        # embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
         embed_ind.data.copy_(embed_ind)
 
         # Compute pairwise distances for all points
