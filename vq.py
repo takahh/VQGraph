@@ -280,12 +280,29 @@ def kmeans(
         num_clusters,
         num_iters=100,
         use_cosine_sim=False,
-        sample_fn=batched_sample_vectors,
         all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
     num_iters = 50
-    means = sample_fn(samples, num_clusters)
+
+    # K-Means++ initialization
+    means = torch.zeros((num_codebooks, num_clusters, dim), device=device, dtype=dtype)
+
+    # Randomly select the first centroid
+    means[:, 0] = samples[:, torch.randint(0, samples.shape[1], (1,))]
+
+    for k in range(1, num_clusters):
+        if use_cosine_sim:
+            dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
+        else:
+            dists = torch.cdist(samples, means[:, :k], p=2)
+
+        min_dists = dists.min(dim=-1).values  # Minimum distance to existing centroids
+        probs = min_dists / min_dists.sum(dim=-1, keepdim=True)  # Probabilities proportional to distance
+        next_centroid_idx = torch.multinomial(probs, 1)  # Sample next centroid based on probabilities
+        means[:, k] = samples[:, next_centroid_idx.squeeze(-1)]
+
+    # Iterative optimization
     for _ in range(num_iters):
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
@@ -388,7 +405,7 @@ def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_
 
     # クラスタ数が　５００以下の場合だけ実行
     if current_non_empty_count < target_non_empty_clusters:
-        # print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
+        print(f"Increasing clusters from {current_non_empty_count} to {target_non_empty_clusters}...")
         new_embed_ind = embed_ind.clone()
 
         # Determine how many clusters need to be added
@@ -547,10 +564,7 @@ class EuclideanCodebook(nn.Module):
         embed_onehot = embed_ind
         indices = torch.argmax(embed_ind, dim=-1, keepdim=True)  # Non-differentiable forward pass
         embed_ind = indices + (embed_ind - embed_ind.detach())  # Straight-through trick
-        print("------------------")
-        print(f"embed_ind: {embed_ind}")
         indices = embed_ind[:, :, 0]  # Keep the float tensor
-        print(f"indices: {indices}")
         proxy_indices = indices.long()  # Convert to integer for forward pass
         embed_ind = proxy_indices + (indices - indices.detach())
 
@@ -561,7 +575,6 @@ class EuclideanCodebook(nn.Module):
             raise ValueError(
                 f"embed_ind contains out-of-range values: max={embed_ind.max()}, codebook_size={self.codebook_size}")
         embed_ind = embed_ind.unsqueeze(0)
-        print(f"embed_ind unsqueezed: {embed_ind.shape}")
         # ----------------------------------------------------
         # set the initial codebook vectors by kmeans
         # ----------------------------------------------------
@@ -1022,6 +1035,7 @@ class VectorQuantize(nn.Module):
         # print(f"x.grad_fn: {x.grad_fn}")
         # quantize, embed_ind, dist, self.embed, flatten, init_cb
         quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
+        # この時点の embed_ind を渡して書き込むべき！！！
         # quantize　: 各データに対応する codebook vector
         # embed_ind : 各データに対応する codebook vector のインデックス
         # dist      : codebook の距離行列
