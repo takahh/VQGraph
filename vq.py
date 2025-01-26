@@ -1163,10 +1163,10 @@ class VectorQuantize(nn.Module):
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
         if self.training:
-            if div_ele_loss < 0.001:
+            if div_ele_loss < 0.002:
                 loss = loss + self.lamb_sil * silh_loss
             else:
-                loss = (self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+                loss = (loss + self.lamb_sil * silh_loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
                         + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
                         + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
 
