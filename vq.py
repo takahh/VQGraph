@@ -1017,7 +1017,7 @@ class VectorQuantize(nn.Module):
         # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
 
         return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss,
-                ringy_div_loss, h_num_div_loss, sil_loss, embed_ind, elec_state_div_loss, charge_div_loss)
+                ringy_div_loss, h_num_div_loss, sil_loss, embed_ind, charge_div_loss, elec_state_div_loss)
 
     def forward(
             self,
@@ -1145,7 +1145,7 @@ class VectorQuantize(nn.Module):
         #         ringy_div_loss, h_num_div_loss, sil_loss, embed_ind, elec_state_div_loss, charge_div_loss)
 
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-          h_num_div_loss, silh_loss, embed_ind, elec_state_div_loss, charge_div_loss) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
+          h_num_div_loss, silh_loss, embed_ind, charge_div_loss, elec_state_div_loss) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
         embed_ind = embed_ind.reshape(embed_ind.shape[-1], 1)
         if embed_ind.ndim == 2:

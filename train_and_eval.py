@@ -208,7 +208,6 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     # this line explicitly set self.training True
     model.eval()
     with torch.no_grad():
-        # h_list, y, loss, dist_all, codebook, [raw_feat_loss, raw_edge_rec_loss, raw_commit_loss], latent_list, embed_ind_list
         h_list, logits, _ , dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes = model.inference(data, feats)
         out, loss, score = None, None, None
 
