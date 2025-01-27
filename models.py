@@ -234,7 +234,7 @@ class SAGE(nn.Module):
         # print(f"h.shape 1 {h.shape}")
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
          detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-          h_num_div_loss, sil_loss) = self.vq(h, init_feat, epoch)
+          h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = self.vq(h, init_feat, epoch)
         # quantized_edge = self.decoder_1(quantized)
         # quantized_node = self.decoder_2(quantized)
         # ------------------------------
@@ -281,7 +281,7 @@ class SAGE(nn.Module):
         # x and codebook are saved later...
         raw_feat_loss, raw_edge_rec_loss = None, None
         return h_list, h, loss, dist, codebook, [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-          h_num_div_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss, sil_loss], x, detached_quantize, latents
+          h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss], x, detached_quantize, latents
         # return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
         #                                          bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss], x, detached_quantize, latents
 
@@ -303,6 +303,8 @@ class SAGE(nn.Module):
         ringy_div_loss_list = []
         h_num_div_loss_list = []
         sil_loss_list = []
+        elec_state_div_loss_list = []
+        charge_div_loss_list = []
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
@@ -328,7 +330,7 @@ class SAGE(nn.Module):
             # ----------------
             (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
              spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-             ringy_div_loss, h_num_div_loss, sil_loss) = self.vq(h, init_feat)
+             ringy_div_loss, h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = self.vq(h, init_feat)
             embed_ind_list.append(embed_ind)
             input_node_list.append(input_nodes)
             div_ele_loss_list.append(div_ele_loss)
@@ -336,6 +338,8 @@ class SAGE(nn.Module):
             aroma_div_loss_list.append(aroma_div_loss)
             ringy_div_loss_list.append(ringy_div_loss)
             h_num_div_loss_list.append(h_num_div_loss)
+            elec_state_div_loss_list.append(elec_state_div_loss)
+            charge_div_loss_list.append(charge_div_loss)
             sil_loss_list.append(sil_loss)
             # if idx == 0:
             #     torch.set_printoptions(profile="full")
@@ -347,7 +351,7 @@ class SAGE(nn.Module):
         div_ele_loss_avg = sum(div_ele_loss_list) / len(div_ele_loss_list)
 
         return h_list, y, loss, dist_all, codebook, [div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
-          h_num_div_loss_list, raw_commit_loss, margin_loss, spread_loss, pair_loss, sil_loss_list], latent_list, embed_ind_list, input_node_list
+          h_num_div_loss_list, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss_list], latent_list, embed_ind_list, input_node_list
 
 
 class GAT(nn.Module):

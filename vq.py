@@ -771,11 +771,13 @@ class VectorQuantize(nn.Module):
             margin_weight=0.8,
             spread_weight=0.2,
             pair_weight=0.01,
-            lamb_div_ele=1,
+            lamb_div_ele=2,
             lamb_div_bonds=1,
             lamb_div_aroma=1,
             lamb_div_ringy=1,
             lamb_div_h_num=1,
+            lamb_div_elec_state=1,
+            lamb_div_charge=1,
             lamb_sil=0.01,
             orthogonal_reg_active_codes_only=False,
             orthogonal_reg_max_codes=None,
@@ -805,6 +807,8 @@ class VectorQuantize(nn.Module):
         self.lamb_div_aroma = lamb_div_aroma
         self.lamb_div_ringy = lamb_div_ringy
         self.lamb_div_h_num = lamb_div_h_num
+        self.lamb_div_elec_state = lamb_div_elec_state
+        self.lamb_div_charge = lamb_div_charge
         self.lamb_sil = lamb_sil
         self.pair_weight = pair_weight
         self.orthogonal_reg_active_codes_only = orthogonal_reg_active_codes_only
@@ -988,6 +992,8 @@ class VectorQuantize(nn.Module):
 
         atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
         bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
+        charge_div_loss = compute_contrastive_loss(quantized, init_feat[:, 2])
+        elec_state_div_loss = compute_contrastive_loss(quantized, init_feat[:, 3])
         aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
         ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
         h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6])
@@ -1008,7 +1014,8 @@ class VectorQuantize(nn.Module):
         # ringy_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 5]))
         # h_num_div_loss = torch.tensor(feat_elem_divergence_loss(embed_ind, init_feat[:, 6]))
 
-        return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss, embed_ind)
+        return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss,
+                ringy_div_loss, h_num_div_loss, sil_loss, embed_ind, elec_state_div_loss, charge_div_loss)
 
     def forward(
             self,
@@ -1093,6 +1100,8 @@ class VectorQuantize(nn.Module):
         aroma_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         ringy_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         h_num_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        charge_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        elec_state_div_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         silh_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         # if self.training:
         if self.commitment_weight > 0:  # 0.25 is assigned
@@ -1174,6 +1183,7 @@ class VectorQuantize(nn.Module):
             else:
                 loss = (loss + self.lamb_sil * silh_loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
                         + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+                        + self.lamb_div_charge * charge_div_loss + self.lamb_div_elec_state * elec_state_div_loss
                         + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
 
         # print(f"loss 2 {loss}")
@@ -1212,4 +1222,4 @@ class VectorQuantize(nn.Module):
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
                 pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-                ringy_div_loss, h_num_div_loss, silh_loss)
+                ringy_div_loss, h_num_div_loss, silh_loss, charge_div_loss, elec_state_div_loss)
