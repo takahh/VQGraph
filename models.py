@@ -350,7 +350,7 @@ class SAGE(nn.Module):
             #     print()
 
         return h_list, y, loss, dist_all, codebook, [div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
-          h_num_div_loss_list, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss_list], latent_list, embed_ind_list, input_node_list
+          h_num_div_loss_list, charge_div_loss_list, elec_state_div_loss_list, spread_loss, pair_loss, sil_loss_list], latent_list, embed_ind_list, input_node_list
 
 
 class GAT(nn.Module):
