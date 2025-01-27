@@ -343,29 +343,41 @@ def batched_embedding(indices, embeds):
 
 
 import torch
-
 def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5):
     """
     Contrastive loss to separate different atom types using 7-dimensional vectors.
     """
-    print(f"atom_types in compute: {atom_types}")
     # Compute pairwise distances for the z vectors
     pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
-    atom_types = atom_types.reshape(1, atom_types.shape[0])
-    # Compute pairwise similarity for the atom_types (7-dimensional vectors)
-    atom_types = atom_types / (torch.norm(atom_types, dim=1, keepdim=True) + 1e-8)  # Normalize the vectors
-    print(f"atom_types normalized: {atom_types}")
+
+    # Ensure atom_types has shape [n_atoms, feature_dim]
+    atom_types = atom_types.unsqueeze(1) if atom_types.ndim == 1 else atom_types
+
+    # Normalize the atom_types vectors
+    atom_types = atom_types / (torch.norm(atom_types, dim=1, keepdim=True) + 1e-8)
+
+    # Compute pairwise similarity for the atom_types
     pairwise_similarities = torch.mm(atom_types, atom_types.T)  # Cosine similarity
+
+    # Debug: Log pairwise similarities
+    print("Pairwise similarities:", pairwise_similarities)
 
     # Create the mask for "same type" based on similarity threshold
     same_type_mask = (pairwise_similarities >= threshold).float()  # 1 if similarity >= threshold, else 0
 
+    # Debug: Log same_type_mask
+    print("Same type mask:", same_type_mask)
+
     # Compute positive loss (pull same types together)
     positive_loss = same_type_mask * pairwise_distances ** 2
-    print(f"positive_loss: {positive_loss}")
+
+    # Debug: Log positive loss
+    print("Positive loss:", positive_loss)
 
     # Compute negative loss (push different types apart)
-    negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances[0], min=0.0) ** 2
+    negative_loss = (1.0 - same_type_mask) * torch.clamp(margin - pairwise_distances, min=0.0) ** 2
+
+    print("negative_loss:", negative_loss)
 
     # Combine and return mean loss
     return (positive_loss + negative_loss).mean() / 10000
