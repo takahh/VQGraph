@@ -988,6 +988,9 @@ class VectorQuantize(nn.Module):
         aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
         ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
         h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6])
+        print(f"atom div {atom_type_div_loss}, bond num {bond_num_div_loss}, aroma div {aroma_div_loss}, ringy div {ringy_div_loss}")
+        print(f"init_feat shape {init_feat.shape}")
+        print(f"init_feat {init_feat[0, :]}")
         # h_num_div_loss = None
         # bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
         # aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
@@ -1205,5 +1208,5 @@ class VectorQuantize(nn.Module):
         # print(f"sparsity_loss.grad_fn: {embed_ind.grad_fn}")
         # quantized, _, commit_loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss, detached_quantize, x, init_cb
         return (quantize, embed_ind, loss, dist, embed, raw_commit_loss, latents, margin_loss, spread_loss,
-                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-          h_num_div_loss, silh_loss)
+                pair_distance_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
+                ringy_div_loss, h_num_div_loss, silh_loss)
