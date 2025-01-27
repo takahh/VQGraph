@@ -347,6 +347,8 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5):
     """
     Contrastive loss to separate different atom types using 7-dimensional vectors.
     """
+    print(f"atom_types {atom_types.shape}")
+    print(f"atom_types {atom_types}")
     # Compute pairwise distances for the z vectors
     print(f"z {z.shape}")
     print(f"z {z}")
