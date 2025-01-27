@@ -908,7 +908,7 @@ class VectorQuantize(nn.Module):
 
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Preprocess clusters to ensure the desired number of non-empty clusters
-        print_non_empty_cluster_count(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
+        # print_non_empty_cluster_count(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
         # embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
         embed_ind.data.copy_(embed_ind)
 
