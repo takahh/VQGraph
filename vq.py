@@ -358,6 +358,7 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5):
     atom_types = atom_types.unsqueeze(1) if atom_types.ndim == 1 else atom_types
 
     # Normalize the atom_types vectors
+    print(f" (torch.norm(atom_types, dim=1, keepdim=True) {torch.norm(atom_types, dim=1, keepdim=True)}")
     atom_types = atom_types / (torch.norm(atom_types, dim=1, keepdim=True) + 1e-8)
 
     print(f"atom_types {atom_types.shape}")
