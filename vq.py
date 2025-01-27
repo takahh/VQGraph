@@ -348,6 +348,8 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5):
     Contrastive loss to separate different atom types using 7-dimensional vectors.
     """
     # Compute pairwise distances for the z vectors
+    print(f"z {z.shape}")
+    print(f"z {z}")
     pairwise_distances = torch.cdist(z, z, p=2)  # Pairwise Euclidean distances
 
     # Ensure atom_types has shape [n_atoms, feature_dim]
@@ -356,6 +358,8 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5):
     # Normalize the atom_types vectors
     atom_types = atom_types / (torch.norm(atom_types, dim=1, keepdim=True) + 1e-8)
 
+    print(f"atom_types {atom_types.shape}")
+    print(f"atom_types {atom_types}")
     # Compute pairwise similarity for the atom_types
     pairwise_similarities = torch.mm(atom_types, atom_types.T)  # Cosine similarity
 
