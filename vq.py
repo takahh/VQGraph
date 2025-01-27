@@ -991,9 +991,9 @@ class VectorQuantize(nn.Module):
         aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
         ringy_div_loss = compute_contrastive_loss(quantized, init_feat[:, 5])
         h_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 6])
-        print(f"atom div {atom_type_div_loss}, bond num {bond_num_div_loss}, aroma div {aroma_div_loss}, ringy div {ringy_div_loss}")
-        print(f"init_feat shape {init_feat.shape}")
-        print(f"init_feat {init_feat[0, :]}")
+        # print(f"atom div {atom_type_div_loss}, bond num {bond_num_div_loss}, aroma div {aroma_div_loss}, ringy div {ringy_div_loss}")
+        # print(f"init_feat shape {init_feat.shape}")
+        # print(f"init_feat {init_feat[0, :]}")
         # h_num_div_loss = None
         # bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
         # aroma_div_loss = compute_contrastive_loss(quantized, init_feat[:, 4])
