@@ -396,6 +396,15 @@ def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, tempera
 
 import torch.nn.functional as F
 
+def print_non_empty_cluster_count(embed_ind, embeddings, num_clusters, target_non_empty_clusters=500, min_cluster_size=5):
+    # Count the size of each cluster
+    cluster_sizes = [(k, (embed_ind == k).sum().item()) for k in range(num_clusters)]
+    cluster_sizes.sort(key=lambda x: x[1], reverse=True)  # Sort by size (descending)
+    # Identify non-empty clusters
+    non_empty_clusters = [k for k, size in cluster_sizes if size > 0]
+    current_non_empty_count = len(non_empty_clusters)
+    print(f"Increasing clusters: {current_non_empty_count}, target {target_non_empty_clusters}...")
+
 
 def increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters=500, min_cluster_size=5):
     # Count the size of each cluster
@@ -899,6 +908,7 @@ class VectorQuantize(nn.Module):
 
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Preprocess clusters to ensure the desired number of non-empty clusters
+        print_non_empty_cluster_count(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
         # embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
         embed_ind.data.copy_(embed_ind)
 
