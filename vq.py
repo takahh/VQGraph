@@ -305,10 +305,6 @@ def gmm(
                 cholesky_factor = torch.linalg.cholesky(covariances[:, k, :, :])
             except torch._C._LinAlgError:
                 print(f"Cluster {k} covariance matrix is not positive definite.")
-        print(f"Iteration {_}:")
-        print(f"Allocated memory: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
-        print(f"Max memory allocated: {torch.cuda.max_memory_allocated() / 1024 ** 3:.2f} GB")
-        print(f"Reserved memory: {torch.cuda.memory_reserved() / 1024 ** 3:.2f} GB")
         torch.cuda.memory_summary()
         del log_probs, responsibilities, diff, weighted_diffs, weighted_diffs_tensor, cluster_covariances
         torch.cuda.empty_cache()
