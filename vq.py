@@ -253,8 +253,10 @@ def gmm(
 
         # Add log weights and compute responsibilities
         log_probs += weights.log().unsqueeze(1)
-        responsibilities = torch.softmax(log_probs, dim=-1)
+        log_probs = log_probs.detach()
 
+        responsibilities = torch.softmax(log_probs, dim=-1)
+        responsibilities = responsibilities.detach()
         # Normalize responsibilities
         responsibilities /= responsibilities.sum(dim=-1, keepdim=True)
 
@@ -266,11 +268,15 @@ def gmm(
         resp_sums = responsibilities.sum(dim=1, keepdim=True)  # Shape: [num_codebooks, 1, num_clusters]
         weighted_samples = responsibilities.unsqueeze(-1) * samples.unsqueeze(
             2)  # Shape: [num_codebooks, num_samples, num_clusters, dim]
+
+        weighted_samples = weighted_samples.detach()
         cluster_sums = weighted_samples.sum(dim=1)  # Sum over samples, shape: [num_codebooks, num_clusters, dim]
         means = cluster_sums / (resp_sums.squeeze(1).unsqueeze(-1) + 1e-9)  # Normalize by sum of responsibilities
 
         # Compute covariances
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # Shape: [num_codebooks, num_samples, num_clusters, dim]
+
+        diff = diff.detach()
         epsilon = 1e-6  # Small regularization term for numerical stability
         chunk_size = 20  # Adjust to manage memory usage
         weighted_diffs = []
