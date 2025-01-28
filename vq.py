@@ -306,7 +306,7 @@ def gmm(
             except torch._C._LinAlgError:
                 print(f"Cluster {k} covariance matrix is not positive definite.")
         torch.cuda.memory_summary()
-        del log_probs, responsibilities, diff, weighted_diffs, weighted_diffs_tensor, cluster_covariances
+        del log_probs, diff, weighted_diffs, weighted_diffs_tensor, cluster_covariances
         torch.cuda.empty_cache()
         import gc
         gc.collect()
