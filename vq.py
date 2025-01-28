@@ -245,6 +245,7 @@ def gmm(
         # E-step: Compute responsibilities in log-space for numerical stability
         log_probs = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
         for k in range(num_clusters):
+            print(covariances[0, :, :, :])
             mvn = MultivariateNormal(
                 means[:, k, :],
                 scale_tril=torch.linalg.cholesky(covariances[:, k, :, :])
