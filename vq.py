@@ -199,15 +199,11 @@ def batched_bincount(x, *, minlength):
 # # use_cosine_sim=True,
 # sample_fn = self.sample_fn,
 # all_reduce_fn = self.kmeans_all_reduce_fn
-import torch
-from torch.distributions.multivariate_normal import MultivariateNormal
 
 import torch
 from torch.distributions import MultivariateNormal
-import torch
-from torch.distributions import MultivariateNormal
 
-def gmm(
+def optimized_gmm(
     samples,
     cluster_size=1500,  # Fixed number of clusters
     num_iters=50,
