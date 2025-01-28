@@ -261,7 +261,9 @@ def gmm(
 
         # M-step: Update means, covariances, and weights
         resp_sums = responsibilities.sum(dim=1, keepdim=True)  # [num_codebooks, 1, num_clusters]
-
+        print(f"resp_sums.shape {resp_sums.shape}")
+        print(f"samples.shape {samples.shape}")
+        print(f"responsibi.shape {responsibilities.shape}")
         # Compute means
         means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums + 1e-9)
 
