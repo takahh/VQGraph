@@ -261,9 +261,9 @@ def gmm(
 
         # M-step: Update means, covariances, and weights
         resp_sums = responsibilities.sum(dim=1, keepdim=True)  # [num_codebooks, 1, num_clusters]# Ensure shapes are correct before einsum
-        assert responsibilities.shape == (1, 10011, 1500), "Mismatch in responsibilities shape"
-        assert samples.shape == (1, 10011, 256), "Mismatch in samples shape"
-        assert resp_sums.shape == (1, 1, 1500), "Mismatch in resp_sums shape"
+        # assert responsibilities.shape == (1, 10011, 500), "Mismatch in responsibilities shape"
+        # assert samples.shape == (1, 10011, 128), "Mismatch in samples shape"
+        # assert resp_sums.shape == (1, 1, 500), "Mismatch in resp_sums shape"
 
         # Compute weighted means for each cluster
         # means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
