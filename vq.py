@@ -285,13 +285,17 @@ def gmm(
 
         # Compute covariances
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
+
         # Step 1: Compute weighted pairwise differences
         weighted_diffs = responsibilities.unsqueeze(-1).unsqueeze(-1) * diff.unsqueeze(-2) * diff.unsqueeze(-1)
-        # Shape: [1, 10011, 1500, 256, 256]
+        # Shape: [1, 10011, 500, 64, 64]
 
-        # Step 2: Sum over samples and normalize
-        covariances = weighted_diffs.sum(dim=1) / (resp_sums.unsqueeze(-1) + 1e-9)
-        # Shape: [1, 1500, 256, 256]
+        # Step 2: Sum over samples
+        cluster_covariances = weighted_diffs.sum(dim=1)  # Shape: [1, 500, 64, 64]
+
+        # Step 3: Normalize
+        resp_sums_expanded = resp_sums.permute(0, 2, 1).unsqueeze(-1).unsqueeze(-1)  # Shape: [1, 500, 1, 1]
+        covariances = cluster_covariances / (resp_sums_expanded + 1e-9)  # Shape: [1, 500, 64, 64]
 
         # Update weights
         weights = resp_sums.squeeze(1) / num_samples
