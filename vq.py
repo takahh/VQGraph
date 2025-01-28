@@ -268,7 +268,8 @@ def gmm(
         # Ensure dimensions are correctly aligned
 
         # Compute means using the correct einsum operation
-        means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
+        # means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
+        means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
 
         # Debugging prints
         print("means.shape:", means.shape)  # Expected: [1, 1500, 256]
