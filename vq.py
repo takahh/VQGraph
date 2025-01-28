@@ -241,7 +241,6 @@ def gmm(
     # Initialize covariances and weights
     covariances = torch.eye(dim, device=samples.device).unsqueeze(0).unsqueeze(0).repeat(num_codebooks, num_clusters, 1, 1)
     weights = torch.ones(num_codebooks, num_clusters, device=samples.device) / num_clusters
-    print(f"cov shape init {covariances.shape}")
     for _ in range(num_iters):
         # E-step: Compute responsibilities (log-space for numerical stability)
         log_probs = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
