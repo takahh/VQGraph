@@ -279,7 +279,6 @@ def gmm(
     bins = torch.argmax(responsibilities, dim=-1)
     return means, bins
 
-
 import torch
 from einops import rearrange, repeat
 
