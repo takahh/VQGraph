@@ -293,6 +293,7 @@ def gmm(
         # Step 2: Sum over samples
         cluster_covariances = weighted_diffs.sum(dim=1)  # Shape: [1, 500, 64, 64]
 
+        print(f"cluster_covariances.shape {_}: {cluster_covariances.shape}")
         # Step 3: Normalize
         resp_sums_expanded = resp_sums.permute(0, 2, 1).unsqueeze(-1).unsqueeze(-1)  # Shape: [1, 500, 1, 1]
         covariances = cluster_covariances / (resp_sums_expanded + 1e-9)  # Shape: [1, 500, 64, 64]
