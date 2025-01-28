@@ -299,9 +299,10 @@ def gmm(
                 cholesky_factor = torch.linalg.cholesky(covariances[:, k, :, :])
             except torch._C._LinAlgError:
                 print(f"Cluster {k} covariance matrix is not positive definite.")
-        print(f"_")
-        print(f"Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
+        print(f"Iteration {_}:")
+        print(f"Allocated memory: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
         print(f"Max memory allocated: {torch.cuda.max_memory_allocated() / 1024 ** 3:.2f} GB")
+        print(f"Reserved memory: {torch.cuda.memory_reserved() / 1024 ** 3:.2f} GB")
 
     # Compute final cluster assignments
     bins = torch.argmax(responsibilities, dim=-1)
