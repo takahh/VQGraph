@@ -241,7 +241,7 @@ def gmm(
     # Initialize covariances and weights
     covariances = torch.eye(dim, device=samples.device).unsqueeze(0).unsqueeze(0).repeat(num_codebooks, num_clusters, 1, 1)
     weights = torch.ones(num_codebooks, num_clusters, device=samples.device) / num_clusters
-
+    print(f"means.shape initial {means.shape}")
     for _ in range(num_iters):
         # E-step: Compute responsibilities (log-space for numerical stability)
         log_probs = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
@@ -302,6 +302,7 @@ def gmm(
 
         # # Reduce means for distributed training, if necessary
         # all_reduce_fn(means)
+        print(f"means.shape {_}: {means.shape}")
 
     # Compute final bins (assignments)
     bins = torch.argmax(responsibilities, dim=-1)
