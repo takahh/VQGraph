@@ -304,6 +304,8 @@ def gmm(
         print(f"Max memory allocated: {torch.cuda.max_memory_allocated() / 1024 ** 3:.2f} GB")
         print(f"Reserved memory: {torch.cuda.memory_reserved() / 1024 ** 3:.2f} GB")
         torch.cuda.memory_summary()
+        del log_probs, responsibilities, diff, weighted_diffs, weighted_diffs_tensor, cluster_covariances
+        torch.cuda.empty_cache()
 
     # Compute final cluster assignments
     bins = torch.argmax(responsibilities, dim=-1)
