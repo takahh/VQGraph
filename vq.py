@@ -256,6 +256,10 @@ def gmm(
 
         # M-step: Update means, covariances, and weights
         resp_sums = responsibilities.sum(dim=1, keepdim=True)  # [num_codebooks, 1, num_clusters]
+        print("responsibilities shape:", responsibilities.shape)  # [num_codebooks, num_samples, num_clusters]
+        print("samples shape:", samples.shape)  # [num_codebooks, num_samples, dim]
+        print("resp_sums shape:", resp_sums.shape)  # [num_codebooks, 1, num_clusters]
+
         means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / resp_sums.squeeze(1)
 
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
