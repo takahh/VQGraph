@@ -268,7 +268,16 @@ def gmm(
         # Compute weighted means for each cluster
         # means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
         # means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
-        means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
+        # means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
+        # means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
+        # Step 1: Expand dimensions and perform element-wise multiplication
+        weighted_samples = responsibilities.unsqueeze(-1) * samples.unsqueeze(2)  # Shape: [1, 10011, 1500, 256]
+
+        # Step 2: Sum over the sample dimension (n)
+        cluster_sums = weighted_samples.sum(dim=1)  # Shape: [1, 1500, 256]
+
+        # Step 3: Normalize by the sum of responsibilities
+        means = cluster_sums / (resp_sums.squeeze(1) + 1e-9)  # Shape: [1, 1500, 256]
 
         # Debugging prints
         print("means.shape:", means.shape)  # Expected: [1, 1500, 256]
