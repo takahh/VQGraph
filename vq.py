@@ -204,10 +204,12 @@ from torch.distributions.multivariate_normal import MultivariateNormal
 
 import torch
 from torch.distributions import MultivariateNormal
+import torch
+from torch.distributions import MultivariateNormal
 
-def gmm(
+def optimized_gmm(
     samples,
-    cluster_size=500,  # Fixed cluster size
+    cluster_size=1500,  # Fixed number of clusters
     num_iters=50,
     sample_fn=None,  # Optional sampling function
     all_reduce_fn=lambda x: x  # No-op by default
@@ -217,7 +219,7 @@ def gmm(
 
     Args:
         samples: Tensor of shape [num_codebooks, num_samples, dim].
-        cluster_size: Fixed cluster size (default=500).
+        cluster_size: Fixed number of clusters (default=1500).
         num_iters: Number of EM iterations.
         sample_fn: Optional sampling function.
         all_reduce_fn: Optional reduction function for distributed training.
@@ -254,17 +256,24 @@ def gmm(
         log_probs += weights.log().unsqueeze(1)  # Add log weights
         responsibilities = torch.softmax(log_probs, dim=-1)
 
+        # Normalize responsibilities
+        responsibilities /= responsibilities.sum(dim=-1, keepdim=True)
+
+        # Debugging: Ensure shapes are correct
+        assert responsibilities.shape == (num_codebooks, num_samples, num_clusters), "Responsibilities shape mismatch"
+        assert samples.shape == (num_codebooks, num_samples, dim), "Samples shape mismatch"
+
         # M-step: Update means, covariances, and weights
         resp_sums = responsibilities.sum(dim=1, keepdim=True)  # [num_codebooks, 1, num_clusters]
-        print("responsibilities shape:", responsibilities.shape)  # [num_codebooks, num_samples, num_clusters]
-        print("samples shape:", samples.shape)  # [num_codebooks, num_samples, dim]
-        print("resp_sums shape:", resp_sums.shape)  # [num_codebooks, 1, num_clusters]
 
-        means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / resp_sums.squeeze(1)
+        # Compute means
+        means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums + 1e-9)
 
+        # Compute covariances
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
-        covariances = torch.einsum("bnk,bnid,bnjd->bndd", responsibilities, diff, diff) / resp_sums.unsqueeze(-1)
+        covariances = torch.einsum("bnk,bnid,bnjd->bndd", responsibilities, diff, diff) / (resp_sums.unsqueeze(-1) + 1e-9)
 
+        # Update weights
         weights = resp_sums.squeeze(1) / num_samples
 
         # Reduce means for distributed training, if necessary
