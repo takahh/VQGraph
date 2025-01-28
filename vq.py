@@ -260,16 +260,13 @@ def gmm(
         assert samples.shape == (num_codebooks, num_samples, dim), "Samples shape mismatch"
 
         # M-step: Update means, covariances, and weights
-        resp_sums = responsibilities.sum(dim=1, keepdim=True)  # [num_codebooks, 1, num_clusters]
-        print(f"resp_sums.shape {resp_sums.shape}")
-        print(f"samples.shape {samples.shape}")
-        print(f"responsibi.shape {responsibilities.shape}")
-        # Compute means
-        # Ensure dimensions are correctly aligned
+        resp_sums = responsibilities.sum(dim=1, keepdim=True)  # [num_codebooks, 1, num_clusters]# Ensure shapes are correct before einsum
+        assert responsibilities.shape == (1, 10011, 1500), "Mismatch in responsibilities shape"
+        assert samples.shape == (1, 10011, 256), "Mismatch in samples shape"
+        assert resp_sums.shape == (1, 1, 1500), "Mismatch in resp_sums shape"
 
-        # Compute means using the correct einsum operation
-        # means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
-        means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
+        # Compute weighted means for each cluster
+        means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
 
         # Debugging prints
         print("means.shape:", means.shape)  # Expected: [1, 1500, 256]
