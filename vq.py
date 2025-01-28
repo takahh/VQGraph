@@ -289,7 +289,14 @@ def gmm(
         epsilon = 1e-6
 
         # Step 1: Compute weighted pairwise differences
-        weighted_diffs = responsibilities.unsqueeze(-1).unsqueeze(-1) * diff.unsqueeze(-2) * diff.unsqueeze(-1)
+        # weighted_diffs = responsibilities.unsqueeze(-1).unsqueeze(-1) * diff.unsqueeze(-2) * diff.unsqueeze(-1)
+        # Chunk the computation over the cluster dimension
+        chunk_size = 50  # Adjust this based on available memory
+        weighted_diffs = []
+        for i in range(0, responsibilities.shape[2], chunk_size):  # Iterate over chunks
+            chunk = responsibilities[:, :, i:i + chunk_size].unsqueeze(-1).unsqueeze(-1) \
+                    * diff[:, :, i:i + chunk_size].unsqueeze(-2) * diff[:, :, i:i + chunk_size].unsqueeze(-1)
+            weighted_diffs.append(chunk.sum(dim=1))  # Sum over samples (n)
 
         # Step 2: Sum over samples
         cluster_covariances = weighted_diffs.sum(dim=1)
