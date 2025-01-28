@@ -300,8 +300,8 @@ def gmm(
         # Update weights
         weights = resp_sums.squeeze(1) / num_samples
 
-        # Reduce means for distributed training, if necessary
-        all_reduce_fn(means)
+        # # Reduce means for distributed training, if necessary
+        # all_reduce_fn(means)
 
     # Compute final bins (assignments)
     bins = torch.argmax(responsibilities, dim=-1)
