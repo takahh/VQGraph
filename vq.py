@@ -295,6 +295,9 @@ def gmm(
                 * diff[:, :, i:i + chunk_size].unsqueeze(-1)
             )
             weighted_diffs.append(chunk)  # Append the chunk to the list
+        print(f"{_}")
+        print(f"Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
+        print(f"Max memory allocated: {torch.cuda.max_memory_allocated() / 1024 ** 3:.2f} GB")
 
         # Concatenate chunks along the cluster dimension
         weighted_diffs_tensor = torch.cat(weighted_diffs, dim=2)  # Combine chunks along clusters
