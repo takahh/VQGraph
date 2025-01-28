@@ -306,6 +306,9 @@ def gmm(
         torch.cuda.memory_summary()
         del log_probs, responsibilities, diff, weighted_diffs, weighted_diffs_tensor, cluster_covariances
         torch.cuda.empty_cache()
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache()
 
     # Compute final cluster assignments
     bins = torch.argmax(responsibilities, dim=-1)
