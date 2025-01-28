@@ -8,6 +8,7 @@ from torch.amp import autocast
 from torch.onnx.symbolic_opset9 import pairwise_distance, one_hot
 from einops import rearrange, repeat
 from torch.distributions import MultivariateNormal
+from torch.distributions.multivariate_normal import MultivariateNormal
 
 
 def exists(val):
@@ -245,11 +246,21 @@ def gmm(
         # E-step: Compute responsibilities in log-space for numerical stability
         log_probs = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
         for k in range(num_clusters):
-            print(covariances[0, :, :, :])
-            mvn = MultivariateNormal(
-                means[:, k, :],
-                scale_tril=torch.linalg.cholesky(covariances[:, k, :, :])
-            )
+            try:
+                # Assuming means and covariances are already defined
+                mvn = MultivariateNormal(
+                    means[:, k, :],
+                    scale_tril=torch.linalg.cholesky(covariances[:, k, :, :])
+                )
+            except torch.linalg.LinAlgError as e:
+                # Handle errors specific to Cholesky decomposition
+                print(f"Cholesky decomposition error at {_}, {k}th: {e}")
+            except ValueError as e:
+                # Handle errors specific to the MultivariateNormal initialization
+                print(f"Invalid input for MultivariateNormal at {_}, {k}th: {e}")
+            except Exception as e:
+                # Handle any other unexpected errors
+                print(f"An unexpected error occurred at {_}, {k}th: {e}")
             log_probs[:, :, k] = mvn.log_prob(samples)
 
         # Add log weights and compute responsibilities
