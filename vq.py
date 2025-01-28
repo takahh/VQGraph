@@ -285,21 +285,28 @@ def gmm(
 
         # Compute covariances
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
+        # Regularization term
+        epsilon = 1e-6
+
         # Step 1: Compute weighted pairwise differences
         weighted_diffs = responsibilities.unsqueeze(-1).unsqueeze(-1) * diff.unsqueeze(-2) * diff.unsqueeze(-1)
-        # Shape: [1, 10011, 500, 64, 64]
 
         # Step 2: Sum over samples
-        cluster_covariances = weighted_diffs.sum(dim=1)  # Shape: [1, 500, 64, 64]
-        print(f"cluster_covariances.shape: {cluster_covariances.shape}")
+        cluster_covariances = weighted_diffs.sum(dim=1)
 
         # Step 3: Normalize by expanded responsibilities sum
-        resp_sums_expanded = resp_sums.squeeze(1).unsqueeze(-1).unsqueeze(-1)  # Shape: [1, 500, 1, 1]
-        covariances = cluster_covariances / (resp_sums_expanded + 1e-9)  # Shape: [1, 500, 64, 64]
-        print(f"covariances.shape: {covariances.shape}")
+        resp_sums_expanded = resp_sums.squeeze(1).unsqueeze(-1).unsqueeze(-1)
+        covariances = cluster_covariances / (resp_sums_expanded + 1e-9)
 
-        # Step 4: Update weights
-        weights = resp_sums.squeeze(1) / num_samples
+        # Step 4: Add small diagonal regularization for numerical stability
+        covariances += torch.eye(covariances.shape[-1], device=covariances.device) * epsilon
+
+        # Ensure Cholesky decomposition works
+        for k in range(covariances.shape[1]):
+            try:
+                cholesky_factor = torch.linalg.cholesky(covariances[:, k, :, :])
+            except torch._C._LinAlgError:
+                print(f"Cluster {k} covariance matrix is not positive definite.")
 
         # # Reduce means for distributed training, if necessary
         # all_reduce_fn(means)
