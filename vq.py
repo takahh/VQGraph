@@ -289,21 +289,24 @@ def gmm(
         epsilon = 1e-6
 
         # Step 1: Compute weighted pairwise differences
-        # weighted_diffs = responsibilities.unsqueeze(-1).unsqueeze(-1) * diff.unsqueeze(-2) * diff.unsqueeze(-1)
-        # Chunk the computation over the cluster dimension
-        chunk_size = 50  # Adjust this based on available memory
-        weighted_diffs = []
-        for i in range(0, responsibilities.shape[2], chunk_size):  # Iterate over chunks
-            chunk = responsibilities[:, :, i:i + chunk_size].unsqueeze(-1).unsqueeze(-1) \
-                    * diff[:, :, i:i + chunk_size].unsqueeze(-2) * diff[:, :, i:i + chunk_size].unsqueeze(-1)
-            weighted_diffs.append(chunk.sum(dim=1))  # Sum over samples (n)
+        chunk_size = 50  # Adjust based on available memory
+        weighted_diffs = []  # Initialize an empty list to store chunks
 
-        # Step 2: Sum over samples
-        cluster_covariances = weighted_diffs.sum(dim=1)
+        for i in range(0, responsibilities.shape[2], chunk_size):  # Iterate over clusters in chunks
+            chunk = (
+                responsibilities[:, :, i:i + chunk_size].unsqueeze(-1).unsqueeze(-1)
+                * diff[:, :, i:i + chunk_size].unsqueeze(-2)
+                * diff[:, :, i:i + chunk_size].unsqueeze(-1)
+            )
+            weighted_diffs.append(chunk)  # Append the chunk to the list
 
-        # Step 3: Normalize by expanded responsibilities sum
-        resp_sums_expanded = resp_sums.squeeze(1).unsqueeze(-1).unsqueeze(-1)
-        covariances = cluster_covariances / (resp_sums_expanded + 1e-9)
+        # Concatenate chunks along the cluster dimension
+        weighted_diffs_tensor = torch.cat(weighted_diffs, dim=2)  # Combine chunks along clusters
+        cluster_covariances = weighted_diffs_tensor.sum(dim=1)  # Sum over samples (dim=1)
+
+        # Normalize
+        resp_sums_expanded = resp_sums.squeeze(1).unsqueeze(-1).unsqueeze(-1)  # Expand for normalization
+        covariances = cluster_covariances / (resp_sums_expanded + 1e-9)  # Normalize by responsibilities sum
 
         # Step 4: Add small diagonal regularization for numerical stability
         covariances += torch.eye(covariances.shape[-1], device=covariances.device) * epsilon
