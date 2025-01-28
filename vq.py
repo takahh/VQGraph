@@ -285,11 +285,13 @@ def gmm(
 
         # Compute covariances
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
-        # covariances = torch.einsum("bnk,bnid,bnjd->bndd", responsibilities, diff, diff) / (resp_sums.unsqueeze(-1) + 1e-9)
-        # covariances = torch.einsum("bnk,bnid,bnjd->bndf", responsibilities, diff, diff) / (
-        #             resp_sums.unsqueeze(-1) + 1e-9)
-        covariances = torch.einsum("bnk,bnid,bnjd->bkdj", responsibilities, diff, diff) / (
-                    resp_sums.unsqueeze(-1) + 1e-9)
+        # Step 1: Compute weighted pairwise differences
+        weighted_diffs = responsibilities.unsqueeze(-1).unsqueeze(-1) * diff.unsqueeze(-2) * diff.unsqueeze(-1)
+        # Shape: [1, 10011, 1500, 256, 256]
+
+        # Step 2: Sum over samples and normalize
+        covariances = weighted_diffs.sum(dim=1) / (resp_sums.unsqueeze(-1) + 1e-9)
+        # Shape: [1, 1500, 256, 256]
 
         # Update weights
         weights = resp_sums.squeeze(1) / num_samples
