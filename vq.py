@@ -280,9 +280,6 @@ def gmm(
         # means = cluster_sums / (resp_sums.squeeze(1) + 1e-9)  # Shape: [1, 1500, 256]
         means = cluster_sums / (resp_sums.squeeze(1).unsqueeze(-1) + 1e-9)
 
-        # Debugging prints
-        print("means.shape:", means.shape)  # Expected: [1, 1500, 256]
-
         # Compute covariances
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
         # Regularization term
@@ -320,7 +317,6 @@ def gmm(
 
         # # Reduce means for distributed training, if necessary
         # all_reduce_fn(means)
-        print(f"covariances.shape {_}: {covariances.shape}")
 
     # Compute final bins (assignments)
     bins = torch.argmax(responsibilities, dim=-1)
