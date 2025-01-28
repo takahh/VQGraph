@@ -286,7 +286,7 @@ def gmm(
         epsilon = 1e-6
 
         # Step 1: Compute weighted pairwise differences
-        chunk_size = 50  # Adjust based on available memory
+        chunk_size = 20  # Adjust based on available memory
         weighted_diffs = []  # Initialize an empty list to store chunks
 
         for i in range(0, responsibilities.shape[2], chunk_size):  # Iterate over clusters in chunks
