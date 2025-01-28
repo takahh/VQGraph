@@ -242,13 +242,17 @@ def gmm(
     covariances = torch.eye(dim, device=samples.device).unsqueeze(0).unsqueeze(0).repeat(num_codebooks, num_clusters, 1, 1)
     weights = torch.ones(num_codebooks, num_clusters, device=samples.device) / num_clusters
     for _ in range(num_iters):
-        # E-step: Compute responsibilities (log-space for numerical stability)
+        # E-step: Compute responsibilities in log-space for numerical stability
         log_probs = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
         for k in range(num_clusters):
-            mvn = MultivariateNormal(means[:, k, :], scale_tril=torch.linalg.cholesky(covariances[:, k, :, :]))
+            mvn = MultivariateNormal(
+                means[:, k, :],
+                scale_tril=torch.linalg.cholesky(covariances[:, k, :, :])
+            )
             log_probs[:, :, k] = mvn.log_prob(samples)
 
-        log_probs += weights.log().unsqueeze(1)  # Add log weights
+        # Add log weights and compute responsibilities
+        log_probs += weights.log().unsqueeze(1)
         responsibilities = torch.softmax(log_probs, dim=-1)
 
         # Normalize responsibilities
@@ -258,71 +262,48 @@ def gmm(
         assert responsibilities.shape == (num_codebooks, num_samples, num_clusters), "Responsibilities shape mismatch"
         assert samples.shape == (num_codebooks, num_samples, dim), "Samples shape mismatch"
 
-        # M-step: Update means, covariances, and weights
-        resp_sums = responsibilities.sum(dim=1, keepdim=True)  # [num_codebooks, 1, num_clusters]# Ensure shapes are correct before einsum
-        # assert responsibilities.shape == (1, 10011, 500), "Mismatch in responsibilities shape"
-        # assert samples.shape == (1, 10011, 128), "Mismatch in samples shape"
-        # assert resp_sums.shape == (1, 1, 500), "Mismatch in resp_sums shape"
-
-        # Compute weighted means for each cluster
-        # means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
-        # means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
-        # means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
-        # means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
-        # Step 1: Expand dimensions and perform element-wise multiplication
-        weighted_samples = responsibilities.unsqueeze(-1) * samples.unsqueeze(2)  # Shape: [1, 10011, 1500, 256]
-
-        # Step 2: Sum over the sample dimension (n)
-        cluster_sums = weighted_samples.sum(dim=1)  # Shape: [1, 1500, 256]
-
-        # Step 3: Normalize by the sum of responsibilities
-        # means = cluster_sums / (resp_sums.squeeze(1) + 1e-9)  # Shape: [1, 1500, 256]
-        means = cluster_sums / (resp_sums.squeeze(1).unsqueeze(-1) + 1e-9)
+        # M-step: Update means
+        resp_sums = responsibilities.sum(dim=1, keepdim=True)  # Shape: [num_codebooks, 1, num_clusters]
+        weighted_samples = responsibilities.unsqueeze(-1) * samples.unsqueeze(
+            2)  # Shape: [num_codebooks, num_samples, num_clusters, dim]
+        cluster_sums = weighted_samples.sum(dim=1)  # Sum over samples, shape: [num_codebooks, num_clusters, dim]
+        means = cluster_sums / (resp_sums.squeeze(1).unsqueeze(-1) + 1e-9)  # Normalize by sum of responsibilities
 
         # Compute covariances
-        diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
-        # Regularization term
-        epsilon = 1e-6
+        diff = samples.unsqueeze(2) - means.unsqueeze(1)  # Shape: [num_codebooks, num_samples, num_clusters, dim]
+        epsilon = 1e-6  # Small regularization term for numerical stability
+        chunk_size = 20  # Adjust to manage memory usage
+        weighted_diffs = []
 
-        # Step 1: Compute weighted pairwise differences
-        chunk_size = 20  # Adjust based on available memory
-        weighted_diffs = []  # Initialize an empty list to store chunks
-
-        for i in range(0, responsibilities.shape[2], chunk_size):  # Iterate over clusters in chunks
+        # Compute weighted differences in chunks to avoid memory issues
+        for i in range(0, responsibilities.shape[2], chunk_size):
             chunk = (
-                responsibilities[:, :, i:i + chunk_size].unsqueeze(-1).unsqueeze(-1)
-                * diff[:, :, i:i + chunk_size].unsqueeze(-2)
-                * diff[:, :, i:i + chunk_size].unsqueeze(-1)
+                    responsibilities[:, :, i:i + chunk_size].unsqueeze(-1).unsqueeze(-1) *
+                    diff[:, :, i:i + chunk_size].unsqueeze(-2) *
+                    diff[:, :, i:i + chunk_size].unsqueeze(-1)
             )
-            weighted_diffs.append(chunk)  # Append the chunk to the list
-        print(f"{_}")
-        print(f"Memory allocated: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
-        print(f"Max memory allocated: {torch.cuda.max_memory_allocated() / 1024 ** 3:.2f} GB")
+            weighted_diffs.append(chunk)
+            del chunk  # Free memory immediately to reduce usage
+            torch.cuda.empty_cache()
 
-        # Concatenate chunks along the cluster dimension
-        weighted_diffs_tensor = torch.cat(weighted_diffs, dim=2)  # Combine chunks along clusters
-        cluster_covariances = weighted_diffs_tensor.sum(dim=1)  # Sum over samples (dim=1)
+        # Concatenate chunks and compute covariances
+        weighted_diffs_tensor = torch.cat(weighted_diffs, dim=2)
+        cluster_covariances = weighted_diffs_tensor.sum(dim=1)  # Sum over samples
+        resp_sums_expanded = resp_sums.squeeze(1).unsqueeze(-1).unsqueeze(-1)  # Expand dimensions
+        covariances = cluster_covariances / (resp_sums_expanded + 1e-9)  # Normalize
+        covariances += torch.eye(covariances.shape[-1], device=covariances.device) * epsilon  # Add regularization
 
-        # Normalize
-        resp_sums_expanded = resp_sums.squeeze(1).unsqueeze(-1).unsqueeze(-1)  # Expand for normalization
-        covariances = cluster_covariances / (resp_sums_expanded + 1e-9)  # Normalize by responsibilities sum
-
-        # Step 4: Add small diagonal regularization for numerical stability
-        covariances += torch.eye(covariances.shape[-1], device=covariances.device) * epsilon
-
-        # Ensure Cholesky decomposition works
+        # Verify Cholesky decomposition for stability
         for k in range(covariances.shape[1]):
             try:
                 cholesky_factor = torch.linalg.cholesky(covariances[:, k, :, :])
             except torch._C._LinAlgError:
                 print(f"Cluster {k} covariance matrix is not positive definite.")
 
-        # # Reduce means for distributed training, if necessary
-        # all_reduce_fn(means)
-
-    # Compute final bins (assignments)
+    # Compute final cluster assignments
     bins = torch.argmax(responsibilities, dim=-1)
     return means, bins
+
 
 import torch
 from einops import rearrange, repeat
