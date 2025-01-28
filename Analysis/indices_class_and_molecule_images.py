@@ -182,8 +182,8 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
 
 def main():
-    path = "/Users/taka/Documents/VQGraph_out_for_images_0124/"
-    input_mol_file = f"{path}/molecules.npz"                     # input data
+    path = "/Users/taka/Documents/vqgrah_0128/"
+    input_mol_file = f"{path}/data/molecules.npz"                     # input data
     class_file = f"{path}embed_ind_indices_first8000_1.npz"      # assigned code vector id
     indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
     indices_file = f"{path}input_nodes_1.npz"  #

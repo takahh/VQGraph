@@ -5,9 +5,10 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 np.set_printoptions(threshold=np.inf)
 
-# path = "/Users/mac/Documents/vq-data/"
-path = "/Users/taka/Downloads/"
-
+path = "/Users/taka/Documents/vqgrah_0128/"
+# path = "/Users/taka/Downloads/"
+LMIN = 2.5
+LMAX = 7.5
 
 def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size, batch_size, param2=None):
     # Initialize UMAP or TSNE with custom parameters
@@ -79,8 +80,11 @@ def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size, batch_size, para
 
         plt.figure()
         # Define bin edges to control the size of the bins
-        x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
-        y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
+        # x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
+        # y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
+
+        x_range = (LMIN, LMAX)  # Range for the x-axis
+        y_range = (LMIN, LMAX)  # Range for the y-axis
         n_bins = 200  # Number of bins for both axes
         # cb_size = 1201
         plt.hist2d(
@@ -101,8 +105,10 @@ def plot_graph(cb_arr, latent_arr, mode, epoch, param, cb_size, batch_size, para
 
         plt.figure()
         # Define bin edges to control the size of the bins
-        x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
-        y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
+        x_range = (LMIN, LMAX)  # Range for the x-axis
+        y_range = (LMIN, LMAX)  # Range for the y-axis
+        # x_range = (min(embedding_latent[:, 0]), max(embedding_latent[:, 0]))  # Range for the x-axis
+        # y_range = (min(embedding_latent[:, 1]), max(embedding_latent[:, 1]))  # Range for the y-axis
         n_bins = 200  # Number of bins for both axes
         # cb_size = 1201
         plt.hist2d(
@@ -133,8 +139,8 @@ def main():
     arr_list = []
     DIMENSION = 256
     BATCH = 8000
-    EPOCH = 23
-    EPOCH2 = 24
+    EPOCH = 199
+    EPOCH2 = 200
 
     # MODE = "tsne"
     MODE = "umap"
