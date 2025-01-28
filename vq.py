@@ -265,8 +265,13 @@ def gmm(
         print(f"samples.shape {samples.shape}")
         print(f"responsibi.shape {responsibilities.shape}")
         # Compute means
-        means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
-        # means = torch.einsum("bnk,bnd->bkd", responsibilities, samples) / (resp_sums + 1e-9)
+        # Ensure dimensions are correctly aligned
+
+        # Compute means using the correct einsum operation
+        means = torch.einsum("bnk,bnd->bkn", responsibilities, samples) / (resp_sums.squeeze(1) + 1e-9)
+
+        # Debugging prints
+        print("means.shape:", means.shape)  # Expected: [1, 1500, 256]
 
         # Compute covariances
         diff = samples.unsqueeze(2) - means.unsqueeze(1)  # [num_codebooks, num_samples, num_clusters, dim]
