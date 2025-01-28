@@ -203,7 +203,7 @@ def batched_bincount(x, *, minlength):
 import torch
 from torch.distributions import MultivariateNormal
 
-def optimized_gmm(
+def gmm(
     samples,
     cluster_size=1500,  # Fixed number of clusters
     num_iters=50,
