@@ -277,7 +277,8 @@ def gmm(
         cluster_sums = weighted_samples.sum(dim=1)  # Shape: [1, 1500, 256]
 
         # Step 3: Normalize by the sum of responsibilities
-        means = cluster_sums / (resp_sums.squeeze(1) + 1e-9)  # Shape: [1, 1500, 256]
+        # means = cluster_sums / (resp_sums.squeeze(1) + 1e-9)  # Shape: [1, 1500, 256]
+        means = cluster_sums / (resp_sums.squeeze(1).unsqueeze(-1) + 1e-9)
 
         # Debugging prints
         print("means.shape:", means.shape)  # Expected: [1, 1500, 256]
