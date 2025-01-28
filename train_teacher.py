@@ -20,6 +20,8 @@ from utils import (
 from train_and_eval import run_transductive, run_inductive
 
 import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 import multiprocessing
 
 # Set the number of threads for OpenMP
