@@ -208,7 +208,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     # this line explicitly set self.training True
     model.eval()
     with torch.no_grad():
-        h_list, logits, _ , dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes = model.inference(data, feats)
+        h_list, logits, _ , dist, codebook, loss_list, latent_vectors, sample_list = model.inference(data, feats)
         out, loss, score = None, None, None
 
         # out = logits.log_softmax(dim=1)
@@ -219,7 +219,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
         #     loss = criterion(out[idx_eval], labels[idx_eval])
         #     score = evaluator(out[idx_eval], labels[idx_eval])
         #  out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind
-    return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes
+    return out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, sample_list
 
 
 def evaluate_mini_batch(
@@ -617,7 +617,7 @@ def run_inductive(
                 # -----------------------------
                 # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes
                 # print("EVAL 1 STARAT -------------!")
-                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, embed_ind_list, inp_nodes = evaluate(
+                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, sample_list1 = evaluate(
                     model,
                     obs_data_eval,
                     obs_feats,
@@ -648,8 +648,8 @@ def run_inductive(
             # --------------------------------
             # run only in train mode
             # --------------------------------
-            if conf["train_or_infer"] == "infer":
-                np.savez(f"./idx_test_ind_tosave_first8000_{epoch}", idx_test_ind_tosave)
+            # if conf["train_or_infer"] == "infer":
+            #     np.savez(f"./idx_test_ind_tosave_first8000_{epoch}", idx_test_ind_tosave)
             # -----------------------------------------------
             # Evaluate the inductive part with the full graph
             # -----------------------------------------------
@@ -658,7 +658,7 @@ def run_inductive(
             # -----------------------------
             print(f"EVAL 2 -------------------")
             # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
-            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
+            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, sample_list2 = evaluate(
                 model,
                 data_eval,   #
                 test_feats,       #
@@ -671,11 +671,10 @@ def run_inductive(
             # -----------------------------------------------------
             # save embed indices for comparison to actual molecules
             # -----------------------------------------------------
-            embed_ind_list_indices = torch.cat([torch.squeeze(x) for x in embed_ind_list_indices])
-            # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-            embed_ind_list_indices = embed_ind_list_indices[:8000]
-            np.savez(f"./embed_ind_indices_first8000_{epoch}", embed_ind_list_indices.cpu())
-            np.savez(f"./input_nodes_{epoch}", input_nodes[0][:8000])
+            # sample_list = [sample_ind, sample_feat, sample_adj]
+            np.savez(f"./sample_emb_ind", sample_list2[0].cpu())
+            np.savez(f"./sample_node_feat", sample_list2[1].cpu())
+            np.savez(f"./sample_adj", sample_list2[2].cpu())
 
         if conf["train_or_infer"] == "train":
 

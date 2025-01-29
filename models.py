@@ -308,45 +308,30 @@ class SAGE(nn.Module):
 
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
 
+            g = dgl.DGLGraph().to(feats.device)
+            g.add_nodes(input_nodes.shape[0])
+
+            block = blocks[0].int().to(device)
+            src, dst = block.all_edges()
+            src = src.type(torch.int64)
+            dst = dst.type(torch.int64)
+            g.add_edges(src, dst)
+            g.add_edges(dst, src)
+
+            # Node features
+            h = feats[input_nodes]
+            h = transform_node_feats(h)  # Your transformation function
+
             if idx == 0:  # Get only the first batch
-                g = dgl.DGLGraph().to(feats.device)
-                g.add_nodes(input_nodes.shape[0])
-
-                block = blocks[0].int().to(device)
-                src, dst = block.all_edges()
-                src = src.type(torch.int64)
-                dst = dst.type(torch.int64)
-                g.add_edges(src, dst)
-                g.add_edges(dst, src)
-
-                # Node features
-                h = feats[input_nodes]
-                h = transform_node_feats(h)  # Your transformation function
-                init_feat = h.clone().detach()  # Save a copy of the initial node features
+                sample_feat = h.clone().detach()  # Save a copy of the initial node features
 
                 # Adjacency matrix (sparse representation)
                 adj_matrix = g.adjacency_matrix().to_dense()  # Convert sparse to dense tensor
 
                 # Convert to dense tensor if needed
-                adj_dense = adj_matrix.to_dense()
+                sample_adj = adj_matrix.to_dense()
 
-                print("Initial Node Features (First 10 Nodes):")
-                print(init_feat[:10])  # Print first 10 node features
-
-                print("\nAdjacency Matrix (Dense Format):")
-                print(adj_dense)  # Print adjacency matrix
-
-            g = dgl.DGLGraph().to(feats.device)
-            g.add_nodes(input_nodes.shape[0])
-            block = blocks[0].int().to(device)
-            src, dst = block.all_edges()
-            src = src.type(torch.int64)
-            dst = dst.type(torch.int64)
-            g.add_edges(src,dst)
-            g.add_edges(dst,src)
             h_list = []
-            h = feats[input_nodes]
-            h = transform_node_feats(h)
             init_feat = h
             h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
@@ -371,16 +356,12 @@ class SAGE(nn.Module):
             elec_state_div_loss_list.append(elec_state_div_loss)
             charge_div_loss_list.append(charge_div_loss)
             sil_loss_list.append(sil_loss)
-            # if idx == 0:
-            #     torch.set_printoptions(profile="full")
-            #     print(f"-------------------------")
-            #     print(f"batch_feats {init_feat[:10]}")
-            #     print(f"latents (input to cb) {h[:10, :20]}")
-            #     print(f"embed_ind_{embed_ind[:10]}")
-            #     print()
+            if idx == 0:
+                sample_ind = embed_ind
+                sample_list = [sample_ind, sample_feat, sample_adj]
 
         return h_list, y, loss, dist_all, codebook, [div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
-          h_num_div_loss_list, charge_div_loss_list, elec_state_div_loss_list, spread_loss, pair_loss, sil_loss_list], latent_list, embed_ind_list, input_node_list
+          h_num_div_loss_list, charge_div_loss_list, elec_state_div_loss_list, spread_loss, pair_loss, sil_loss_list], latent_list, sample_list
 
 
 class GAT(nn.Module):
