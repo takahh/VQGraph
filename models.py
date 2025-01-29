@@ -326,7 +326,7 @@ class SAGE(nn.Module):
                 init_feat = h.clone().detach()  # Save a copy of the initial node features
 
                 # Adjacency matrix (sparse representation)
-                adj_matrix = g.adjacency_matrix(scipy_fmt="coo")  # COO format for easy inspection
+                adj_matrix = g.adjacency_matrix().to_dense()  # Convert sparse to dense tensor
 
                 # Convert to dense tensor if needed
                 adj_dense = torch.from_numpy(adj_matrix.toarray())
