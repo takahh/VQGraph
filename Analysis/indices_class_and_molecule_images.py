@@ -185,8 +185,8 @@ def main():
     path = "/Users/taka/Documents/vqgrah_0128/"
     input_mol_file = f"{path}/data/molecules.npz"                     # input data
     class_file = f"{path}embed_ind_indices_first8000_1.npz"      # assigned code vector id
-    indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
-    indices_file = f"{path}input_nodes_1.npz"  #
+    # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
+    indices_file = f"{path}input_nodes_1.npz"
 
     arr_input = getdata(input_mol_file)   # input molecule graph
     arr_indices = getdata(indices_file)   # indices of the input

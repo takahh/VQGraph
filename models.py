@@ -305,7 +305,38 @@ class SAGE(nn.Module):
         sil_loss_list = []
         elec_state_div_loss_list = []
         charge_div_loss_list = []
+
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+
+            if idx == 0:  # Get only the first batch
+                g = dgl.DGLGraph().to(feats.device)
+                g.add_nodes(input_nodes.shape[0])
+
+                block = blocks[0].int().to(device)
+                src, dst = block.all_edges()
+                src = src.type(torch.int64)
+                dst = dst.type(torch.int64)
+
+                g.add_edges(src, dst)
+                g.add_edges(dst, src)
+
+                # Node features
+                h = feats[input_nodes]
+                h = transform_node_feats(h)  # Your transformation function
+                init_feat = h.clone().detach()  # Save a copy of the initial node features
+
+                # Adjacency matrix (sparse representation)
+                adj_matrix = g.adjacency_matrix(scipy_fmt="coo")  # COO format for easy inspection
+
+                # Convert to dense tensor if needed
+                adj_dense = torch.from_numpy(adj_matrix.toarray())
+
+                print("Initial Node Features (First 10 Nodes):")
+                print(init_feat[:10])  # Print first 10 node features
+
+                print("\nAdjacency Matrix (Dense Format):")
+                print(adj_dense)  # Print adjacency matrix
+
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
             block = blocks[0].int().to(device)
