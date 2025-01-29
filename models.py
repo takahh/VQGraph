@@ -316,7 +316,6 @@ class SAGE(nn.Module):
                 src, dst = block.all_edges()
                 src = src.type(torch.int64)
                 dst = dst.type(torch.int64)
-
                 g.add_edges(src, dst)
                 g.add_edges(dst, src)
 
