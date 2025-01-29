@@ -328,7 +328,7 @@ class SAGE(nn.Module):
                 adj_matrix = g.adjacency_matrix().to_dense()  # Convert sparse to dense tensor
 
                 # Convert to dense tensor if needed
-                adj_dense = torch.from_numpy(adj_matrix.toarray())
+                adj_dense = adj_matrix.to_dense()
 
                 print("Initial Node Features (First 10 Nodes):")
                 print(init_feat[:10])  # Print first 10 node features
