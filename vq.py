@@ -243,7 +243,6 @@ def gmm(
     covariances = torch.eye(dim, device=samples.device).unsqueeze(0).unsqueeze(0).repeat(num_codebooks, num_clusters, 1, 1)
     weights = torch.ones(num_codebooks, num_clusters, device=samples.device) / num_clusters
     for _ in range(num_iters):
-        print(f"{_}")
         # E-step: Compute responsibilities in log-space for numerical stability
         log_probs = torch.zeros(num_codebooks, num_samples, num_clusters, device=samples.device)
         for k in range(num_clusters):

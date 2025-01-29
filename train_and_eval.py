@@ -538,7 +538,7 @@ def run_inductive(
     acc_tran, acc_ind = 0, 0
     score_val = 0
     for epoch in range(1, conf["max_epoch"] + 1):
-        print(f"epoch {epoch} -- Train")
+        # print(f"epoch {epoch} -- Train")
 
         # --------------------------------
         # train
@@ -616,7 +616,7 @@ def run_inductive(
                 # 1 st evaluate
                 # -----------------------------
                 # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes
-                print("EVAL 1 STARAT -------------!")
+                # print("EVAL 1 STARAT -------------!")
                 obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, embed_ind_list, inp_nodes = evaluate(
                     model,
                     obs_data_eval,
@@ -656,7 +656,7 @@ def run_inductive(
             # -----------------------------
             # 2 nd evaluate
             # -----------------------------
-            print(f"EVAL 2 -------------------")
+            # print(f"EVAL 2 -------------------")
             # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
             out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, embed_ind_list_indices, input_nodes = evaluate(
                 model,
