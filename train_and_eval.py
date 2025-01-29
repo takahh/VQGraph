@@ -538,7 +538,7 @@ def run_inductive(
     acc_tran, acc_ind = 0, 0
     score_val = 0
     for epoch in range(1, conf["max_epoch"] + 1):
-        print(f"Train")
+        print(f"epoch {epoch} -- Train")
 
         # --------------------------------
         # train
