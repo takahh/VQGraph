@@ -1001,6 +1001,7 @@ class VectorQuantize(nn.Module):
                 inter_cluster_distances.append(b.max() + 1e-6)  # Replace inf with a differentiable value
 
         # Convert lists to tensors
+        print([x.shape for x in intra_cluster_distances])
         if intra_cluster_distances:
             a = torch.cat(intra_cluster_distances, dim=0)
         else:
