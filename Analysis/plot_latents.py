@@ -137,7 +137,7 @@ def getdata(filename):
 
 def main():
     arr_list = []
-    DIMENSION = 256
+    DIMENSION = 32
     BATCH = 8000
     EPOCH = 199
     EPOCH2 = 200
