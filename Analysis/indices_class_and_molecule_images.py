@@ -52,7 +52,7 @@ def to_superscript(number):
     return "".join(superscript_map.get(char, char) for char in str(number))
 
 
-def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, class_file):
+def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, classes):
     """
     Visualizes molecules with node classes shown near the atoms.
 
@@ -66,10 +66,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         None: Displays molecule images with annotated classes near atoms.
     """
     # Step 1: Load indices and classes
-    node_indices = indices_file.tolist()
-    start_node_index = node_indices[0]
-    node_indices = [x - start_node_index for x in node_indices]
-    classes = [int(x) for x in class_file.tolist()]
+    node_indices = list(range(8000))
     # Map node indices to classes
     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
 
@@ -180,49 +177,120 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
     plt.tight_layout()  # Automatically adjust spacing
     plt.show()
 
+import torch
+import torch
+import numpy as np
+
+def restore_node_feats(transformed):
+    # Convert to PyTorch tensor if it's a NumPy array
+    if isinstance(transformed, np.ndarray):
+        transformed = torch.tensor(transformed, dtype=torch.float32)
+
+    restored = torch.empty_like(transformed, dtype=torch.float32)
+
+    restored[:, 0] = torch.where(transformed[:, 0] == 1, 6,
+                      torch.where(transformed[:, 0] == 20, 8,
+                      torch.where(transformed[:, 0] == 10, 7,
+                      torch.where(transformed[:, 0] == 5, 17,
+                      torch.where(transformed[:, 0] == 15, 9,
+                      torch.where(transformed[:, 0] == 8, 35,
+                      torch.where(transformed[:, 0] == 3, 16,
+                      torch.where(transformed[:, 0] == 12, 15,
+                      torch.where(transformed[:, 0] == 18, 1,
+                      torch.where(transformed[:, 0] == 2, 5,
+                      torch.where(transformed[:, 0] == 16, 53,
+                      torch.where(transformed[:, 0] == 4, 14,
+                      torch.where(transformed[:, 0] == 6, 34,
+                      torch.where(transformed[:, 0] == 7, 19,
+                      torch.where(transformed[:, 0] == 9, 11,
+                      torch.where(transformed[:, 0] == 11, 3,
+                      torch.where(transformed[:, 0] == 13, 30,
+                      torch.where(transformed[:, 0] == 14, 33,
+                      torch.where(transformed[:, 0] == 17, 12,
+                      torch.where(transformed[:, 0] == 19, 52, -2))))))))))))))))))))
+
+    restored[:, 1] = torch.where(transformed[:, 1] == 1, 1,
+                      torch.where(transformed[:, 1] == 20, 2,
+                      torch.where(transformed[:, 1] == 10, 3,
+                      torch.where(transformed[:, 1] == 15, 0,
+                      torch.where(transformed[:, 1] == 5, 4,
+                      torch.where(transformed[:, 1] == 7, 6,
+                      torch.where(transformed[:, 1] == 12, 5, -2)))))))
+
+    restored[:, 2] = torch.where(transformed[:, 2] == 1, 0,
+                      torch.where(transformed[:, 2] == 20, 1,
+                      torch.where(transformed[:, 2] == 10, -1,
+                      torch.where(transformed[:, 2] == 5, 3,
+                      torch.where(transformed[:, 2] == 15, 2, -2)))))
+
+    restored[:, 3] = torch.where(transformed[:, 3] == 1, 4,
+                      torch.where(transformed[:, 3] == 20, 3,
+                      torch.where(transformed[:, 3] == 10, 1,
+                      torch.where(transformed[:, 3] == 5, 2,
+                      torch.where(transformed[:, 3] == 15, 7,
+                      torch.where(transformed[:, 3] == 18, 6, -2))))))
+
+    restored[:, 4] = torch.where(transformed[:, 4] == 1, 0,
+                      torch.where(transformed[:, 4] == 20, 1, -2))
+
+    restored[:, 5] = torch.where(transformed[:, 5] == 1, 0,
+                      torch.where(transformed[:, 5] == 20, 1, -2))
+
+    restored[:, 6] = torch.where(transformed[:, 6] == 1, 3,
+                      torch.where(transformed[:, 6] == 20, 0,
+                      torch.where(transformed[:, 6] == 10, 1,
+                      torch.where(transformed[:, 6] == 15, 2,
+                      torch.where(transformed[:, 6] == 5, 4, -2)))))
+
+    return restored.numpy()  # Convert back to NumPy array if needed
+
 
 def main():
-    path = "/Users/taka/Documents/vqgrah_0128/"
-    input_mol_file = f"{path}/data/molecules.npz"                     # input data
-    class_file = f"{path}embed_ind_indices_first8000_1.npz"      # assigned code vector id
+    path = "/Users/taka/Downloads/"
+    adj_file = f"{path}/sample_adj.npz"                     # input data
+    feat_file = f"{path}sample_node_feat.npz"      # assigned code vector id
     # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
-    indices_file = f"{path}input_nodes_1.npz"
+    indices_file = f"{path}sample_emb_ind.npz"
 
-    arr_input = getdata(input_mol_file)   # input molecule graph
     arr_indices = getdata(indices_file)   # indices of the input
-    arr_class = getdata(class_file)       # assigned quantized code vec indices
-    print(f"node id {arr_indices.shape}, class {arr_class.shape}")
-    node_indices = arr_indices.tolist()
+    arr_adj = getdata(adj_file)       # assigned quantized code vec indices
+    arr_feat = getdata(feat_file)       # assigned quantized code vec indices
+    # print(f"node id {arr_indices.shape}, class {arr_class.shape}")
+    # print(arr_adj)
+    # print(arr_feat)
+    arr_feat = restore_node_feats(arr_feat)
+    node_indices = [int(x) for x in arr_indices.tolist()]
+    print(node_indices)
 
     # -------------------------------------
     # rebuild attr matrix
     # -------------------------------------
-    attr_data = arr_input["attr_data"]
-    attr_indices = arr_input["attr_indices"]
-    attr_indptr = arr_input["attr_indptr"]
-    attr_shape = arr_input["attr_shape"]
-    attr_matrix = csr_matrix((attr_data, attr_indices, attr_indptr), shape=attr_shape)
-    ic(node_indices[0])
-    subset_attr_matrix = attr_matrix[node_indices[0]:node_indices[0] + 200, :].toarray()
+    # attr_data = arr_input["attr_data"]
+    # attr_indices = arr_input["attr_indices"]
+    # attr_indptr = arr_input["attr_indptr"]
+    # attr_shape = arr_input["attr_shape"]
+    # attr_matrix = csr_matrix((attr_data, attr_indices, attr_indptr), shape=attr_shape)
+    # ic(node_indices[0])
+    # subset_attr_matrix = attr_matrix[node_indices[0]:node_indices[0] + 200, :].toarray()
     # subset_attr_matrix = attr_matrix.toarray()
 
     # -------------------------------------
     # rebuild adj matrix
     # -------------------------------------
     # Assuming you have these arrays from your input
-    adj_data = arr_input["adj_data"]
-    adj_indices = arr_input["adj_indices"]
-    adj_indptr = arr_input["adj_indptr"]
-    adj_shape = arr_input["adj_shape"]
+    # adj_data = arr_input["adj_data"]
+    # adj_indices = arr_input["adj_indices"]
+    # adj_indptr = arr_input["adj_indptr"]
+    # adj_shape = arr_input["adj_shape"]
     # Reconstruct the sparse adjacency matrix
-    adj_matrix = csr_matrix((adj_data, adj_indices, adj_indptr), shape=adj_shape)
-    subset_adj_matrix = adj_matrix[0:200, 0:200].toarray()
-    # subset_adj_matrix = adj_matrix.toarray()
+    # adj_matrix = csr_matrix((adj_data, adj_indices, adj_indptr), shape=adj_shape)
+    subset_adj_matrix = arr_adj[0:200, 0:200]
+    subset_attr_matrix = arr_feat[:200]
 
     # -------------------------------------
     # split the matrix into molecules
     # -------------------------------------
-    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_attr_matrix, arr_indices, arr_class)
+    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_attr_matrix, None, node_indices)
 
 
 if __name__ == '__main__':
