@@ -1003,7 +1003,9 @@ class VectorQuantize(nn.Module):
         # Convert lists to tensors
         if intra_cluster_distances:
             # Filter out zero-dimensional tensors and reshape them into 1D tensors if necessary
+            print(f"intra_cluster_distances befire {len(intra_cluster_distances)}")
             intra_cluster_distances = [x.view(1) if x.dim() == 0 else x for x in intra_cluster_distances if x.dim() > 0]
+            print(f"intra_cluster_distances {len(intra_cluster_distances)}")
             # Now you can safely concatenate
             a = torch.cat(intra_cluster_distances, dim=0)
         else:
