@@ -1003,9 +1003,7 @@ class VectorQuantize(nn.Module):
         # Convert lists to tensors
         if intra_cluster_distances:
             # Filter out zero-dimensional tensors and reshape them into 1D tensors if necessary
-            print(f"intra_cluster_distances befire {(intra_cluster_distances)}")
             intra_cluster_distances = [x.view(1) if x.dim() == 0 else x for x in intra_cluster_distances if x.dim() > 0]
-            print(f"intra_cluster_distances {len(intra_cluster_distances)}")
             # Now you can safely concatenate
             a = torch.cat(intra_cluster_distances, dim=0)
         else:
@@ -1015,7 +1013,8 @@ class VectorQuantize(nn.Module):
             b = torch.stack(inter_cluster_distances, dim=0)
         else:
             b = torch.ones(1, device=embeddings.device)  # Prevent empty tensors
-
+        # If one tensor is larger and you need to slice it to match the other
+        print(b)
         # Compute silhouette score
         epsilon = 1e-6  # Small value to avoid division by zero
         silhouette_values = (b - a) / (torch.max(a, b) + epsilon)  # Silhouette formula
