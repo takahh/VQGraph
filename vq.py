@@ -1041,7 +1041,7 @@ class VectorQuantize(nn.Module):
         # print(f"x.latents_for_sil: {latents_for_sil.grad_fn}")
         # print(f"x.embed_ind_for_sil: {embed_ind_for_sil.requires_grad}")
         # print(f"x.embed_ind_for_sil: {embed_ind_for_sil.grad_fn}")
-        sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
+        embed_ind, sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
         # print("------ after (fast_silhouette_loss) -------")
         # print(f"x.requires_grad: {sil_loss.requires_grad}")
         # print(f"x.grad_fn: {sil_loss.grad_fn}")
@@ -1210,9 +1210,6 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # Calculate Codebook Losses
         # ---------------------------------
-        # return (margin_loss, spread_loss, pair_distance_loss, atom_type_div_loss, bond_num_div_loss, aroma_div_loss,
-        #         ringy_div_loss, h_num_div_loss, sil_loss, embed_ind, elec_state_div_loss, charge_div_loss)
-
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
           h_num_div_loss, silh_loss, embed_ind, charge_div_loss, elec_state_div_loss) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
@@ -1247,7 +1244,6 @@ class VectorQuantize(nn.Module):
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
         if self.training:
             if div_ele_loss < 0.04:
-                print(f"silh_loss {silh_loss}")
                 loss = loss + self.lamb_sil * silh_loss
             else:
                 loss = (loss + self.lamb_sil * silh_loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
