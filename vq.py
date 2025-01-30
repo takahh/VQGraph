@@ -1013,6 +1013,7 @@ class VectorQuantize(nn.Module):
             b = torch.stack(inter_cluster_distances, dim=0)
         else:
             b = torch.ones(1, device=embeddings.device)  # Prevent empty tensors
+        b = b[:len(a)]
         # If one tensor is larger and you need to slice it to match the other
         print(b)
         # Compute silhouette score
