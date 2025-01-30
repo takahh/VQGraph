@@ -968,9 +968,6 @@ class VectorQuantize(nn.Module):
     import torch
 
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
-        # Ensure embed_ind tensor is updated
-        embed_ind.data.copy_(embed_ind)
-
         # Compute pairwise distances for all points
         pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
 
