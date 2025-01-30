@@ -1001,8 +1001,10 @@ class VectorQuantize(nn.Module):
                 inter_cluster_distances.append(b.max() + 1e-6)  # Replace inf with a differentiable value
 
         # Convert lists to tensors
-        print([x.shape for x in intra_cluster_distances])
         if intra_cluster_distances:
+            # Filter out zero-dimensional tensors and reshape them into 1D tensors if necessary
+            intra_cluster_distances = [x.view(1) if x.dim() == 0 else x for x in intra_cluster_distances if x.dim() > 0]
+            # Now you can safely concatenate
             a = torch.cat(intra_cluster_distances, dim=0)
         else:
             a = torch.zeros(1, device=embeddings.device)  # Prevent empty tensors
