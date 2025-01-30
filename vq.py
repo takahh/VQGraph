@@ -1015,7 +1015,6 @@ class VectorQuantize(nn.Module):
             b = torch.ones(1, device=embeddings.device)  # Prevent empty tensors
         b = b[:len(a)]
         # If one tensor is larger and you need to slice it to match the other
-        print(b)
         # Compute silhouette score
         epsilon = 1e-6  # Small value to avoid division by zero
         silhouette_values = (b - a) / (torch.max(a, b) + epsilon)  # Silhouette formula
