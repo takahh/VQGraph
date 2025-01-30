@@ -1002,7 +1002,7 @@ class VectorQuantize(nn.Module):
 
         # Convert lists to tensors
         if intra_cluster_distances:
-            a = torch.stack(intra_cluster_distances, dim=0)
+            a = torch.cat(intra_cluster_distances, dim=0)
         else:
             a = torch.zeros(1, device=embeddings.device)  # Prevent empty tensors
 
