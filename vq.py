@@ -1054,15 +1054,15 @@ class VectorQuantize(nn.Module):
         embed_ind_for_sil = torch.squeeze(embed_ind)
         latents_for_sil = torch.squeeze(latents)
 
-        print("------ before -------")
-        print(f"x.latents_for_sil: {latents_for_sil.requires_grad}")
-        print(f"x.latents_for_sil: {latents_for_sil.grad_fn}")
-        print(f"x.embed_ind_for_sil: {embed_ind_for_sil.requires_grad}")
-        print(f"x.embed_ind_for_sil: {embed_ind_for_sil.grad_fn}")
+        # print("------ before -------")
+        # print(f"x.latents_for_sil: {latents_for_sil.requires_grad}")
+        # print(f"x.latents_for_sil: {latents_for_sil.grad_fn}")
+        # print(f"x.embed_ind_for_sil: {embed_ind_for_sil.requires_grad}")
+        # print(f"x.embed_ind_for_sil: {embed_ind_for_sil.grad_fn}")
         sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
-        print("------ after (fast_silhouette_loss) -------")
-        print(f"x.requires_grad: {sil_loss.requires_grad}")
-        print(f"x.grad_fn: {sil_loss.grad_fn}")
+        # print("------ after (fast_silhouette_loss) -------")
+        # print(f"x.requires_grad: {sil_loss.requires_grad}")
+        # print(f"x.grad_fn: {sil_loss.grad_fn}")
 
         # ---------------------------------------------------------------
         # loss to assign different codes for different chemical elements

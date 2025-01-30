@@ -105,6 +105,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
 
         scaler.scale(loss).backward()
 
+        optimizer.zero_grad()
+        loss_list3[-1].backward()
+        print(f"Gradient of latents_for_sil: {loss_list3[-1].grad}")
+        optimizer.step()
+
         # Accumulation steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             scaler.unscale_(optimizer)
