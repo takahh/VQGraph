@@ -118,8 +118,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
         cb_list.append(cb.detach().cpu())
         loss_list.append(loss.detach().cpu())
 
-        # print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
-        # print(f"Reserved Memory: {torch.cuda.memory_reserved() / 1024 ** 3:.2f} GB")
+        print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
+        print(f"Reserved Memory: {torch.cuda.memory_reserved() / 1024 ** 3:.2f} GB")
 
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list_list, latent_list, latents
