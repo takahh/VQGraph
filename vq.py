@@ -1019,7 +1019,7 @@ class VectorQuantize(nn.Module):
         # Compute silhouette loss (maximize silhouette score)
         loss = -torch.mean(silhouette_values)
 
-        return embed_ind, loss
+        return loss
 
     def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, quantized, min_distance=0.5):
         # Normalize embeddings (optional: remove if not necessary)
@@ -1058,7 +1058,7 @@ class VectorQuantize(nn.Module):
         # print(f"x.grad_fn: {latents_for_sil.grad_fn}")
         # print(f"x.requires_grad: {embed_ind_for_sil.requires_grad}")
         # print(f"x.grad_fn: {embed_ind_for_sil.grad_fn}")
-        embed_ind, sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
+        sil_loss = self.fast_silhouette_loss(latents_for_sil, embed_ind_for_sil, t.shape[-2], t.shape[-2])
         # print("------ after (fast_silhouette_loss) -------")
         # print(f"x.requires_grad: {sil_loss.requires_grad}")
         # print(f"x.grad_fn: {sil_loss.grad_fn}")
