@@ -965,6 +965,7 @@ class VectorQuantize(nn.Module):
         return (positive_loss + negative_loss).mean()
 
     import torch
+    import torch
 
     def fast_silhouette_loss(self, embeddings, embed_ind, num_clusters, target_non_empty_clusters=500):
         # Ensure embed_ind tensor is updated
@@ -989,8 +990,7 @@ class VectorQuantize(nn.Module):
                 intra_distances = pairwise_distances[cluster_indices][:, cluster_indices]
                 intra_cluster_distances.append(intra_distances.mean())
             else:
-                intra_cluster_distances.append(
-                    torch.tensor(0.0, device=embeddings.device))  # Single points have no intra-cluster distance
+                intra_cluster_distances.append(torch.zeros(1, device=embeddings.device))  # Maintain differentiability
 
             # Compute inter-cluster distances (b)
             other_mask = ~cluster_mask
@@ -998,13 +998,18 @@ class VectorQuantize(nn.Module):
                 other_distances = pairwise_distances[cluster_indices][:, other_mask]
                 inter_cluster_distances.append(other_distances.mean())
             else:
-                inter_cluster_distances.append(torch.tensor(float('inf'), device=embeddings.device))
+                inter_cluster_distances.append(b.max() + 1e-6)  # Replace inf with a differentiable value
 
         # Convert lists to tensors
-        a = torch.stack(intra_cluster_distances, dim=0) if intra_cluster_distances else torch.tensor([],
-                                                                                                     device=embeddings.device)
-        b = torch.stack(inter_cluster_distances, dim=0) if inter_cluster_distances else torch.tensor([],
-                                                                                                     device=embeddings.device)
+        if intra_cluster_distances:
+            a = torch.stack(intra_cluster_distances, dim=0)
+        else:
+            a = torch.zeros(1, device=embeddings.device)  # Prevent empty tensors
+
+        if inter_cluster_distances:
+            b = torch.stack(inter_cluster_distances, dim=0)
+        else:
+            b = torch.ones(1, device=embeddings.device)  # Prevent empty tensors
 
         # Compute silhouette score
         epsilon = 1e-6  # Small value to avoid division by zero
