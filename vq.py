@@ -429,7 +429,6 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5, num_atom_
     return (positive_loss + negative_loss).mean() / 10000
 
 
-
 def feat_elem_divergence_loss(embed_ind, atom_types, num_codebooks=1500, temperature=0.02):
 
     def soft_one_hot(indices, num_classes, temperature=0.1):  # Increased default temperature for stability

@@ -194,47 +194,62 @@ class SAGE(nn.Module):
     def reset_kmeans(self):
         self.vq._codebook.reset_kmeans()
 
-    def forward(self, blocks, feats, epoch):
-        # print(f"RUNNING FORWARD ======================")
-        h = feats.clone() if not feats.requires_grad else feats  # Ensure h requires gradients
-        init_feat = h
-        torch.save(h.clone(), "/h.pt")  # Save a clone to avoid detachment
+    import torch
+    import dgl
 
+    def forward(self, blocks, feats, epoch):
+        """Forward pass for the VQ-Graph model with bond multiplicity handling."""
+
+        # Ensure `h` requires gradients
+        h = feats.clone() if not feats.requires_grad else feats
+        init_feat = h.clone()  # Store initial features before transformation
+        torch.save(init_feat, "/h.pt")  # Save for reference
+
+        # Create a DGL graph
         g = dgl.DGLGraph().to(h.device)
         g.add_nodes(h.shape[0])
-        blocks = [blk.int() for blk in blocks]
+        blocks = [blk.int() for blk in blocks]  # Convert block indices to int
+
+        # Extract edges and bond orders (if available)
+        edge_list = []
+        bond_orders = []
 
         for block in blocks:
             src, dst = block.all_edges()
-            src = src.type(torch.int64)
-            dst = dst.type(torch.int64)
-            g.add_edges(src, dst)
-            g.add_edges(dst, src)
+            src = src.to(torch.int64)
+            dst = dst.to(torch.int64)
 
-        adj = g.adjacency_matrix().to_dense().to(feats.device)
-        h_list = []
+            edge_list.append((src, dst))
+            edge_list.append((dst, src))  # Ensure bidirectional edges
 
-        # print(f"h.shape 0 {h.shape}")
+            if "bond_order" in block.edata:  # If bond multiplicity exists
+                bond_orders.append(block.edata["bond_order"].to(torch.float32))
+                bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
 
-        # Apply linear transformation and graph layer
+        # Add edges with bond order (multiplicity) as edge feature
+        for (src, dst), bond_order in zip(edge_list, bond_orders):
+            g.add_edges(src, dst, data={"bond_order": bond_order})
+
+        # Store adjacency matrix with bond orders
+        adj = g.adjacency_matrix().to_dense().to(feats.device)  # Dense format
+
+        h_list = []  # Store intermediate feature representations
+
+        # Apply linear transformation and first graph layer
         h = self.linear_2(h)
-        # print(f"h after linear_2: requires_grad={h.requires_grad}")
         h = self.graph_layer_1(g, h)
-        # print(f"h after graph_layer_1: requires_grad={h.requires_grad}")
 
+        # Apply normalization (if needed)
         if self.norm_type != "none":
             h = self.norms[0](h)
-        # h = self.dropout(h)
-        h_list.append(h)
-        # print("h latent")
-        # print(h.shape)
-        # print(h[:20])
-        # quantize, embed_ind, loss, dist, self._codebook.embed, raw_commit_loss, x
 
-        # print(f"h.shape 1 {h.shape}")
+        h_list.append(h)  # Store latent representation
+
+        # Vector quantization step
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss, spread_loss, pair_loss,
          detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-          h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = self.vq(h, init_feat, epoch)
+         h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = self.vq(h, init_feat, epoch)
+
         # quantized_edge = self.decoder_1(quantized)
         # quantized_node = self.decoder_2(quantized)
         # ------------------------------

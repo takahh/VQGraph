@@ -82,6 +82,8 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
         # Extract subgraph
         mol_adj = adj_matrix[component_indices, :][:, component_indices]
+        print("Adjacency Matrix:\n", mol_adj)
+
         mol_features = feature_matrix[component_indices]
 
         # Create RDKit molecule
@@ -106,10 +108,28 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
             # print(atom_labels[atom_idx])
                 # Annotate with inline format
 
-        # Add bonds
+        # # Add bonds
+        # for x, y in zip(*np.where(mol_adj > 0)):
+        #     if x < y:  # Avoid duplicate bonds
+        #         # mol.AddBond(int(x), int(y), Chem.BondType.SINGLE)
+
+        # Add bonds with correct bond order
+        bond_type_map = {1: Chem.BondType.SINGLE,
+                         2: Chem.BondType.DOUBLE,
+                         3: Chem.BondType.TRIPLE,
+                         4: Chem.BondType.AROMATIC}  # Assuming 4 means aromatic
+
         for x, y in zip(*np.where(mol_adj > 0)):
             if x < y:  # Avoid duplicate bonds
-                mol.AddBond(int(x), int(y), Chem.BondType.SINGLE)
+                bond_order = int(mol_adj[x, y])  # Extract bond order
+                bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
+                mol.AddBond(int(x), int(y), bond_type)
+
+        # Compute 2D coordinates for proper display
+        AllChem.Compute2DCoords(mol)
+
+        # Ensure bonds are explicitly drawn
+        Chem.Kekulize(mol, clearAromaticFlags=True)
 
         # Sanitize molecule
         Chem.SanitizeMol(mol)
@@ -246,7 +266,7 @@ def restore_node_feats(transformed):
 
 
 def main():
-    path = "/Users/taka/Downloads/"
+    path = "/Users/taka/Documents/vqgraph_0130/"
     adj_file = f"{path}/sample_adj.npz"                     # input data
     feat_file = f"{path}sample_node_feat.npz"      # assigned code vector id
     # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
