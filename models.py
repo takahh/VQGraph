@@ -212,10 +212,6 @@ class SAGE(nn.Module):
         edge_list = []
         bond_orders = []
 
-        print("First block structure:", blocks[0])
-        print("Available edge data keys:", blocks[0].edata.keys())
-
-        print(f"Bond order sample BEFORE loop: {blocks[0].edata['bond_order'][:10]}")
         for block in blocks:
             src, dst = block.all_edges()
             src = src.to(torch.int64)
@@ -225,7 +221,6 @@ class SAGE(nn.Module):
             edge_list.append((dst, src))  # Ensure bidirectional edges
 
             if "bond_order" in block.edata:  # If bond multiplicity exists
-                print(f"Bond order sample BEFORE appending: {block.edata['bond_order'][:10]}")
                 bond_orders.append(block.edata["bond_order"].to(torch.float32))
                 bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
 
@@ -240,11 +235,11 @@ class SAGE(nn.Module):
         # Ensure no nodes are isolated
         g = dgl.add_self_loop(g)
 
-        # Print bond order values in the graph
-        if "bond_order" in g.edata:
-            print("Bond Orders in Graph:\n", g.edata["bond_order"][:100])
-        else:
-            print("⚠️ No bond order found in graph edges!")
+        # # Print bond order values in the graph
+        # if "bond_order" in g.edata:
+        #     print("Bond Orders in Graph:\n", g.edata["bond_order"][:100])
+        # else:
+        #     print("⚠️ No bond order found in graph edges!")
 
         # Store adjacency matrix with bond orders
         adj = g.adjacency_matrix().to_dense().to(feats.device)  # Dense format
