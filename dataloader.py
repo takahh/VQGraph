@@ -116,6 +116,7 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
     idx_train = torch.LongTensor(idx_train)
     idx_val = torch.LongTensor(idx_val)
     idx_test = torch.LongTensor(idx_test)
+    print(f"g.edata[bond_order].  {g.edata['bond_order']}")
     return g, labels, idx_train, idx_val, idx_test   # idx_test starts from 40
 
 
