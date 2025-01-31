@@ -230,6 +230,12 @@ class SAGE(nn.Module):
         for (src, dst), bond_order in zip(edge_list, bond_orders):
             g.add_edges(src, dst, data={"bond_order": bond_order})
 
+        # Print bond order values in the graph
+        if "bond_order" in g.edata:
+            print("Bond Orders in Graph:\n", g.edata["bond_order"])
+        else:
+            print("⚠️ No bond order found in graph edges!")
+
         # Store adjacency matrix with bond orders
         adj = g.adjacency_matrix().to_dense().to(feats.device)  # Dense format
 
