@@ -549,7 +549,6 @@ def load_npz_to_sparse_graph(file_name, percentage=0.05):
     with np.load(file_name, allow_pickle=True) as loader:
         loader = dict(loader)
         num_nodes = loader["adj_shape"][0]
-        cutoff = int(num_nodes * percentage)
         # print(f"original nodes: {int(num_nodes)}")
         # print(f"reduced nodes: {cutoff}")
         np.set_printoptions(threshold=np.inf)
@@ -558,17 +557,17 @@ def load_npz_to_sparse_graph(file_name, percentage=0.05):
         adj_matrix = sp.csr_matrix(
             (loader["adj_data"], loader["adj_indices"], loader["adj_indptr"]),
             shape=loader["adj_shape"],
-        )[:cutoff, :cutoff]
+        )
 
         if "attr_data" in loader:
             # Attributes are stored as a sparse CSR matrix
             attr_matrix = sp.csr_matrix(
                 (loader["attr_data"], loader["attr_indices"], loader["attr_indptr"]),
                 shape=loader["attr_shape"],
-            )[:cutoff]
+            )
         elif "attr_matrix" in loader:
             # Attributes are stored as a (dense) np.ndarray
-            attr_matrix = loader["attr_matrix"][:cutoff]
+            attr_matrix = loader["attr_matrix"]
         else:
             attr_matrix = None
 
@@ -581,10 +580,10 @@ def load_npz_to_sparse_graph(file_name, percentage=0.05):
                     loader["labels_indptr"],
                 ),
                 shape=loader["labels_shape"],
-            )[:cutoff]
+            )
         elif "labels" in loader:
             # Labels are stored as a numpy array
-            labels = loader["labels"][:cutoff]
+            labels = loader["labels"]
         else:
             labels = None
 
