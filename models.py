@@ -200,6 +200,7 @@ class SAGE(nn.Module):
 
         # Ensure `h` requires gradients
         h = feats.clone() if not feats.requires_grad else feats
+        h = transform_node_feats(h)  # Your transformation function
         init_feat = h.clone()  # Store initial features before transformation
         torch.save(init_feat, "/h.pt")  # Save for reference
 
@@ -311,6 +312,7 @@ class SAGE(nn.Module):
         # return h_list, h, loss, dist, codebook, [raw_feat_loss, raw_edge_rec_loss, div_ele_loss, raw_commit_loss, margin_loss, spread_loss, pair_loss,
         #                                          bond_num_div_loss, aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss], x, detached_quantize, latents
 
+
     def inference(self, dataloader, feats):
         """
         Inference with the GraphSAGE model on full neighbors (i.e. without neighbor sampling).
@@ -343,7 +345,7 @@ class SAGE(nn.Module):
 
             # block = blocks[0].int().to(device)
             for i, block in enumerate(blocks):
-                block = block.to(device)
+                # block = block.to(device)
                 src, dst = block.all_edges()
                 src = src.type(torch.int64)
                 dst = dst.type(torch.int64)
