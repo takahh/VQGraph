@@ -239,7 +239,7 @@ class SAGE(nn.Module):
 
         # Print bond order values in the graph
         if "bond_order" in g.edata:
-            print("Bond Orders in Graph:\n", g.edata["bond_order"])
+            print("Bond Orders in Graph:\n", g.edata["bond_order"][:100])
         else:
             print("⚠️ No bond order found in graph edges!")
 
