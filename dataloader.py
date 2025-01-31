@@ -124,9 +124,13 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
     features = torch.FloatTensor(np.array(features.todense()))
     # print(f"{features.shape}  features.shape")
     labels = torch.LongTensor(labels.argmax(axis=1))
+    print(f"adj {adj}")
     adj = normalize_adj_preserve_bond_order(adj)
+    print(f"adj normed {adj}")
     adj.data = np.round(adj.data)  # Round back to nearest integer
+    print(f"adj rounded? {adj}")
     adj_sp = adj.tocoo()
+    print(f"adj_sp? {adj_sp}")
     g = dgl.graph((adj_sp.row, adj_sp.col))
     g.edata["bond_order"] = torch.FloatTensor(adj_sp.data)  # Preserve bond multiplicity
     g.ndata["feat"] = features
