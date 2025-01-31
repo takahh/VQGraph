@@ -333,17 +333,35 @@ class SAGE(nn.Module):
         charge_div_loss_list = []
 
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-            print("blocks")
-            print(blocks)
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
 
-            block = blocks[0].int().to(device)
-            src, dst = block.all_edges()
-            src = src.type(torch.int64)
-            dst = dst.type(torch.int64)
-            g.add_edges(src, dst)
-            g.add_edges(dst, src)
+            # Extract edges and bond orders (if available)
+            edge_list = []
+            bond_orders = []
+
+            # block = blocks[0].int().to(device)
+            for i, block in enumerate(blocks):
+                block = block.to(device)
+                src, dst = block.all_edges()
+                src = src.type(torch.int64)
+                dst = dst.type(torch.int64)
+                g.add_edges(src, dst)
+                g.add_edges(dst, src)
+                edge_list.append((src, dst))
+                edge_list.append((dst, src))  # Ensure bidirectional edges
+
+                if "bond_order" in block.edata:  # If bond multiplicity exists
+                    bond_orders.append(block.edata["bond_order"].to(torch.float32))
+                    bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
+
+            # Add edges with bond order (multiplicity) as edge feature
+            if bond_orders:  # Ensure bond_orders is not empty before adding
+                for (src, dst), bond_order in zip(edge_list, bond_orders):
+                    g.add_edges(src, dst, data={"bond_order": bond_order})
+            else:
+                for src, dst in edge_list:
+                    g.add_edges(src, dst)
 
             # Node features
             h = feats[input_nodes]
