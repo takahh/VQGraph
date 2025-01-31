@@ -207,18 +207,18 @@ class SAGE(nn.Module):
         # Create a DGL graph
         g = dgl.DGLGraph().to(h.device)
 
-        # ---------------
-        # ---- debug part
-        # ---------------
-        for i, block in enumerate(blocks):
-            src, dst = block.all_edges()
-            src = src.to(torch.int64)
-            dst = dst.to(torch.int64)
-            print(
-                f"Block {i}: src range: {src.min().item()}-{src.max().item()}, dst range: {dst.min().item()}-{dst.max().item()}")
-            # Optionally, assert that indices are within bounds:
-            assert src.min().item() >= 0 and src.max().item() < h.shape[0], "Source index out of bounds!"
-            assert dst.min().item() >= 0 and dst.max().item() < h.shape[0], "Destination index out of bounds!"
+        # # ---------------
+        # # ---- debug part
+        # # ---------------
+        # for i, block in enumerate(blocks):
+        #     src, dst = block.all_edges()
+        #     src = src.to(torch.int64)
+        #     dst = dst.to(torch.int64)
+        #     print(
+        #         f"Block {i}: src range: {src.min().item()}-{src.max().item()}, dst range: {dst.min().item()}-{dst.max().item()}")
+        #     # Optionally, assert that indices are within bounds:
+        #     assert src.min().item() >= 0 and src.max().item() < h.shape[0], "Source index out of bounds!"
+        #     assert dst.min().item() >= 0 and dst.max().item() < h.shape[0], "Destination index out of bounds!"
 
         g.add_nodes(h.shape[0])
         blocks = [blk.int() for blk in blocks]  # Convert block indices to int
@@ -248,7 +248,7 @@ class SAGE(nn.Module):
                 g.add_edges(src, dst)
 
         # Ensure no nodes are isolated
-        g = dgl.add_self_loop(g)
+        # g = dgl.add_self_loop(g)
 
         # # Print bond order values in the graph
         # if "bond_order" in g.edata:
