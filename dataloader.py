@@ -535,7 +535,7 @@ def load_npz_to_sparse_graph(file_name, percentage=0.05):
         # print(f"reduced nodes: {cutoff}")
         np.set_printoptions(threshold=np.inf)
 
-        print(f"loader[adj_data] {loader['adj_data']} ********************")
+        print(f"loader[adj_data] {loader['adj_data'][:300]} ********************")
         adj_matrix = sp.csr_matrix(
             (loader["adj_data"], loader["adj_indices"], loader["adj_indptr"]),
             shape=loader["adj_shape"],
