@@ -207,18 +207,18 @@ class SAGE(nn.Module):
         # Create a DGL graph
         g = dgl.DGLGraph().to(h.device)
 
-        # # ---------------
-        # # ---- debug part
-        # # ---------------
-        # for i, block in enumerate(blocks):
-        #     src, dst = block.all_edges()
-        #     src = src.to(torch.int64)
-        #     dst = dst.to(torch.int64)
-        #     print(
-        #         f"Block {i}: src range: {src.min().item()}-{src.max().item()}, dst range: {dst.min().item()}-{dst.max().item()}")
-        #     # Optionally, assert that indices are within bounds:
-        #     assert src.min().item() >= 0 and src.max().item() < h.shape[0], "Source index out of bounds!"
-        #     assert dst.min().item() >= 0 and dst.max().item() < h.shape[0], "Destination index out of bounds!"
+        # ---------------
+        # ---- debug part
+        # ---------------
+        for i, block in enumerate(blocks):
+            src, dst = block.all_edges()
+            src = src.to(torch.int64)
+            dst = dst.to(torch.int64)
+            print(
+                f"Block {i}: src range: {src.min().item()}-{src.max().item()}, dst range: {dst.min().item()}-{dst.max().item()}")
+            # Optionally, assert that indices are within bounds:
+            assert src.min().item() >= 0 and src.max().item() < h.shape[0], "Source index out of bounds!"
+            assert dst.min().item() >= 0 and dst.max().item() < h.shape[0], "Destination index out of bounds!"
 
         g.add_nodes(h.shape[0])
         blocks = [blk.int() for blk in blocks]  # Convert block indices to int
@@ -239,6 +239,12 @@ class SAGE(nn.Module):
                 bond_orders.append(block.edata["bond_order"].to(torch.float32))
                 bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
 
+        # After constructing edge_list and bond_orders, before adding edges:
+        if bond_orders:
+            print("Number of edges:", len(edge_list))
+            print("Number of bond orders:", len(bond_orders))
+            assert len(edge_list) == len(bond_orders), "Mismatch between edge_list and bond_orders lengths!"
+
         # Add edges with bond order (multiplicity) as edge feature
         if bond_orders:  # Ensure bond_orders is not empty before adding
             for (src, dst), bond_order in zip(edge_list, bond_orders):
@@ -248,7 +254,7 @@ class SAGE(nn.Module):
                 g.add_edges(src, dst)
 
         # Ensure no nodes are isolated
-        # g = dgl.add_self_loop(g)
+        g = dgl.add_self_loop(g)
 
         # # Print bond order values in the graph
         # if "bond_order" in g.edata:
