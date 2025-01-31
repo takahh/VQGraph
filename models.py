@@ -214,6 +214,8 @@ class SAGE(nn.Module):
 
         print("First block structure:", blocks[0])
         print("Available edge data keys:", blocks[0].edata.keys())
+
+        print(f"Bond order sample BEFORE loop: {blocks[0].edata['bond_order'][:10]}")
         for block in blocks:
             src, dst = block.all_edges()
             src = src.to(torch.int64)
