@@ -125,18 +125,14 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
     # print(f"{features.shape}  features.shape")
     labels = torch.LongTensor(labels.argmax(axis=1))
     adj = normalize_adj_preserve_bond_order(adj)
-    print(f"adj normed {adj} %%%%%%%%%%%%%%%%%%%%%%%")
     adj.data = np.round(adj.data)  # Round back to nearest integer
-    print(f"adj data {adj.data} %%%%%%%%%%%%%%%%%%%%%%%")
     adj_sp = adj.tocoo()
-    print(f"adj_sp {adj_sp} %%%%%%%%%%%%%%%%%%%%%%%")
     g = dgl.graph((adj_sp.row, adj_sp.col))
     g.edata["bond_order"] = torch.FloatTensor(adj_sp.data)  # Preserve bond multiplicity
     g.ndata["feat"] = features
     idx_train = torch.LongTensor(idx_train)
     idx_val = torch.LongTensor(idx_val)
     idx_test = torch.LongTensor(idx_test)
-    print(f"g.edata[bond_order].  {g.edata['bond_order']}")
     return g, labels, idx_train, idx_val, idx_test   # idx_test starts from 40
 
 
