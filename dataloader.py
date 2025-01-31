@@ -84,6 +84,20 @@ def load_ogb_data(dataset, dataset_path):
     return g, labels, idx_train, idx_val, idx_test
 
 
+def normalize_adj_preserve_bond_order(adj):
+    """Normalize adjacency matrix while preserving bond multiplicity."""
+    degree_matrix = np.array(adj.sum(axis=1)).flatten()  # Compute degrees
+    degree_inv_sqrt = np.power(degree_matrix, -0.5)  # D^(-1/2)
+    degree_inv_sqrt[np.isinf(degree_inv_sqrt)] = 0  # Handle division by zero
+
+    D_inv_sqrt = sp.diags(degree_inv_sqrt)  # Create diagonal degree matrix
+    adj_normalized = D_inv_sqrt @ adj @ D_inv_sqrt  # Apply normalization
+
+    # Restore integer bond orders (avoid floating-point loss)
+    adj_normalized.data = adj_normalized.data * adj.data.max()  # Scale back using max bond order
+    return adj_normalized
+
+
 def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, train_or_infer, percent):
     data_path = Path.cwd().joinpath(dataset_path, f"{dataset}.npz")
     if os.path.isfile(data_path):
@@ -105,7 +119,7 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
     features = torch.FloatTensor(np.array(features.todense()))
     # print(f"{features.shape}  features.shape")
     labels = torch.LongTensor(labels.argmax(axis=1))
-    adj = normalize_adj(adj, keep_weights=True)
+    adj = normalize_adj_preserve_bond_order(adj, keep_weights=True)
     print(f"adj normed {adj} %%%%%%%%%%%%%%%%%%%%%%%")
     adj.data = np.round(adj.data)  # Round back to nearest integer
     print(f"adj data {adj.data} %%%%%%%%%%%%%%%%%%%%%%%")
