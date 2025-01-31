@@ -213,6 +213,7 @@ class SAGE(nn.Module):
         bond_orders = []
 
         for block in blocks:
+            print(f"Block edata keys: {block.edata.keys()}")  # Debug: Print available edge data keys
             src, dst = block.all_edges()
             src = src.to(torch.int64)
             dst = dst.to(torch.int64)
