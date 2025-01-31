@@ -223,6 +223,7 @@ class SAGE(nn.Module):
             edge_list.append((dst, src))  # Ensure bidirectional edges
 
             if "bond_order" in block.edata:  # If bond multiplicity exists
+                print(f"Bond order sample BEFORE appending: {block.edata['bond_order'][:10]}")
                 bond_orders.append(block.edata["bond_order"].to(torch.float32))
                 bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
 
