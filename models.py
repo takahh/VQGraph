@@ -333,7 +333,8 @@ class SAGE(nn.Module):
         charge_div_loss_list = []
 
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-
+            print("blocks")
+            print(blocks)
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
 
