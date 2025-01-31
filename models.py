@@ -194,8 +194,6 @@ class SAGE(nn.Module):
     def reset_kmeans(self):
         self.vq._codebook.reset_kmeans()
 
-    import torch
-    import dgl
 
     def forward(self, blocks, feats, epoch):
         """Forward pass for the VQ-Graph model with bond multiplicity handling."""
@@ -227,8 +225,15 @@ class SAGE(nn.Module):
                 bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
 
         # Add edges with bond order (multiplicity) as edge feature
-        for (src, dst), bond_order in zip(edge_list, bond_orders):
-            g.add_edges(src, dst, data={"bond_order": bond_order})
+        if bond_orders:  # Ensure bond_orders is not empty before adding
+            for (src, dst), bond_order in zip(edge_list, bond_orders):
+                g.add_edges(src, dst, data={"bond_order": bond_order})
+        else:
+            for src, dst in edge_list:
+                g.add_edges(src, dst)
+
+        # Ensure no nodes are isolated
+        g = dgl.add_self_loop(g)
 
         # Print bond order values in the graph
         if "bond_order" in g.edata:
