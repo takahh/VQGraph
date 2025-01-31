@@ -335,6 +335,7 @@ class SAGE(nn.Module):
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
+            blocks = [blk.int() for blk in blocks]  # Convert block indices to int
 
             # Extract edges and bond orders (if available)
             edge_list = []
@@ -346,8 +347,7 @@ class SAGE(nn.Module):
                 src, dst = block.all_edges()
                 src = src.type(torch.int64)
                 dst = dst.type(torch.int64)
-                g.add_edges(src, dst)
-                g.add_edges(dst, src)
+
                 edge_list.append((src, dst))
                 edge_list.append((dst, src))  # Ensure bidirectional edges
 
