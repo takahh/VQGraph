@@ -82,19 +82,24 @@ def load_ogb_data(dataset, dataset_path):
         g = g.add_self_loop()
 
     return g, labels, idx_train, idx_val, idx_test
-
+import scipy.sparse as sp
+import numpy as np
 
 def normalize_adj_preserve_bond_order(adj):
     """Normalize adjacency matrix while preserving bond multiplicity."""
     degree_matrix = np.array(adj.sum(axis=1)).flatten()  # Compute degrees
-    degree_inv_sqrt = np.power(degree_matrix, -0.5)  # D^(-1/2)
-    degree_inv_sqrt[np.isinf(degree_inv_sqrt)] = 0  # Handle division by zero
+    degree_inv_sqrt = np.power(degree_matrix, -0.5, where=degree_matrix != 0)  # D^(-1/2)
 
-    D_inv_sqrt = sp.diags(degree_inv_sqrt)  # Create diagonal degree matrix
-    adj_normalized = D_inv_sqrt @ adj @ D_inv_sqrt  # Apply normalization
+    # Convert to diagonal sparse matrix
+    D_inv_sqrt = sp.diags(degree_inv_sqrt)
 
-    # Restore integer bond orders (avoid floating-point loss)
-    adj_normalized.data = adj_normalized.data * adj.data.max()  # Scale back using max bond order
+    # Normalize while preserving bond weights
+    adj_normalized = D_inv_sqrt @ adj @ D_inv_sqrt
+
+    # Scale back to maintain integer bond orders
+    max_bond = adj.data.max()  # Get the max bond order (should be 3 for triple bond)
+    adj_normalized.data = np.round(adj_normalized.data * max_bond)
+
     return adj_normalized
 
 
