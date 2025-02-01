@@ -1069,7 +1069,7 @@ class VectorQuantize(nn.Module):
 
         # atom_type_div_loss = feat_elem_divergence_loss(embed_ind, init_feat[:, 0], self.codebook_size)
         # atom_type_div_loss = atom_type_div_loss + compute_contrastive_loss(latents, embed_ind)
-        print(f"init_feat[:, 0] {init_feat[:10, :]} -----------------+++++++++++++++")
+        # print(f"init_feat[:, 0] {init_feat[:10, :]} -----------------+++++++++++++++")
         # init_feat[:, 0] tensor([18., -2., 18.,  ..., 18., -2., -2.], device='cuda:0') -----------------+++++++++++++++
         atom_type_div_loss = compute_contrastive_loss(quantized, init_feat[:, 0])
         bond_num_div_loss = compute_contrastive_loss(quantized, init_feat[:, 1])
