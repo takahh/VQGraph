@@ -224,11 +224,13 @@ class SAGE(nn.Module):
         print("Number of nodes in mini-batch:", len(global_to_local))
         print("Sample mapping:", dict(list(global_to_local.items())[:5]))
 
-        # *** Reindex the feature tensor ***
-        # Extract only the rows corresponding to the mini-batch nodes.
-        # global_node_ids is a sorted list of the global indices to use.
-        h = h[torch.tensor(global_node_ids, dtype=torch.int64, device=device)]
-        # Now h.shape[0] should equal len(global_node_ids) (e.g., 9997).
+        # Create an index tensor from global_node_ids on the correct device.
+        idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
+
+        # *** Reindex the feature tensor and the initial features ***
+        # This ensures both h and init_feat only have the mini-batch nodes.
+        h = h[idx_tensor]
+        init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
 
         # --- Remap Edge Indices and Bond Orders ---
         remapped_edge_list = []
