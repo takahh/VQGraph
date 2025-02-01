@@ -323,9 +323,60 @@ class SAGE(nn.Module):
         charge_div_loss_list = []
 
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+
+            # --- Reindexing for Mini-Batch ---
+            # Collect global node IDs from all blocks.
+            global_node_ids = set()
+            for block in blocks:
+                src, dst = block.all_edges()
+                global_node_ids.update(src.tolist())
+                global_node_ids.update(dst.tolist())
+
             g = dgl.DGLGraph().to(feats.device)
             g.add_nodes(input_nodes.shape[0])
             blocks = [blk.int() for blk in blocks]  # Convert block indices to int
+
+            # Sort the global IDs to have a deterministic ordering.
+            global_node_ids = sorted(global_node_ids)
+            h = feats.clone() if not feats.requires_grad else feats
+
+            # Create a mapping: global ID -> local ID (0-indexed)
+            global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
+            # print("Number of nodes in mini-batch:", len(global_to_local))
+            # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
+
+            # Create an index tensor from global_node_ids on the correct device.
+            idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
+
+            # *** Reindex the feature tensor and the initial features ***
+            # This ensures both h and init_feat only have the mini-batch nodes.
+            h = h[idx_tensor]
+            init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
+
+            # --- Remap Edge Indices and Bond Orders ---
+            remapped_edge_list = []
+            remapped_bond_orders = []  # List to hold bond orders, if available
+
+            for block in blocks:
+                src, dst = block.all_edges()
+                src = src.to(torch.int64)
+                dst = dst.to(torch.int64)
+
+                # Remap global indices to local indices and ensure they are on the correct device.
+                local_src = torch.tensor([global_to_local[i.item()] for i in src],
+                                         dtype=torch.int64, device=device)
+                local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
+                                         dtype=torch.int64, device=device)
+
+                # Append both directions (bidirectional graph)
+                remapped_edge_list.append((local_src, local_dst))
+                remapped_edge_list.append((local_dst, local_src))
+
+                # If bond orders are present in the block, remap and duplicate them.
+                if "bond_order" in block.edata:
+                    bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+                    remapped_bond_orders.append(bond_order)
+                    remapped_bond_orders.append(bond_order)  # For the reverse edge
 
             # Extract edges and bond orders (if available)
             edge_list = []
@@ -345,17 +396,22 @@ class SAGE(nn.Module):
                     bond_orders.append(block.edata["bond_order"].to(torch.float32))
                     bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
 
-            # Add edges with bond order (multiplicity) as edge feature
-            if bond_orders:  # Ensure bond_orders is not empty before adding
-                for (src, dst), bond_order in zip(edge_list, bond_orders):
+            # --- Construct the DGL Graph ---
+            # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
+            g = dgl.DGLGraph().to(device)
+            g.add_nodes(len(global_node_ids))
+
+            # Add edges along with bond order features if available.
+            if remapped_bond_orders:
+                for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                     g.add_edges(src, dst, data={"bond_order": bond_order})
             else:
-                for src, dst in edge_list:
+                for src, dst in remapped_edge_list:
                     g.add_edges(src, dst)
 
             # Node features
             h = feats[input_nodes]
-            h = transform_node_feats(h)  # Your transformation function
+            # h = transform_node_feats(h)  # Your transformation function
 
             if idx == 0:  # Get only the first batch
                 sample_feat = h.clone().detach()  # Save a copy of the initial node features
