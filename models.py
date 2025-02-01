@@ -247,6 +247,7 @@ class SAGE(nn.Module):
                 remapped_bond_orders.append(bond_order)
                 remapped_bond_orders.append(bond_order)  # Duplicate for bidirectional edges
 
+
         # Create a graph with the number of nodes equal to the size of the mini-batch
         g = dgl.DGLGraph().to(h.device)
         g.add_nodes(len(global_node_ids))
