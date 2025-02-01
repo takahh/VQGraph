@@ -324,6 +324,10 @@ class SAGE(nn.Module):
 
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
 
+            # Ensure h requires gradients and apply your transformation.
+            h = feats.clone() if not feats.requires_grad else feats
+            device = h.device
+
             # --- Reindexing for Mini-Batch ---
             # Collect global node IDs from all blocks.
             global_node_ids = set()
@@ -332,13 +336,7 @@ class SAGE(nn.Module):
                 global_node_ids.update(src.tolist())
                 global_node_ids.update(dst.tolist())
 
-            g = dgl.DGLGraph().to(feats.device)
-            g.add_nodes(input_nodes.shape[0])
-            blocks = [blk.int() for blk in blocks]  # Convert block indices to int
-
-            # Sort the global IDs to have a deterministic ordering.
             global_node_ids = sorted(global_node_ids)
-            h = feats.clone() if not feats.requires_grad else feats
 
             # Create a mapping: global ID -> local ID (0-indexed)
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
@@ -350,8 +348,6 @@ class SAGE(nn.Module):
 
             # *** Reindex the feature tensor and the initial features ***
             # This ensures both h and init_feat only have the mini-batch nodes.
-            h = h[idx_tensor]
-            init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
 
             # --- Remap Edge Indices and Bond Orders ---
             remapped_edge_list = []
@@ -409,8 +405,9 @@ class SAGE(nn.Module):
                 for src, dst in remapped_edge_list:
                     g.add_edges(src, dst)
 
+            g = dgl.add_self_loop(g)
+
             # Node features
-            h = feats[input_nodes]
             # h = transform_node_feats(h)  # Your transformation function
 
             if idx == 0:  # Get only the first batch
@@ -423,12 +420,11 @@ class SAGE(nn.Module):
                 sample_adj = adj_matrix.to_dense()
 
             h_list = []
-            init_feat = h
             h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
             if self.norm_type != "none":
                 h = self.norms[0](h)
-            h = self.dropout(h)
+            # h = self.dropout(h)
             h_list.append(h)
 
             # ----------------
