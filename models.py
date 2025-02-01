@@ -201,7 +201,7 @@ class SAGE(nn.Module):
         # --- Preprocess Node Features ---
         # Ensure h requires gradients and apply your transformation.
         h = feats.clone() if not feats.requires_grad else feats
-        h = transform_node_feats(h)  # Your custom transformation
+        # h = transform_node_feats(h)  # Your custom transformation
         init_feat = h.clone()  # Store initial features (for later use)
         torch.save(init_feat, "/h.pt")  # Save for reference
 
