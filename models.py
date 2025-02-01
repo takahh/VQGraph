@@ -327,6 +327,7 @@ class SAGE(nn.Module):
             # Ensure h requires gradients and apply your transformation.
             h = feats.clone() if not feats.requires_grad else feats
             device = h.device
+            init_feat = h.clone()  # Store initial features (for later use)
 
             # --- Reindexing for Mini-Batch ---
             # Collect global node IDs from all blocks.
