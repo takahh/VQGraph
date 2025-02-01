@@ -221,8 +221,8 @@ class SAGE(nn.Module):
 
         # Create a mapping: global ID -> local ID (0-indexed)
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
-        print("Number of nodes in mini-batch:", len(global_to_local))
-        print("Sample mapping:", dict(list(global_to_local.items())[:5]))
+        # print("Number of nodes in mini-batch:", len(global_to_local))
+        # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
 
         # Create an index tensor from global_node_ids on the correct device.
         idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)

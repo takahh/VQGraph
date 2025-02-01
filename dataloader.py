@@ -124,13 +124,13 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
     features = torch.FloatTensor(np.array(features.todense()))
     # print(f"{features.shape}  features.shape")
     labels = torch.LongTensor(labels.argmax(axis=1))
-    print(f"adj {adj}")
+    # print(f"adj {adj}")
     adj = normalize_adj_preserve_bond_order(adj)
-    print(f"adj normed {adj}")
+    # print(f"adj normed {adj}")
     adj.data = np.round(adj.data)  # Round back to nearest integer
-    print(f"adj rounded? {adj}")
+    # print(f"adj rounded? {adj}")
     adj_sp = adj.tocoo()
-    print(f"adj_sp? {adj_sp}")
+    # print(f"adj_sp? {adj_sp}")
     g = dgl.graph((adj_sp.row, adj_sp.col))
     g.edata["bond_order"] = torch.FloatTensor(adj_sp.data)  # Preserve bond multiplicity
     g.ndata["feat"] = features
@@ -557,7 +557,7 @@ def load_npz_to_sparse_graph(file_name, percentage=0.05):
         # print(f"reduced nodes: {cutoff}")
         np.set_printoptions(threshold=np.inf)
 
-        print(f"loader[adj_data] {loader['adj_data'][:300]} ********************")
+        # print(f"loader[adj_data] {loader['adj_data'][:300]} ********************")
         adj_matrix = sp.csr_matrix(
             (loader["adj_data"], loader["adj_indices"], loader["adj_indptr"]),
             shape=loader["adj_shape"],
