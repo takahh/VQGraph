@@ -206,55 +206,112 @@ class SAGE(nn.Module):
 
         # Create a DGL graph
         g = dgl.DGLGraph().to(h.device)
+        import torch
 
-        # ---------------
-        # ---- debug part
-        # ---------------
-        for i, block in enumerate(blocks):
+        # Assuming blocks is a list of blocks, and each block returns src, dst from block.all_edges()
+        global_node_ids = set()
+        for block in blocks:
             src, dst = block.all_edges()
-            src = src.to(torch.int64)
-            dst = dst.to(torch.int64)
-            print(
-                f"Block {i}: src range: {src.min().item()}-{src.max().item()}, dst range: {dst.min().item()}-{dst.max().item()}")
-            # Optionally, assert that indices are within bounds:
-            assert src.min().item() >= 0 and src.max().item() < h.shape[0], "Source index out of bounds!"
-            assert dst.min().item() >= 0 and dst.max().item() < h.shape[0], "Destination index out of bounds!"
+            global_node_ids.update(src.tolist())
+            global_node_ids.update(dst.tolist())
 
-        g.add_nodes(h.shape[0])
-        blocks = [blk.int() for blk in blocks]  # Convert block indices to int
+        # Convert the set to a sorted list (optional, but often useful)
+        global_node_ids = sorted(global_node_ids)
+        # Create a dictionary mapping from global ID to local ID
+        global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
 
-        # Extract edges and bond orders (if available)
-        edge_list = []
-        bond_orders = []
+        # Optional: Print mapping size and a few mappings for verification
+        print("Number of nodes in mini-batch:", len(global_to_local))
+        print("Sample mapping:", dict(list(global_to_local.items())[:5]))
+        remapped_edge_list = []
+        remapped_bond_orders = []  # If applicable
 
         for block in blocks:
             src, dst = block.all_edges()
             src = src.to(torch.int64)
             dst = dst.to(torch.int64)
 
-            edge_list.append((src, dst))
-            edge_list.append((dst, src))  # Ensure bidirectional edges
+            # Remap src and dst from global to local indices
+            local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64)
+            local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64)
 
-            if "bond_order" in block.edata:  # If bond multiplicity exists
-                bond_orders.append(block.edata["bond_order"].to(torch.float32))
-                bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
+            # Add both directions (bidirectional)
+            remapped_edge_list.append((local_src, local_dst))
+            remapped_edge_list.append((local_dst, local_src))
 
-        # After constructing edge_list and bond_orders, before adding edges:
-        if bond_orders:
-            print("Number of edges:", len(edge_list))
-            print("Number of bond orders:", len(bond_orders))
-            assert len(edge_list) == len(bond_orders), "Mismatch between edge_list and bond_orders lengths!"
+            # If bond orders exist in the block, remap them accordingly
+            if "bond_order" in block.edata:
+                bond_order = block.edata["bond_order"].to(torch.float32)
+                remapped_bond_orders.append(bond_order)
+                remapped_bond_orders.append(bond_order)  # Duplicate for bidirectional edges
+        import dgl
 
-        # Add edges with bond order (multiplicity) as edge feature
-        if bond_orders:  # Ensure bond_orders is not empty before adding
-            for (src, dst), bond_order in zip(edge_list, bond_orders):
+        # Create a graph with the number of nodes equal to the size of the mini-batch
+        g = dgl.DGLGraph().to(h.device)
+        g.add_nodes(len(global_node_ids))
+
+        # Add the edges and bond order features (if applicable)
+        if remapped_bond_orders:  # If bond orders exist
+            for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                 g.add_edges(src, dst, data={"bond_order": bond_order})
         else:
-            for src, dst in edge_list:
+            for src, dst in remapped_edge_list:
                 g.add_edges(src, dst)
 
-        # Ensure no nodes are isolated
+        # Optionally, add self-loops
         g = dgl.add_self_loop(g)
+
+        # global_node_ids is the sorted list of nodes for the mini-batch
+
+        #
+        # # ---------------
+        # # ---- debug part
+        # # ---------------
+        # for i, block in enumerate(blocks):
+        #     src, dst = block.all_edges()
+        #     src = src.to(torch.int64)
+        #     dst = dst.to(torch.int64)
+        #     print(
+        #         f"Block {i}: src range: {src.min().item()}-{src.max().item()}, dst range: {dst.min().item()}-{dst.max().item()}")
+        #     # Optionally, assert that indices are within bounds:
+        #     assert src.min().item() >= 0 and src.max().item() < h.shape[0], "Source index out of bounds!"
+        #     assert dst.min().item() >= 0 and dst.max().item() < h.shape[0], "Destination index out of bounds!"
+        #
+        # g.add_nodes(h.shape[0])
+        # blocks = [blk.int() for blk in blocks]  # Convert block indices to int
+        #
+        # # Extract edges and bond orders (if available)
+        # edge_list = []
+        # bond_orders = []
+        #
+        # for block in blocks:
+        #     src, dst = block.all_edges()
+        #     src = src.to(torch.int64)
+        #     dst = dst.to(torch.int64)
+        #
+        #     edge_list.append((src, dst))
+        #     edge_list.append((dst, src))  # Ensure bidirectional edges
+        #
+        #     if "bond_order" in block.edata:  # If bond multiplicity exists
+        #         bond_orders.append(block.edata["bond_order"].to(torch.float32))
+        #         bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
+        #
+        # # After constructing edge_list and bond_orders, before adding edges:
+        # if bond_orders:
+        #     print("Number of edges:", len(edge_list))
+        #     print("Number of bond orders:", len(bond_orders))
+        #     assert len(edge_list) == len(bond_orders), "Mismatch between edge_list and bond_orders lengths!"
+        #
+        # # Add edges with bond order (multiplicity) as edge feature
+        # if bond_orders:  # Ensure bond_orders is not empty before adding
+        #     for (src, dst), bond_order in zip(edge_list, bond_orders):
+        #         g.add_edges(src, dst, data={"bond_order": bond_order})
+        # else:
+        #     for src, dst in edge_list:
+        #         g.add_edges(src, dst)
+        #
+        # # Ensure no nodes are isolated
+        # g = dgl.add_self_loop(g)
 
         # # Print bond order values in the graph
         # if "bond_order" in g.edata:
