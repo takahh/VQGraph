@@ -328,8 +328,6 @@ class SAGE(nn.Module):
             h = feats.clone() if not feats.requires_grad else feats
             device = h.device
 
-            init_feat = h.clone()  # Store initial features (for later use)
-            # torch.save(init_feat, "/h.pt")  # Save for reference
             # --- Reindexing for Mini-Batch ---
             # Collect global node IDs from all blocks.
             global_node_ids = set()
@@ -347,7 +345,8 @@ class SAGE(nn.Module):
 
             # Create an index tensor from global_node_ids on the correct device.
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
-
+            h = h[idx_tensor]
+            init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
             # *** Reindex the feature tensor and the initial features ***
             # This ensures both h and init_feat only have the mini-batch nodes.
 
