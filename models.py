@@ -199,6 +199,9 @@ class SAGE(nn.Module):
         """Forward pass for the VQ-Graph model with bond multiplicity handling."""
 
         # Ensure `h` requires gradients
+        import torch
+        import dgl
+
         h = feats.clone() if not feats.requires_grad else feats
         h = transform_node_feats(h)  # Your transformation function
         init_feat = h.clone()  # Store initial features before transformation
@@ -206,7 +209,6 @@ class SAGE(nn.Module):
 
         # Create a DGL graph
         g = dgl.DGLGraph().to(h.device)
-        import torch
 
         # Assuming blocks is a list of blocks, and each block returns src, dst from block.all_edges()
         global_node_ids = set()
@@ -244,7 +246,6 @@ class SAGE(nn.Module):
                 bond_order = block.edata["bond_order"].to(torch.float32)
                 remapped_bond_orders.append(bond_order)
                 remapped_bond_orders.append(bond_order)  # Duplicate for bidirectional edges
-        import dgl
 
         # Create a graph with the number of nodes equal to the size of the mini-batch
         g = dgl.DGLGraph().to(h.device)
