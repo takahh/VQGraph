@@ -224,6 +224,12 @@ class SAGE(nn.Module):
         print("Number of nodes in mini-batch:", len(global_to_local))
         print("Sample mapping:", dict(list(global_to_local.items())[:5]))
 
+        # *** Reindex the feature tensor ***
+        # Extract only the rows corresponding to the mini-batch nodes.
+        # global_node_ids is a sorted list of the global indices to use.
+        h = h[torch.tensor(global_node_ids, dtype=torch.int64, device=device)]
+        # Now h.shape[0] should equal len(global_node_ids) (e.g., 9997).
+
         # --- Remap Edge Indices and Bond Orders ---
         remapped_edge_list = []
         remapped_bond_orders = []  # List to hold bond orders, if available
@@ -266,12 +272,12 @@ class SAGE(nn.Module):
         g = dgl.add_self_loop(g)
 
         # --- Continue with Your Forward Pass ---
-        # For example, you might want to get the adjacency matrix in dense format.
-        adj = g.adjacency_matrix().to_dense().to(h.device)  # Dense adjacency on the same device
+        # For example, get the dense adjacency matrix.
+        adj = g.adjacency_matrix().to_dense().to(device)
 
         h_list = []  # To store intermediate node representations
 
-        # Example: A linear transformation and a graph layer (replace with your actual layers)
+        # Example: Apply a linear transformation and the first graph layer
         h = self.linear_2(h)
         h = self.graph_layer_1(g, h)
 
