@@ -328,6 +328,8 @@ class SAGE(nn.Module):
             h = feats.clone() if not feats.requires_grad else feats
             device = h.device
 
+            init_feat = h.clone()  # Store initial features (for later use)
+            # torch.save(init_feat, "/h.pt")  # Save for reference
             # --- Reindexing for Mini-Batch ---
             # Collect global node IDs from all blocks.
             global_node_ids = set()
