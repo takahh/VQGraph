@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from dgl import batch
 from dgl.nn import GraphConv, SAGEConv, APPNPConv, GATConv
 from vq import VectorQuantize
 import dgl
@@ -305,10 +306,10 @@ class SAGE(nn.Module):
         """
         Inference with the GraphSAGE model on full neighbors (i.e. without neighbor sampling).
         dataloader : The entire graph loaded in blocks with full neighbors for each node.
-        feats : The input feats of entire node set.
+        feats : The input feats of the entire node set.
         """
         device = feats.device
-        dist_all = torch.zeros(feats.shape[0],self.codebook_size, device=device)
+        dist_all = torch.zeros(feats.shape[0], self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
         latent_list = []
         input_node_list = []
@@ -323,83 +324,70 @@ class SAGE(nn.Module):
         charge_div_loss_list = []
 
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+            # Ensure features are on the correct device
+            input_nodes = input_nodes.to(device)
+            output_nodes = output_nodes.to(device)
 
-            # Ensure h requires gradients and apply your transformation.
+            # Ensure feats requires gradients if necessary
             h = feats.clone() if not feats.requires_grad else feats
-            device = h.device
-            init_feat = h.clone()  # Store initial features (for later use)
+            blocks = [blk.int().to(device) for blk in blocks]
+
+            # Get batch node features
+            batch_feats = feats[input_nodes]
+            batch_feats = transform_node_feats(batch_feats)
 
             # --- Reindexing for Mini-Batch ---
-            # Collect global node IDs from all blocks.
             global_node_ids = set()
             for block in blocks:
                 src, dst = block.all_edges()
-                global_node_ids.update(src.tolist())
+                global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
                 global_node_ids.update(dst.tolist())
 
             global_node_ids = sorted(global_node_ids)
 
-            # Create a mapping: global ID -> local ID (0-indexed)
+            # Ensure valid indexing
+            assert len(global_node_ids) > 0, "global_node_ids is empty!"
+            assert max(global_node_ids) < feats.shape[0], "Index out of bounds in global_node_ids!"
+            assert min(global_node_ids) >= 0, "Negative indices found in global_node_ids!"
+
+            # Create a mapping: global ID -> local ID
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
-            # print("Number of nodes in mini-batch:", len(global_to_local))
-            # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
 
-            # Create an index tensor from global_node_ids on the correct device.
+            # Create an index tensor from global_node_ids on the correct device
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
-            h = h[idx_tensor]
-            init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
-            # *** Reindex the feature tensor and the initial features ***
-            # This ensures both h and init_feat only have the mini-batch nodes.
 
-            # --- Remap Edge Indices and Bond Orders ---
+            # Ensure valid feature indexing
+            assert torch.max(idx_tensor) < batch_feats.shape[0], "Index out of bounds in batch_feats!"
+            h = batch_feats[idx_tensor]
+            init_feat = h  # Keep track of the initial features
+
+            # --- Remap Edge Indices ---
             remapped_edge_list = []
-            remapped_bond_orders = []  # List to hold bond orders, if available
+            remapped_bond_orders = []
 
             for block in blocks:
                 src, dst = block.all_edges()
-                src = src.to(torch.int64)
-                dst = dst.to(torch.int64)
+                src, dst = src.to(torch.int64), dst.to(torch.int64)
 
-                # Remap global indices to local indices and ensure they are on the correct device.
-                local_src = torch.tensor([global_to_local[i.item()] for i in src],
-                                         dtype=torch.int64, device=device)
-                local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
-                                         dtype=torch.int64, device=device)
+                # Map to local IDs
+                local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
+                local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
 
-                # Append both directions (bidirectional graph)
+                # Add bidirectional edges
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
 
-                # If bond orders are present in the block, remap and duplicate them.
+                # Remap bond orders if present
                 if "bond_order" in block.edata:
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                     remapped_bond_orders.append(bond_order)
-                    remapped_bond_orders.append(bond_order)  # For the reverse edge
+                    remapped_bond_orders.append(bond_order)  # Bidirectional bond orders
 
-            # Extract edges and bond orders (if available)
-            edge_list = []
-            bond_orders = []
-
-            # block = blocks[0].int().to(device)
-            for i, block in enumerate(blocks):
-                # block = block.to(device)
-                src, dst = block.all_edges()
-                src = src.type(torch.int64)
-                dst = dst.type(torch.int64)
-
-                edge_list.append((src, dst))
-                edge_list.append((dst, src))  # Ensure bidirectional edges
-
-                if "bond_order" in block.edata:  # If bond multiplicity exists
-                    bond_orders.append(block.edata["bond_order"].to(torch.float32))
-                    bond_orders.append(block.edata["bond_order"].to(torch.float32))  # Mirror for bidirectional
-
-            # --- Construct the DGL Graph ---
-            # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
+            # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
 
-            # Add edges along with bond order features if available.
+            # Add edges (and bond orders if available)
             if remapped_bond_orders:
                 for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                     g.add_edges(src, dst, data={"bond_order": bond_order})
@@ -409,32 +397,26 @@ class SAGE(nn.Module):
 
             g = dgl.add_self_loop(g)
 
-            # Node features
-            # h = transform_node_feats(h)  # Your transformation function
-
-            if idx == 0:  # Get only the first batch
-                sample_feat = h.clone().detach()  # Save a copy of the initial node features
-
-                # Adjacency matrix (sparse representation)
-                adj_matrix = g.adjacency_matrix().to_dense()  # Convert sparse to dense tensor
-
-                # Convert to dense tensor if needed
+            # Store adjacency matrix for first batch
+            if idx == 0:
+                sample_feat = h.clone().detach()
+                adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
 
+            # --- Graph Layer Processing ---
             h_list = []
             h = self.linear_2(h)
             h = self.graph_layer_1(g, h)
             if self.norm_type != "none":
                 h = self.norms[0](h)
-            # h = self.dropout(h)
             h_list.append(h)
 
-            # ----------------
-            # Quantize
-            # ----------------
+            # --- Quantization ---
             (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
              spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
              ringy_div_loss, h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = self.vq(h, init_feat)
+
+            # Store computed values
             embed_ind_list.append(embed_ind)
             input_node_list.append(input_nodes)
             div_ele_loss_list.append(div_ele_loss)
@@ -445,12 +427,15 @@ class SAGE(nn.Module):
             elec_state_div_loss_list.append(elec_state_div_loss)
             charge_div_loss_list.append(charge_div_loss)
             sil_loss_list.append(sil_loss)
+
             if idx == 0:
                 sample_ind = embed_ind
                 sample_list = [sample_ind, sample_feat, sample_adj]
 
-        return h_list, y, loss, dist_all, codebook, [div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
-          h_num_div_loss_list, charge_div_loss_list, elec_state_div_loss_list, spread_loss, pair_loss, sil_loss_list], latent_list, sample_list
+        return h_list, y, loss, dist_all, codebook, [
+            div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
+            h_num_div_loss_list, charge_div_loss_list, elec_state_div_loss_list, spread_loss, pair_loss, sil_loss_list
+        ], latent_list, sample_list
 
 
 class GAT(nn.Module):
