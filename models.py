@@ -183,13 +183,14 @@ class SAGE(nn.Module):
         self.output_dim = output_dim
 
         # Edge encoder for bond_order
-        # self.edge_encoder = nn.Linear(1, self.hidden_dim).to(device)
-        self.edge_encoder = nn.Linear(self.hidden_dim, self.hidden_dim)  # Output should be [E, hidden_dim]
+        self.edge_encoders = nn.ModuleList([
+            nn.Linear(self.hidden_dim, self.hidden_dim).to(device) for _ in range(num_layers)
+        ])
 
         self.layers = nn.ModuleList([
             dglnn.GINEConv(
-                self.edge_encoder  # ✅ Correct
-            ).to(device) for _ in range(num_layers)
+                self.edge_encoders[i]  # Use different encoders per layer
+            ).to(device) for i in range(num_layers)
         ])
 
         # Optional normalization layers
