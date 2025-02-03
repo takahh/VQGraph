@@ -326,6 +326,10 @@ class SAGE(nn.Module):
             # Concatenate aggregated bond order and node features
             h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1).to(device)  # Ensure it's on CUDA
 
+        print("Node feature shape (h):", h.shape)  # Should be [num_nodes, hidden_dim]
+        print("Bond order shape:", g.edata["bond_order"].shape)  # Should match h.shape
+        assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
+
         # Pass the correct arguments to GINEConv
         h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
 
