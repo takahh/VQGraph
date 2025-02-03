@@ -283,7 +283,7 @@ class SAGE(nn.Module):
             sample_feat = h.clone().detach()
             adj_sample = g.adjacency_matrix().to_dense()
             import sys
-            torch.set_printoptions(threshold=torch.inf)  # Remove print limit
+            # torch.set_printoptions(threshold=torch.inf)  # Remove print limit
 
         # --------------------------------------
         # Insert bond order info into the graphs
