@@ -183,7 +183,7 @@ class SAGE(nn.Module):
         self.output_dim = output_dim
 
         # Edge encoder for bond_order
-        self.edge_encoder = nn.Linear(1, hidden_dim).to(device)
+        self.edge_encoder = nn.Linear(1, self.hidden_dim).to(device)
 
         # Define multiple GINEConv layers if needed
         self.layers = nn.ModuleList([
@@ -192,10 +192,10 @@ class SAGE(nn.Module):
 
         # Optional normalization layers
         self.norms = nn.ModuleList([
-            nn.LayerNorm(hidden_dim).to(device) for _ in range(num_layers)
+            nn.LayerNorm(self.hidden_dim).to(device) for _ in range(num_layers)
         ])
 
-        self.linear_2 = nn.Linear(7, hidden_dim).to(device)  # Ensure feature transformation
+        self.linear_2 = nn.Linear(7, self.hidden_dim).to(device)  # Ensure feature transformation
 
         self.codebook_size = codebook_size
         self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
