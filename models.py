@@ -186,18 +186,13 @@ class SAGE(nn.Module):
         # self.edge_encoder = nn.Linear(1, self.hidden_dim).to(device)
         self.edge_encoder = nn.Linear(1, self.hidden_dim)  # Output should be [E, hidden_dim]
 
-
-        self.apply_func = nn.Linear(self.hidden_dim, self.hidden_dim)  # Ensure [32, 32]
-        self.graph_layer_1 = dglnn.GINEConv(
-            self.edge_encoder,
-            # aggregator_type="sum"
-        )
-
-        # Define multiple GINEConv layers if needed
         self.layers = nn.ModuleList([
-            dglnn.GINEConv(self.edge_encoder).to(device) for _ in range(num_layers)
+            dglnn.GINEConv(
+                self.edge_encoder,
+                aggregator_type="sum",
+                apply_func=nn.Linear(self.hidden_dim, self.hidden_dim)  # Ensure correct shape
+            ).to(device) for _ in range(num_layers)
         ])
-
         # Optional normalization layers
         self.norms = nn.ModuleList([
             nn.LayerNorm(self.hidden_dim).to(device) for _ in range(num_layers)
