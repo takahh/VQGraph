@@ -188,8 +188,8 @@ class SAGE(nn.Module):
 
         # Replace GraphConv with GINEConv
         self.graph_layer_1 = dglnn.GINEConv(
-            self.edge_encoder,  # Pass edge encoder
-            aggregator_type="sum"
+            self.edge_encoder  # Pass edge encoder
+            # aggregator_type="sum"
         )
         # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
         # self.decoder_1 = nn.Linear(input_dim, input_dim)
