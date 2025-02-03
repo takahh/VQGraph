@@ -213,69 +213,51 @@ class SAGE(nn.Module):
     def forward(self, blocks, feats, epoch):
         import torch
         import dgl
-
-        # --- Preprocess Node Features ---
-        # Ensure h requires gradients and apply your transformation.
-        h = feats.clone() if not feats.requires_grad else feats
-        # h = transform_node_feats(h)  # Your custom transformation
-        init_feat = h.clone()  # Store initial features (for later use)
-        torch.save(init_feat, "/h.pt")  # Save for reference
-
-        # Get the device from h (e.g., cuda:0)
-        device = h.device
-
-        # --- Reindexing for Mini-Batch ---
-        # Collect global node IDs from all blocks.
+        # ----------------------------------------
+        # Collect global node IDs from blocks.
+        # ----------------------------------------
+        device = feats.device
         global_node_ids = set()
         for block in blocks:
             src, dst = block.all_edges()
             global_node_ids.update(src.tolist())
             global_node_ids.update(dst.tolist())
-
-        # Sort the global IDs to have a deterministic ordering.
         global_node_ids = sorted(global_node_ids)
-
         # Create a mapping: global ID -> local ID (0-indexed)
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
-        # print("Number of nodes in mini-batch:", len(global_to_local))
-        # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
-
-        # Create an index tensor from global_node_ids on the correct device.
         idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
 
-        # *** Reindex the feature tensor and the initial features ***
-        # This ensures both h and init_feat only have the mini-batch nodes.
+        # ----------------------------------------
+        # Get an input tensor from feats
+        # ----------------------------------------
+        h = feats.clone() if not feats.requires_grad else feats
+        init_feat = h.clone()  # Store initial features (for later use)
+        torch.save(init_feat, "/h.pt")  # Save for reference
         h = h[idx_tensor]
         init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
 
-        # --- Remap Edge Indices and Bond Orders ---
+        # ------------------------------------------------------------
+        # Remap Edge Indices and Bond Orders from global to local
+        # ------------------------------------------------------------
         remapped_edge_list = []
-        remapped_bond_orders = []  # List to hold bond orders, if available
-
+        remapped_bond_orders = []
         for block in blocks:
             src, dst = block.all_edges()
             src = src.to(torch.int64)
             dst = dst.to(torch.int64)
-
             # Remap global indices to local indices and ensure they are on the correct device.
             local_src = torch.tensor([global_to_local[i.item()] for i in src],
                                      dtype=torch.int64, device=device)
             local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
                                      dtype=torch.int64, device=device)
-
-            # Append both directions (bidirectional graph)
             remapped_edge_list.append((local_src, local_dst))
             remapped_edge_list.append((local_dst, local_src))
-
             # If bond orders are present in the block, remap and duplicate them.
             if "bond_order" in block.edata:
                 bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                 remapped_bond_orders.append(bond_order)
                 remapped_bond_orders.append(bond_order)  # For the reverse edge
         # --- Construct the DGL Graph ---
-        # # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
-        # g = dgl.DGLGraph().to(device)
-        # g.add_nodes(len(global_node_ids))
 
         edges_src = torch.cat([edge[0] for edge in remapped_edge_list])
         edges_dst = torch.cat([edge[1] for edge in remapped_edge_list])
@@ -284,7 +266,9 @@ class SAGE(nn.Module):
         g = dgl.graph((edges_src, edges_dst)).to(device)
         g = dgl.add_self_loop(g)  # Optional, if self-loops are needed
 
-        # Add edges along with bond order features if available.
+        # --------------------------------------
+        # Insert bond order info into the graphs
+        # --------------------------------------
         if remapped_bond_orders:
             for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                 g.add_edges(src, dst, data={"bond_order": bond_order})
@@ -301,68 +285,31 @@ class SAGE(nn.Module):
             import sys
             torch.set_printoptions(threshold=torch.inf)  # Remove print limit
 
-        # --- Continue with Your Forward Pass ---
-        # For example, get the dense adjacency matrix.
-        adj = g.adjacency_matrix().to_dense().to(device)
-
+        # --------------------------------------
+        # Insert bond order info into the graphs
+        # --------------------------------------
         h_list = []  # To store intermediate node representations
+        h = self.linear_2(h)  # node vector, 7 to 32 dim
 
-        # Example: Apply a linear transformation and the first graph layer
-        h = self.linear_2(h)
-        # Ensure bond_order is correctly shaped
+        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}")
         if "bond_order" in g.edata:
-            g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)  # Ensure shape [E, 1]
-            for i in range(self.num_layers):
-                g.edata["bond_order"] = self.edge_encoders[i](
-                    g.edata["bond_order"])  # ✅ Now correctly transforms [E, 1] → [E, 32]
-
-        # Debugging print to verify fix
-        print("Updated Bond order shape:", g.edata["bond_order"].shape)  # Should be [num_edges, hidden_dim]
-        assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
-        print("Node feature shape (h)  0:", h.shape)  # Should be [num_nodes, hidden_dim]
-
-        # Ensure everything stays on the correct device
+            g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)
+            # for i in range(self.num_layers):
+            #     g.edata["bond_order"] = self.edge_encoders[i](
+            #         g.edata["bond_order"])
+        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}")
+        # --------------------------------------
+        #
+        # --------------------------------------
         with g.local_scope():
             g.ndata["h"] = h
             g.edata["bond_order"] = g.edata["bond_order"]
-
-            # Aggregate bond order information into node features
             g.update_all(dgl.function.copy_e("bond_order", "msg"), dgl.function.mean("msg", "bond_agg"))
-
-            # Move aggregated bond order to CUDA if needed
             g.ndata["bond_agg"] = g.ndata["bond_agg"].to(device)
-            print("Node feature shape (h)  1:", h.shape)  # Should be [num_nodes, hidden_dim]
-
-            # Concatenate aggregated bond order and node features
             h = g.ndata["h"] + g.ndata["bond_agg"]  # Ensures `h.shape = [num_nodes, 32]`
-            # h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1).to(device)  # Ensure it's on CUDA
 
-        # Node feature shape (h): torch.Size([9997, 64])
-        # Bond order shape: torch.Size([282310, 32])
-        print("Node feature shape (h)  2:", h.shape)  # Should be [num_nodes, hidden_dim]
-        print("Bond order shape:", g.edata["bond_order"].shape)  # Should match h.shape
-        assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
-
-        # Pass the correct arguments to GINEConv
-        # h = self.layers(g, h, edge_feat=g.edata["bond_order"])
-        # Apply all GINEConv layers sequentially
         for idx, layer in enumerate(self.layers):
-            print(f"Passing h.shape: {h.shape}, bond_order.shape: {g.edata['bond_order'].shape}")
-            # Passing h.shape: torch.Size([9997, 32]), bond_order.shape: torch.Size([282310, 32])
             h = layer(g, h, edge_feat=g.edata["bond_order"])
-            print(f"{idx} - h.shape: {h.shape}")
-
-        # Debugging print before passing to `GINEConv`
-        print("h device:", h.device)
-        print("Graph layer device:", next(self.graph_layer_1.parameters()).device)
-        print("Bond order device:", g.edata["bond_order"].device)
-
-        # Now `h` is guaranteed to be on CUDA before passing it to `GINEConv`
-
-        # Pass correctly shaped features to GINEConv
-        # h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
-
-        # Apply normalization if necessary.
         if self.norm_type != "none":
             h = self.norms[0](h)
 
