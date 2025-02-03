@@ -312,15 +312,15 @@ class SAGE(nn.Module):
             # Debugging print to check shapes
             print("Edge encoder weight shape:", self.edge_encoder.weight.shape)  # Should be [hidden_dim, 1]
             print("Bond order shape after encoding:", g.edata["bond_order"].shape)  # Should be [E, hidden_dim]
+            print("Node feature shape before GINEConv:", h.shape)  # Should be [num_nodes, hidden_dim]
 
         # Debugging print to check shapes
         print("Node feature shape:", h.shape)  # Should be [num_nodes, hidden_dim]
         print("Bond order shape:", g.edata["bond_order"].shape)  # Should be [num_edges, hidden_dim]
+        # Check shapes
+        assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
 
-        # Pass graph, node features, and transformed edge features
-        h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
-
-        # Pass graph, node features, and transformed edge features
+        # Pass correctly shaped features to GINEConv
         h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
 
         # Apply normalization if necessary.
