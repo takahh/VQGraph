@@ -360,17 +360,21 @@ def kmeans(
 
         min_dists = dists.min(dim=-1).values  # Minimum distance to closest centroid
 
-        # Ensure distances are non-negative and avoid NaNs
-        min_dists = torch.clamp(min_dists, min=eps)
+        # Ensure distances are positive and avoid underflow
+        min_dists = torch.clamp(min_dists, min=1e-6)  # Larger min value
 
-        # Compute probabilities, preventing division by zero
-        probs = min_dists / (min_dists.sum(dim=-1, keepdim=True) + eps)
+        # Normalize and scale probabilities
+        probs = min_dists / min_dists.sum(dim=-1, keepdim=True)
 
-        # Replace any NaNs or invalid values
-        probs = torch.nan_to_num(probs, nan=0.0, posinf=1.0, neginf=0.0)
-        probs = torch.clamp(probs, min=eps)  # Ensure probabilities are non-zero
+        # Scale to avoid precision issues
+        probs = probs / probs.max(dim=-1, keepdim=True).values  # Normalize to [0, 1]
 
+        # Ensure probabilities are non-zero
+        probs = torch.clamp(probs, min=1e-3)
+
+        # Debugging prints
         print("Probs:", probs)
+        print("Sum of probs per row:", probs.sum(dim=-1))
         print("Any NaN:", torch.isnan(probs).any())
         print("Any Inf:", torch.isinf(probs).any())
         print("Any negative values:", (probs < 0).any())
