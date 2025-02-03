@@ -186,6 +186,13 @@ class SAGE(nn.Module):
         # self.edge_encoder = nn.Linear(1, self.hidden_dim).to(device)
         self.edge_encoder = nn.Linear(1, self.hidden_dim)  # Output should be [E, hidden_dim]
 
+
+        self.apply_func = nn.Linear(self.hidden_dim, self.hidden_dim)  # Ensure [32, 32]
+        self.graph_layer_1 = dglnn.GINEConv(
+            self.edge_encoder,
+            aggregator_type="sum"
+        )
+
         # Define multiple GINEConv layers if needed
         self.layers = nn.ModuleList([
             dglnn.GINEConv(self.edge_encoder).to(device) for _ in range(num_layers)
@@ -344,7 +351,7 @@ class SAGE(nn.Module):
         # Apply all GINEConv layers sequentially
         for idx, layer in enumerate(self.layers):
             print(f"Passing h.shape: {h.shape}, bond_order.shape: {g.edata['bond_order'].shape}")
-            # 0 - g.num_nodes: 9997, g.num_edges: 282310, h.shape: torch.Size([9997, 32])
+            # Passing h.shape: torch.Size([9997, 32]), bond_order.shape: torch.Size([282310, 32])
             h = layer(g, h, edge_feat=g.edata["bond_order"])
             print(f"{idx} - h.shape: {h.shape}")
 
