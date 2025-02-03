@@ -353,21 +353,37 @@ def kmeans(
     means[:, 0] = samples[:, torch.randint(0, samples.shape[1], (1,))]
 
     for k in range(1, num_clusters):
-        if use_cosine_sim:
-            dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
-        else:
-            dists = torch.cdist(samples, means[:, :k], p=2)  # Compute Euclidean distances
+        # if use_cosine_sim:
+        #     dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
+        # else:
+        dists = torch.cdist(samples, means[:, :k], p=2)
 
-        min_dists = dists.min(dim=-1).values  # Minimum distance to closest centroid
+        # Replace NaNs with valid values
+        dists = torch.nan_to_num(dists, nan=1e6, posinf=1e6, neginf=0.0)
 
-        # Ensure min_dists are valid
-        min_dists = torch.clamp(min_dists, min=1e-6)  # Larger min value
+        # Avoid zero distances (can cause division by zero later)
+        dists = torch.clamp(dists, min=1e-6)
 
-        # Normalize distances (avoid division by zero)
+        min_dists = dists.min(dim=-1).values
+
+        # Replace NaNs in min_dists
+        min_dists = torch.nan_to_num(min_dists, nan=1e6, posinf=1e6, neginf=0.0)
+
+        # Ensure distances are positive
+        min_dists = torch.clamp(min_dists, min=1e-6)
+
+        print("Min_dists after fix:", min_dists)
         sum_dists = min_dists.sum(dim=-1, keepdim=True)
-        probs = min_dists / (sum_dists + 1e-6)  # Prevent division by zero
 
-        # Avoid numerical issues in `torch.multinomial`
+        # Ensure no division by zero
+        sum_dists = torch.clamp(sum_dists, min=1e-6)
+
+        probs = min_dists / sum_dists
+
+        # Replace NaNs if still present
+        probs = torch.nan_to_num(probs, nan=1e-3, posinf=1.0, neginf=0.0)
+
+        # Ensure probabilities are within [1e-3, 1.0]
         probs = torch.clamp(probs, min=1e-3, max=1.0)
 
         # Debugging prints
