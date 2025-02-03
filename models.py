@@ -274,9 +274,9 @@ class SAGE(nn.Module):
             sample_feat = h.clone().detach()
             adj_sample = g.adjacency_matrix().to_dense()
             import sys
-            sys.stdout.write("Adjacency matrix in Train:\n")
-            sys.stdout.write(str(adj_sample) + "\n")
-            sys.stdout.flush()
+            torch.set_printoptions(threshold=torch.inf)  # Remove print limit
+            print("Adjacency matrix in Train:\n")
+            print(str(adj_sample[:50]) + "\n")
 
         # Add edges along with bond order features if available.
         if remapped_bond_orders:
