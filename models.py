@@ -190,7 +190,7 @@ class SAGE(nn.Module):
         self.apply_func = nn.Linear(self.hidden_dim, self.hidden_dim)  # Ensure [32, 32]
         self.graph_layer_1 = dglnn.GINEConv(
             self.edge_encoder,
-            aggregator_type="sum"
+            # aggregator_type="sum"
         )
 
         # Define multiple GINEConv layers if needed
