@@ -342,7 +342,8 @@ class SAGE(nn.Module):
         # Pass the correct arguments to GINEConv
         # h = self.layers(g, h, edge_feat=g.edata["bond_order"])
         # Apply all GINEConv layers sequentially
-        for layer in self.layers:
+        for idx, layer in enumerate(self.layers):
+            print(f"{idx} - g.shape {g.shape}, h.shape {h.shape}")
             h = layer(g, h, edge_feat=g.edata["bond_order"])
 
         # Debugging print before passing to `GINEConv`
