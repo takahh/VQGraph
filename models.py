@@ -183,7 +183,8 @@ class SAGE(nn.Module):
         self.output_dim = output_dim
 
         # Edge encoder for bond_order
-        self.edge_encoder = nn.Linear(1, self.hidden_dim).to(device)
+        # self.edge_encoder = nn.Linear(1, self.hidden_dim).to(device)
+        self.edge_encoder = nn.Linear(1, self.hidden_dim)  # Output should be [E, hidden_dim]
 
         # Define multiple GINEConv layers if needed
         self.layers = nn.ModuleList([
