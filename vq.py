@@ -1219,6 +1219,8 @@ class VectorQuantize(nn.Module):
         raw_commit_loss = torch.tensor([0.], device="cpu", requires_grad=self.training)
 
         # raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        import os
+        os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 
         print("raw_commit_loss tensor:", raw_commit_loss)
         print("Any NaN:", torch.isnan(raw_commit_loss).any().item())
