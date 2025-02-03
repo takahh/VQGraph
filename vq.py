@@ -332,19 +332,16 @@ def gmm(
 import torch
 from einops import rearrange, repeat
 
-import torch
-from einops import rearrange
 
 def kmeans(
         samples,
         num_clusters,
         num_iters=100,
         use_cosine_sim=False,
-        all_reduce_fn=lambda x: x  # Default to no-op
+        all_reduce_fn=noop
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
     num_iters = 50
-    eps = 1e-8  # Small constant for numerical stability
 
     # K-Means++ initialization
     means = torch.zeros((num_codebooks, num_clusters, dim), device=device, dtype=dtype)
@@ -353,54 +350,14 @@ def kmeans(
     means[:, 0] = samples[:, torch.randint(0, samples.shape[1], (1,))]
 
     for k in range(1, num_clusters):
-        # if use_cosine_sim:
-        #     dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
-        # else:
-        dists = torch.cdist(samples, means[:, :k], p=2)
+        if use_cosine_sim:
+            dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
+        else:
+            dists = torch.cdist(samples, means[:, :k], p=2)
 
-        # Replace NaNs with valid values
-        dists = torch.nan_to_num(dists, nan=1e6, posinf=1e6, neginf=0.0)
-
-        # Avoid zero distances (can cause division by zero later)
-        dists = torch.clamp(dists, min=1e-6)
-
-        min_dists = dists.min(dim=-1).values
-
-        # Replace NaNs in min_dists
-        min_dists = torch.nan_to_num(min_dists, nan=1e6, posinf=1e6, neginf=0.0)
-
-        # Ensure distances are positive
-        min_dists = torch.clamp(min_dists, min=1e-6)
-
-        print("Min_dists after fix:", min_dists)
-        sum_dists = min_dists.sum(dim=-1, keepdim=True)
-
-        # Ensure no division by zero
-        sum_dists = torch.clamp(sum_dists, min=1e-6)
-
-        probs = min_dists / sum_dists
-
-        # Replace NaNs if still present
-        probs = torch.nan_to_num(probs, nan=1e-3, posinf=1.0, neginf=0.0)
-
-        # Ensure probabilities are within [1e-3, 1.0]
-        probs = torch.clamp(probs, min=1e-3, max=1.0)
-
-        # Debugging prints
-        print("Probs after fix:", probs)
-        print("Sum of probs per row:", probs.sum(dim=-1))
-
-        # Debugging prints
-        print("Probs:", probs)
-        print("Min prob:", probs.min().item())
-        print("Max prob:", probs.max().item())
-        print("Sum of probs:", probs.sum(dim=-1))
-        print("Any NaN:", torch.isnan(probs).any().item())
-        print("Any Inf:", torch.isinf(probs).any().item())
-        print("Any negative values:", (probs < 0).any().item())
-
-        # Sample the next centroid
-        next_centroid_idx = torch.multinomial(probs, 1)  # Sample based on probabilities
+        min_dists = dists.min(dim=-1).values  # Minimum distance to existing centroids
+        probs = min_dists / min_dists.sum(dim=-1, keepdim=True)  # Probabilities proportional to distance
+        next_centroid_idx = torch.multinomial(probs, 1)  # Sample next centroid based on probabilities
         means[:, k] = samples[:, next_centroid_idx.squeeze(-1)]
 
     # Iterative optimization
@@ -1216,15 +1173,7 @@ class VectorQuantize(nn.Module):
         # --------------------------------------------------
         # calculate loss about codebook itself in training
         # --------------------------------------------------
-        raw_commit_loss = torch.tensor([0.], device="cpu", requires_grad=self.training)
-
-        # raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
-        import os
-        os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-
-        print("raw_commit_loss tensor:", raw_commit_loss)
-        print("Any NaN:", torch.isnan(raw_commit_loss).any().item())
-        print("Any Inf:", torch.isinf(raw_commit_loss).any().item())
+        raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         margin_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         spread_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         div_ele_loss = torch.tensor([0.], device=device, requires_grad=self.training)
