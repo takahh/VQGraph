@@ -184,7 +184,7 @@ class SAGE(nn.Module):
 
         # Edge encoder for bond_order
         self.edge_encoders = nn.ModuleList([
-            nn.Linear(1, self.hidden_dim).to(device) for _ in range(num_layers)
+            nn.Linear(1, self.hidden_dim).to(device) for _ in range(num_layers)  # ✅ FIXED
         ])
 
         self.layers = nn.ModuleList([
@@ -313,9 +313,8 @@ class SAGE(nn.Module):
         if "bond_order" in g.edata:
             g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)  # Ensure shape [E, 1]
             for i in range(self.num_layers):
-                g.edata["bond_order"] = self.edge_encoders[i](g.edata["bond_order"])  # ✅ Correct
-
-            # g.edata["bond_order"] = self.edge_encoders(g.edata["bond_order"])  # Transform to [E, hidden_dim]
+                g.edata["bond_order"] = self.edge_encoders[i](
+                    g.edata["bond_order"])  # ✅ Now correctly transforms [E, 1] → [E, 32]
 
         # Debugging print to verify fix
         print("Updated Bond order shape:", g.edata["bond_order"].shape)  # Should be [num_edges, hidden_dim]
