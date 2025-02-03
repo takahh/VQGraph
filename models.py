@@ -276,7 +276,7 @@ class SAGE(nn.Module):
             import sys
             torch.set_printoptions(threshold=torch.inf)  # Remove print limit
             print("Adjacency matrix in Train:\n")
-            print(str(adj_sample[:50]) + "\n")
+            print(str(adj_sample[:50, :50]) + "\n")
 
         # Add edges along with bond order features if available.
         if remapped_bond_orders:
