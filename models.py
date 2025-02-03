@@ -184,10 +184,10 @@ class SAGE(nn.Module):
 
         # Edge encoder for bond_order
         # self.edge_encoder = nn.Linear(1, self.hidden_dim).to(device)
-        self.edge_encoder = nn.Linear(1, self.hidden_dim)  # Output should be [E, hidden_dim]
+        # self.edge_encoder = nn.Linear(1, self.hidden_dim)  # Output should be [E, hidden_dim]
 
 
-        self.apply_func = nn.Linear(self.hidden_dim, self.hidden_dim)  # Ensure [32, 32]
+        self.edge_encoder = nn.Linear(self.hidden_dim, self.hidden_dim)  # Ensure [32, 32]
         self.graph_layer_1 = dglnn.GINEConv(
             self.edge_encoder,
             # aggregator_type="sum"
