@@ -309,6 +309,9 @@ class SAGE(nn.Module):
         if "bond_order" in g.edata:
             g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1)  # Ensure shape [E, 1]
             g.edata["bond_order"] = self.edge_encoder(g.edata["bond_order"])  # Transform to [E, hidden_dim]
+            # Debugging print to check shapes
+            print("Edge encoder weight shape:", self.edge_encoder.weight.shape)  # Should be [hidden_dim, 1]
+            print("Bond order shape after encoding:", g.edata["bond_order"].shape)  # Should be [E, hidden_dim]
 
         # Debugging print to check shapes
         print("Node feature shape:", h.shape)  # Should be [num_nodes, hidden_dim]
