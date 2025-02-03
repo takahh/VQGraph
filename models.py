@@ -184,7 +184,7 @@ class SAGE(nn.Module):
         # self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
 
         # Define a linear layer to transform edge features (bond_order)
-        self.edge_encoder = nn.Linear(1, hidden_dim)
+        self.edge_encoder = nn.Linear(1, self.hidden_dim)
 
         # Replace GraphConv with GINEConv
         self.graph_layer_1 = dglnn.GINEConv(
