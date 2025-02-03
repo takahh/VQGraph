@@ -682,6 +682,12 @@ def run_inductive(
             np.savez(f"./sample_node_feat", sample_list1[1].cpu())
             np.savez(f"./sample_adj", sample_list1[2].cpu())
             np.savez(f"./bond_order", sample_list1[3].cpu())
+            print("sample_list1[0].shape")
+            print(sample_list1[0].shape)
+            print("sample_list1[1].shape")
+            print(sample_list1[1].shape)
+            print("sample_list1[2].shape")
+            print(sample_list1[2].shape)
             print("sample_list1[3].shape")
             print(sample_list1[3].shape)
 
