@@ -307,6 +307,7 @@ class SAGE(nn.Module):
         # Ensure bond_order is correctly shaped
         # Ensure bond_order is stored as edge features
         # Ensure bond_order is correctly shaped
+        # Ensure bond_order is correctly shaped
         if "bond_order" in g.edata:
             g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)  # Ensure shape [E, 1]
             g.edata["bond_order"] = self.edge_encoder(g.edata["bond_order"])  # Transform to [E, hidden_dim]
@@ -325,8 +326,8 @@ class SAGE(nn.Module):
             # Concatenate aggregated bond order and node features
             h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1).to(device)  # Ensure it's on CUDA
 
-        # Ensure `self.graph_layer_1` is defined in `__init__()` and is on the correct device
-        h = self.graph_layer_1(h)
+        # Pass the correct arguments to GINEConv
+        h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
 
         # Debugging print before passing to `GINEConv`
         print("h device:", h.device)
