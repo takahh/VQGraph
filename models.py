@@ -262,6 +262,11 @@ class SAGE(nn.Module):
         # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
         g = dgl.DGLGraph().to(device)
         g.add_nodes(len(global_node_ids))
+        if epoch == 0:
+            sample_feat = h.clone().detach()
+            adj_matrix = g.adjacency_matrix().to_dense()
+            print("adj_matrix in Train")
+            print(adj_matrix)
 
         # Add edges along with bond order features if available.
         if remapped_bond_orders:
@@ -401,7 +406,7 @@ class SAGE(nn.Module):
             if idx == 0:
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
-                print("adj_matrix")
+                print("adj_matrix in INF")
                 print(adj_matrix)
                 sample_adj = adj_matrix.to_dense()
 
