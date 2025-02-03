@@ -360,24 +360,28 @@ def kmeans(
 
         min_dists = dists.min(dim=-1).values  # Minimum distance to closest centroid
 
-        # Ensure distances are positive and avoid underflow
+        # Ensure min_dists are valid
         min_dists = torch.clamp(min_dists, min=1e-6)  # Larger min value
 
-        # Normalize and scale probabilities
-        probs = min_dists / min_dists.sum(dim=-1, keepdim=True)
+        # Normalize distances (avoid division by zero)
+        sum_dists = min_dists.sum(dim=-1, keepdim=True)
+        probs = min_dists / (sum_dists + 1e-6)  # Prevent division by zero
 
-        # Scale to avoid precision issues
-        probs = probs / probs.max(dim=-1, keepdim=True).values  # Normalize to [0, 1]
+        # Avoid numerical issues in `torch.multinomial`
+        probs = torch.clamp(probs, min=1e-3, max=1.0)
 
-        # Ensure probabilities are non-zero
-        probs = torch.clamp(probs, min=1e-3)
+        # Debugging prints
+        print("Probs after fix:", probs)
+        print("Sum of probs per row:", probs.sum(dim=-1))
 
         # Debugging prints
         print("Probs:", probs)
-        print("Sum of probs per row:", probs.sum(dim=-1))
-        print("Any NaN:", torch.isnan(probs).any())
-        print("Any Inf:", torch.isinf(probs).any())
-        print("Any negative values:", (probs < 0).any())
+        print("Min prob:", probs.min().item())
+        print("Max prob:", probs.max().item())
+        print("Sum of probs:", probs.sum(dim=-1))
+        print("Any NaN:", torch.isnan(probs).any().item())
+        print("Any Inf:", torch.isinf(probs).any().item())
+        print("Any negative values:", (probs < 0).any().item())
 
         # Sample the next centroid
         next_centroid_idx = torch.multinomial(probs, 1)  # Sample based on probabilities
