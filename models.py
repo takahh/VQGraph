@@ -188,11 +188,10 @@ class SAGE(nn.Module):
 
         self.layers = nn.ModuleList([
             dglnn.GINEConv(
-                self.edge_encoder,
-                # aggregator_type="sum",
-                apply_func=nn.Linear(self.hidden_dim, self.hidden_dim)  # Ensure correct shape
+                self.edge_encoder  # ✅ Correct
             ).to(device) for _ in range(num_layers)
         ])
+
         # Optional normalization layers
         self.norms = nn.ModuleList([
             nn.LayerNorm(self.hidden_dim).to(device) for _ in range(num_layers)
