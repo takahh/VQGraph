@@ -264,9 +264,9 @@ class SAGE(nn.Module):
         g.add_nodes(len(global_node_ids))
         if epoch == 0:
             sample_feat = h.clone().detach()
-            adj_matrix = g.adjacency_matrix().to_dense()
+            adj_sample = g.adjacency_matrix().to_dense()
             print("adj_matrix in Train")
-            print(adj_matrix)
+            print(adj_sample)
 
         # Add edges along with bond order features if available.
         if remapped_bond_orders:
