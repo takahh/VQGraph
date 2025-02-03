@@ -402,6 +402,7 @@ class SAGE(nn.Module):
 
             # Store adjacency matrix for first batch
             if idx == 0:
+                print(f"bond_order {bond_order}")
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
