@@ -310,18 +310,23 @@ class SAGE(nn.Module):
             g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1)  # Ensure shape [E, 1]
             g.edata["bond_order"] = self.edge_encoder(g.edata["bond_order"])  # Transform to [E, hidden_dim]
             # Debugging print to check shapes
-            print("Edge encoder weight shape:", self.edge_encoder.weight.shape)  # Should be [hidden_dim, 1]
-            print("Bond order shape after encoding:", g.edata["bond_order"].shape)  # Should be [E, hidden_dim]
-            print("Node feature shape before GINEConv:", h.shape)  # Should be [num_nodes, hidden_dim]
 
-        # Debugging print to check shapes
-        print("Node feature shape:", h.shape)  # Should be [num_nodes, hidden_dim]
-        print("Bond order shape:", g.edata["bond_order"].shape)  # Should be [num_edges, hidden_dim]
-        # Check shapes
-        assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
+        # Concatenate node features with aggregated bond order features
+        with g.local_scope():
+            g.ndata["h"] = h
+            g.edata["bond_order"] = g.edata["bond_order"]
 
+            # Aggregate bond order information into node features
+            g.update_all(dgl.function.copy_e("bond_order", "msg"), dgl.function.mean("msg", "bond_agg"))
+
+            # Concatenate aggregated bond order and node features
+            h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1)  # Shape becomes [num_nodes, 2 * hidden_dim]
+
+        # Update the linear layer to handle the concatenated input
+        self.graph_layer_1 = nn.Linear(2 * self.hidden_dim, self.hidden_dim)  # Handle the new input size
+        h = self.graph_layer_1(h)
         # Pass correctly shaped features to GINEConv
-        h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
+        # h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
 
         # Apply normalization if necessary.
         if self.norm_type != "none":
