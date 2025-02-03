@@ -306,12 +306,12 @@ class SAGE(nn.Module):
         h = self.linear_2(h)
         # Ensure bond_order is correctly shaped
         # Ensure bond_order is stored as edge features
+        # Ensure bond_order is correctly shaped
         if "bond_order" in g.edata:
-            g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1)  # Ensure shape [E, 1]
+            g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)  # Ensure shape [E, 1]
             g.edata["bond_order"] = self.edge_encoder(g.edata["bond_order"])  # Transform to [E, hidden_dim]
-            # Debugging print to check shapes
 
-        # Concatenate node features with aggregated bond order features
+        # Ensure everything stays on the correct device
         with g.local_scope():
             g.ndata["h"] = h
             g.edata["bond_order"] = g.edata["bond_order"]
@@ -319,12 +319,22 @@ class SAGE(nn.Module):
             # Aggregate bond order information into node features
             g.update_all(dgl.function.copy_e("bond_order", "msg"), dgl.function.mean("msg", "bond_agg"))
 
-            # Concatenate aggregated bond order and node features
-            h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1)  # Shape becomes [num_nodes, 2 * hidden_dim]
+            # Move aggregated bond order to CUDA if needed
+            g.ndata["bond_agg"] = g.ndata["bond_agg"].to(device)
 
-        # Update the linear layer to handle the concatenated input
-        self.graph_layer_1 = nn.Linear(2 * self.hidden_dim, self.hidden_dim)  # Handle the new input size
+            # Concatenate aggregated bond order and node features
+            h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1).to(device)  # Ensure it's on CUDA
+
+        # Ensure `self.graph_layer_1` is defined in `__init__()` and is on the correct device
         h = self.graph_layer_1(h)
+
+        # Debugging print before passing to `GINEConv`
+        print("h device:", h.device)
+        print("Graph layer device:", next(self.graph_layer_1.parameters()).device)
+        print("Bond order device:", g.edata["bond_order"].device)
+
+        # Now `h` is guaranteed to be on CUDA before passing it to `GINEConv`
+
         # Pass correctly shaped features to GINEConv
         # h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
 
