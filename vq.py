@@ -1216,7 +1216,13 @@ class VectorQuantize(nn.Module):
         # --------------------------------------------------
         # calculate loss about codebook itself in training
         # --------------------------------------------------
-        raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+        raw_commit_loss = torch.tensor([0.], device="cpu", requires_grad=self.training)
+
+        # raw_commit_loss = torch.tensor([0.], device=device, requires_grad=self.training)
+
+        print("raw_commit_loss tensor:", raw_commit_loss)
+        print("Any NaN:", torch.isnan(raw_commit_loss).any().item())
+        print("Any Inf:", torch.isinf(raw_commit_loss).any().item())
         margin_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         spread_loss = torch.tensor([0.], device=device, requires_grad=self.training)
         div_ele_loss = torch.tensor([0.], device=device, requires_grad=self.training)
