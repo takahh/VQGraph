@@ -343,7 +343,7 @@ class SAGE(nn.Module):
         # h = self.layers(g, h, edge_feat=g.edata["bond_order"])
         # Apply all GINEConv layers sequentially
         for idx, layer in enumerate(self.layers):
-            print(f"{idx} - h.shape: {h.shape}")
+            print(f"Passing h.shape: {h.shape}, bond_order.shape: {g.edata['bond_order'].shape}")
             # 0 - g.num_nodes: 9997, g.num_edges: 282310, h.shape: torch.Size([9997, 32])
             h = layer(g, h, edge_feat=g.edata["bond_order"])
             print(f"{idx} - h.shape: {h.shape}")
