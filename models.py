@@ -256,11 +256,9 @@ class SAGE(nn.Module):
             if "bond_order" in block.edata:
                 bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                 print("bond_order")
-                print(bond_order)
+                print(bond_order[:50])
                 remapped_bond_orders.append(bond_order)
                 remapped_bond_orders.append(bond_order)  # For the reverse edge
-        print(f"remapped_edge_list {remapped_edge_list}")
-        print(f"remapped_bond_orders {remapped_bond_orders}")
         # --- Construct the DGL Graph ---
         # # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
         # g = dgl.DGLGraph().to(device)
