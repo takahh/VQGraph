@@ -259,9 +259,17 @@ class SAGE(nn.Module):
                 remapped_bond_orders.append(bond_order)  # For the reverse edge
 
         # --- Construct the DGL Graph ---
-        # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
-        g = dgl.DGLGraph().to(device)
-        g.add_nodes(len(global_node_ids))
+        # # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
+        # g = dgl.DGLGraph().to(device)
+        # g.add_nodes(len(global_node_ids))
+
+        edges_src = torch.cat([edge[0] for edge in remapped_edge_list])
+        edges_dst = torch.cat([edge[1] for edge in remapped_edge_list])
+
+        # Create the graph correctly
+        g = dgl.graph((edges_src, edges_dst)).to(device)
+        g = dgl.add_self_loop(g)  # Optional, if self-loops are needed
+
         if epoch == 0:
             sample_feat = h.clone().detach()
             adj_sample = g.adjacency_matrix().to_dense()
