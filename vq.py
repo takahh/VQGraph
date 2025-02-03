@@ -332,16 +332,19 @@ def gmm(
 import torch
 from einops import rearrange, repeat
 
+import torch
+from einops import rearrange
 
 def kmeans(
         samples,
         num_clusters,
         num_iters=100,
         use_cosine_sim=False,
-        all_reduce_fn=noop
+        all_reduce_fn=lambda x: x  # Default to no-op
 ):
     num_codebooks, dim, dtype, device = samples.shape[0], samples.shape[-1], samples.dtype, samples.device
     num_iters = 50
+    eps = 1e-8  # Small constant for numerical stability
 
     # K-Means++ initialization
     means = torch.zeros((num_codebooks, num_clusters, dim), device=device, dtype=dtype)
@@ -353,16 +356,31 @@ def kmeans(
         if use_cosine_sim:
             dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
         else:
-            dists = torch.cdist(samples, means[:, :k], p=2)
+            dists = torch.cdist(samples, means[:, :k], p=2)  # Compute Euclidean distances
 
-        min_dists = dists.min(dim=-1).values  # Minimum distance to existing centroids
-        probs = min_dists / min_dists.sum(dim=-1, keepdim=True)  # Probabilities proportional to distance
+        min_dists = dists.min(dim=-1).values  # Minimum distance to closest centroid
+
+        # Ensure distances are non-negative and avoid NaNs
+        min_dists = torch.clamp(min_dists, min=eps)
+
+        # Compute probabilities, preventing division by zero
+        probs = min_dists / (min_dists.sum(dim=-1, keepdim=True) + eps)
+
+        # Replace any NaNs or invalid values
+        probs = torch.nan_to_num(probs, nan=0.0, posinf=1.0, neginf=0.0)
+        probs = torch.clamp(probs, min=eps)  # Ensure probabilities are non-zero
+
         print("Probs:", probs)
         print("Any NaN:", torch.isnan(probs).any())
         print("Any Inf:", torch.isinf(probs).any())
         print("Any negative values:", (probs < 0).any())
-        next_centroid_idx = torch.multinomial(probs, 1)  # Sample next centroid based on probabilities
+
+        # Sample the next centroid
+        next_centroid_idx = torch.multinomial(probs, 1)  # Sample based on probabilities
         means[:, k] = samples[:, next_centroid_idx.squeeze(-1)]
+
+    return means
+
 
     # Iterative optimization
     for _ in range(num_iters):
