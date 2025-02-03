@@ -339,7 +339,10 @@ class SAGE(nn.Module):
         assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
 
         # Pass the correct arguments to GINEConv
-        h = self.layers(g, h, edge_feat=g.edata["bond_order"])
+        # h = self.layers(g, h, edge_feat=g.edata["bond_order"])
+        # Apply all GINEConv layers sequentially
+        for layer in self.layers:
+            h = layer(g, h, edge_feat=g.edata["bond_order"])
 
         # Debugging print before passing to `GINEConv`
         print("h device:", h.device)
