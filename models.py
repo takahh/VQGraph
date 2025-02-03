@@ -184,7 +184,7 @@ class SAGE(nn.Module):
 
         # Edge encoder for bond_order
         self.edge_encoders = nn.ModuleList([
-            nn.Linear(self.hidden_dim, self.hidden_dim).to(device) for _ in range(num_layers)
+            nn.Linear(1, self.hidden_dim).to(device) for _ in range(num_layers)
         ])
 
         self.layers = nn.ModuleList([
