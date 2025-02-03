@@ -269,14 +269,6 @@ class SAGE(nn.Module):
         # Create the graph correctly
         g = dgl.graph((edges_src, edges_dst)).to(device)
         g = dgl.add_self_loop(g)  # Optional, if self-loops are needed
-        print(epoch)
-        if epoch == 1:
-            sample_feat = h.clone().detach()
-            adj_sample = g.adjacency_matrix().to_dense()
-            import sys
-            torch.set_printoptions(threshold=torch.inf)  # Remove print limit
-            print("Adjacency matrix in Train:\n")
-            print(str(adj_sample[:50, :50]) + "\n")
 
         # Add edges along with bond order features if available.
         if remapped_bond_orders:
@@ -288,6 +280,14 @@ class SAGE(nn.Module):
 
         # Optionally add self-loops (if desired)
         g = dgl.add_self_loop(g)
+
+        if epoch == 1:
+            sample_feat = h.clone().detach()
+            adj_sample = g.adjacency_matrix().to_dense()
+            import sys
+            torch.set_printoptions(threshold=torch.inf)  # Remove print limit
+            print("Adjacency matrix in Train:\n")
+            print(str(adj_sample[:50, :50]) + "\n")
 
         # --- Continue with Your Forward Pass ---
         # For example, get the dense adjacency matrix.
