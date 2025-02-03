@@ -403,9 +403,6 @@ def kmeans(
         next_centroid_idx = torch.multinomial(probs, 1)  # Sample based on probabilities
         means[:, k] = samples[:, next_centroid_idx.squeeze(-1)]
 
-    return means
-
-
     # Iterative optimization
     for _ in range(num_iters):
         if use_cosine_sim:
