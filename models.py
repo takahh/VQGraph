@@ -6,6 +6,7 @@ from dgl.nn import GraphConv, SAGEConv, APPNPConv, GATConv
 from vq import VectorQuantize
 import dgl
 from train_and_eval import transform_node_feats
+import dgl.nn as dglnn
 
 class MLP(nn.Module):
     def __init__(
@@ -180,7 +181,16 @@ class SAGE(nn.Module):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
-        self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
+        # self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
+
+        # Define a linear layer to transform edge features (bond_order)
+        self.edge_encoder = nn.Linear(1, hidden_dim)
+
+        # Replace GraphConv with GINEConv
+        self.graph_layer_1 = dglnn.GINEConv(
+            self.edge_encoder,  # Pass edge encoder
+            aggregator_type="sum"
+        )
         # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
         # self.decoder_1 = nn.Linear(input_dim, input_dim)
         # self.decoder_2 = nn.Linear(input_dim, input_dim)
@@ -255,8 +265,6 @@ class SAGE(nn.Module):
             # If bond orders are present in the block, remap and duplicate them.
             if "bond_order" in block.edata:
                 bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-                print("bond_order")
-                print(bond_order[:50])
                 remapped_bond_orders.append(bond_order)
                 remapped_bond_orders.append(bond_order)  # For the reverse edge
         # --- Construct the DGL Graph ---
@@ -287,8 +295,6 @@ class SAGE(nn.Module):
             adj_sample = g.adjacency_matrix().to_dense()
             import sys
             torch.set_printoptions(threshold=torch.inf)  # Remove print limit
-            print("Adjacency matrix in Train:\n")
-            print(str(adj_sample[:50, :50]) + "\n")
 
         # --- Continue with Your Forward Pass ---
         # For example, get the dense adjacency matrix.
@@ -298,7 +304,7 @@ class SAGE(nn.Module):
 
         # Example: Apply a linear transformation and the first graph layer
         h = self.linear_2(h)
-        h = self.graph_layer_1(g, h)
+        h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
 
         # Apply normalization if necessary.
         if self.norm_type != "none":
@@ -415,16 +421,22 @@ class SAGE(nn.Module):
 
             # Store adjacency matrix for first batch
             if idx == 0:
+                # Get edge indices
+                src0, dst0 = g.edges()
+                # Create an empty adjacency matrix with bond orders
+                adj_weighted = torch.zeros((g.num_nodes(), g.num_nodes()), device=g.device)
+                # Assign bond orders to the adjacency matrix
+                adj_weighted[src0, dst0] = g.edata["bond_order"].squeeze()  # Remove extra dimension if needed
+
                 sample_feat = h.clone().detach()
-                adj_matrix = g.adjacency_matrix().to_dense()
-                print("adj_matrix in INF")
-                print(adj_matrix)
-                sample_adj = adj_matrix.to_dense()
+                print("adj_weighted in INF")
+                print(adj_weighted)
+                sample_adj = adj_weighted.to_dense()
 
             # --- Graph Layer Processing ---
             h_list = []
             h = self.linear_2(h)
-            h = self.graph_layer_1(g, h)
+            h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
             if self.norm_type != "none":
                 h = self.norms[0](h)
             h_list.append(h)
