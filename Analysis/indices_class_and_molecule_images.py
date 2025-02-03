@@ -12,7 +12,7 @@ from rdkit.Geometry import Point2D
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-
+PATH = "/Users/taka/Documents/vqgraph_0203/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -124,6 +124,13 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
                 bond_order = int(mol_adj[x, y])  # Extract bond order
                 bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
                 mol.AddBond(int(x), int(y), bond_type)
+
+        for x, y in zip(*np.where(mol_adj > 0)):
+            if x < y:
+                print(f"Bond {x}-{y}, Order: {mol_adj[x, y]}")
+
+        Chem.SanitizeMol(mol)  # Fixes valence issues
+        Chem.Kekulize(mol, clearAromaticFlags=True)  # Ensures explicit representation
 
         # Compute 2D coordinates for proper display
         AllChem.Compute2DCoords(mol)
@@ -266,7 +273,7 @@ def restore_node_feats(transformed):
 
 
 def main():
-    path = "/Users/taka/Documents/vqgraph_0130/"
+    path = PATH
     adj_file = f"{path}/sample_adj.npz"                     # input data
     feat_file = f"{path}sample_node_feat.npz"      # assigned code vector id
     # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #

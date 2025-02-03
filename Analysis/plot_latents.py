@@ -5,7 +5,7 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 np.set_printoptions(threshold=np.inf)
 
-path = "/Users/taka/Documents/vqgraph_0130/"
+path = "/Users/taka/Documents/vqgraph_0203/"
 # path = "/Users/taka/Downloads/"
 # LMIN = 2.5
 # LMAX = 7.5
@@ -139,8 +139,8 @@ def main():
     arr_list = []
     DIMENSION = 32
     BATCH = 8000
-    EPOCH = 199
-    EPOCH2 = 200
+    EPOCH = 42
+    EPOCH2 = 43
 
     # MODE = "tsne"
     MODE = "umap"
