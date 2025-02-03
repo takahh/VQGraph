@@ -314,6 +314,7 @@ class SAGE(nn.Module):
         # Debugging print to verify fix
         print("Updated Bond order shape:", g.edata["bond_order"].shape)  # Should be [num_edges, hidden_dim]
         assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
+        print("Node feature shape (h)  0:", h.shape)  # Should be [num_nodes, hidden_dim]
 
         # Ensure everything stays on the correct device
         with g.local_scope():
@@ -325,11 +326,14 @@ class SAGE(nn.Module):
 
             # Move aggregated bond order to CUDA if needed
             g.ndata["bond_agg"] = g.ndata["bond_agg"].to(device)
+            print("Node feature shape (h)  1:", h.shape)  # Should be [num_nodes, hidden_dim]
 
             # Concatenate aggregated bond order and node features
             h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1).to(device)  # Ensure it's on CUDA
 
-        print("Node feature shape (h):", h.shape)  # Should be [num_nodes, hidden_dim]
+        # Node feature shape (h): torch.Size([9997, 64])
+        # Bond order shape: torch.Size([282310, 32])
+        print("Node feature shape (h)  2:", h.shape)  # Should be [num_nodes, hidden_dim]
         print("Bond order shape:", g.edata["bond_order"].shape)  # Should match h.shape
         assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
 
