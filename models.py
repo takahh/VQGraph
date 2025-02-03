@@ -401,6 +401,8 @@ class SAGE(nn.Module):
             if idx == 0:
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
+                print("adj_matrix")
+                print(adj_matrix)
                 sample_adj = adj_matrix.to_dense()
 
             # --- Graph Layer Processing ---
