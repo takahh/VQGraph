@@ -678,18 +678,10 @@ def run_inductive(
             # save embed indices for comparison to actual molecules
             # -----------------------------------------------------
             # sample_list = [sample_ind, sample_feat, sample_adj]
-            np.savez(f"./sample_emb_ind", sample_list1[0].cpu())
-            np.savez(f"./sample_node_feat", sample_list1[1].cpu())
-            np.savez(f"./sample_adj", sample_list1[2].cpu())
-            np.savez(f"./bond_order", sample_list1[3].cpu())
-            print("sample_list1[0].shape")
-            print(sample_list1[0].shape)
-            print("sample_list1[1].shape")
-            print(sample_list1[1].shape)
-            print("sample_list1[2].shape")
-            print(sample_list1[2].shape)
-            print("sample_list1[3].shape")
-            print(sample_list1[3].shape)
+            np.savez(f"./sample_emb_ind_{epoch}", sample_list1[0].cpu())
+            np.savez(f"./sample_node_feat_{epoch}", sample_list1[1].cpu())
+            np.savez(f"./sample_adj_{epoch}", sample_list1[2].cpu())
+            np.savez(f"./sample_bond_order_{epoch}", sample_list1[3].cpu())
 
         if conf["train_or_infer"] == "train":
 
