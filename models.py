@@ -269,7 +269,7 @@ class SAGE(nn.Module):
         # Create the graph correctly
         g = dgl.graph((edges_src, edges_dst)).to(device)
         g = dgl.add_self_loop(g)  # Optional, if self-loops are needed
-
+        print(epoch==0)
         if epoch == 0:
             sample_feat = h.clone().detach()
             adj_sample = g.adjacency_matrix().to_dense()
