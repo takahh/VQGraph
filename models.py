@@ -291,13 +291,13 @@ class SAGE(nn.Module):
         h_list = []  # To store intermediate node representations
         h = self.linear_2(h)  # node vector, 7 to 32 dim
 
-        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}")
+        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}") # g.edata['bond_order'] torch.Size([282310])
         if "bond_order" in g.edata:
             g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)
             # for i in range(self.num_layers):
             #     g.edata["bond_order"] = self.edge_encoders[i](
             #         g.edata["bond_order"])
-        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}")
+        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}") # g.edata['bond_order'] torch.Size([282310, 1])
         # --------------------------------------
         #
         # --------------------------------------
