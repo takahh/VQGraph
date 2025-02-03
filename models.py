@@ -156,48 +156,50 @@ class GCN(nn.Module):
 #
 #     return sparsity_loss
 
-
 class SAGE(nn.Module):
     def __init__(
-        self,
-        num_layers,
-        input_dim,
-        hidden_dim,
-        output_dim,
-        dropout_ratio,
-        activation,
-        norm_type,
-        codebook_size,
-        lamb_edge,
-        lamb_node,
-        lamb_div_ele
+            self,
+            num_layers,
+            input_dim,
+            hidden_dim,
+            output_dim,
+            dropout_ratio,
+            activation,
+            norm_type,
+            codebook_size,
+            lamb_edge,
+            lamb_node,
+            lamb_div_ele
     ):
         super().__init__()
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         self.num_layers = num_layers
         self.norm_type = norm_type
-        self.dropout = nn.Dropout(dropout_ratio)
-        self.layers = nn.ModuleList()
-        self.norms = nn.ModuleList()
+        self.dropout = nn.Dropout(dropout_ratio).to(device)  # Ensure dropout is applied
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
-        # self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
 
-        # Define a linear layer to transform edge features (bond_order)
-        self.edge_encoder = nn.Linear(1, self.hidden_dim)
+        # Edge encoder for bond_order
+        self.edge_encoder = nn.Linear(1, hidden_dim).to(device)
 
-        # Replace GraphConv with GINEConv
-        self.graph_layer_1 = dglnn.GINEConv(
-            self.edge_encoder  # Pass edge encoder
-            # aggregator_type="sum"
-        )
-        # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
-        # self.decoder_1 = nn.Linear(input_dim, input_dim)
-        # self.decoder_2 = nn.Linear(input_dim, input_dim)
-        # self.linear = nn.Linear(hidden_dim, output_dim)
-        self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
+        # Define multiple GINEConv layers if needed
+        self.layers = nn.ModuleList([
+            dglnn.GINEConv(self.edge_encoder).to(device) for _ in range(num_layers)
+        ])
+
+        # Optional normalization layers
+        self.norms = nn.ModuleList([
+            nn.LayerNorm(hidden_dim).to(device) for _ in range(num_layers)
+        ])
+
+        self.linear_2 = nn.Linear(7, hidden_dim).to(device)  # Ensure feature transformation
+
         self.codebook_size = codebook_size
         self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
+
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
         self.lamb_div_ele = lamb_div_ele
