@@ -254,8 +254,6 @@ class SAGE(nn.Module):
             # Append both directions (bidirectional graph)
             remapped_edge_list.append((local_src, local_dst))
             remapped_edge_list.append((local_dst, local_src))
-            print("block.edata[bond_order]")
-            print(block.edata["bond_order"])
 
             # If bond orders are present in the block, remap and duplicate them.
             if "bond_order" in block.edata:
@@ -404,7 +402,6 @@ class SAGE(nn.Module):
 
             # Store adjacency matrix for first batch
             if idx == 0:
-                print(f"bond_order {bond_order}")
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
@@ -436,7 +433,7 @@ class SAGE(nn.Module):
 
             if idx == 0:
                 sample_ind = embed_ind
-                sample_list = [sample_ind, sample_feat, sample_adj]
+                sample_list = [sample_ind, sample_feat, sample_adj, bond_order]
 
         return h_list, y, loss, dist_all, codebook, [
             div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
