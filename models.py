@@ -6,17 +6,17 @@ from dgl.nn import GraphConv, SAGEConv, APPNPConv, GATConv
 from vq import VectorQuantize
 import dgl
 from train_and_eval import transform_node_feats
-import dgl.nn as dglnn
+
 
 class MLP(nn.Module):
     def __init__(
-        self,
-        num_layers,
-        input_dim,
-        hidden_dim,
-        output_dim,
-        dropout_ratio,
-        norm_type="none",
+            self,
+            num_layers,
+            input_dim,
+            hidden_dim,
+            output_dim,
+            dropout_ratio,
+            norm_type="none",
     ):
         super(MLP, self).__init__()
         self.num_layers = num_layers
@@ -64,19 +64,20 @@ Adapted from the SAGE implementation from the official DGL example
 https://github.com/dmlc/dgl/blob/master/examples/pytorch/ogb/ogbn-products/graphsage/main.py
 """
 
+
 class GCN(nn.Module):
     def __init__(
-        self,
-        num_layers,
-        input_dim,
-        hidden_dim,
-        output_dim,
-        dropout_ratio,
-        activation,
-        norm_type,
-        codebook_size,
-        lamb_edge,
-        lamb_node
+            self,
+            num_layers,
+            input_dim,
+            hidden_dim,
+            output_dim,
+            dropout_ratio,
+            activation,
+            norm_type,
+            codebook_size,
+            lamb_edge,
+            lamb_node
     ):
         super().__init__()
         self.num_layers = num_layers
@@ -89,7 +90,8 @@ class GCN(nn.Module):
         self.decoder_1 = nn.Linear(input_dim, input_dim)
         self.decoder_2 = nn.Linear(input_dim, input_dim)
         self.linear = nn.Linear(hidden_dim, output_dim)
-        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, commitment_weight=0.25, use_cosine_sim = True)
+        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, commitment_weight=0.25,
+                                 use_cosine_sim=True)
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
 
@@ -117,7 +119,7 @@ class GCN(nn.Module):
         h_list.append(h)
         h = self.linear(h)
         loss = feature_rec_loss + edge_rec_loss + commit_loss
-        
+
         return h_list, h, loss, dist, codebook, [feature_rec_loss, edge_rec_loss, commit_loss]
 
 
@@ -156,6 +158,7 @@ class GCN(nn.Module):
 #
 #     return sparsity_loss
 
+
 class SAGE(nn.Module):
     def __init__(
             self,
@@ -172,37 +175,22 @@ class SAGE(nn.Module):
             lamb_div_ele
     ):
         super().__init__()
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
         self.num_layers = num_layers
         self.norm_type = norm_type
-        self.dropout = nn.Dropout(dropout_ratio).to(device)  # Ensure dropout is applied
+        self.dropout = nn.Dropout(dropout_ratio)
+        self.layers = nn.ModuleList()
+        self.norms = nn.ModuleList()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
-
-        # Edge encoder for bond_order
-        self.edge_encoders = nn.ModuleList([
-            nn.Linear(self.hidden_dim, self.hidden_dim).to(device) for _ in range(num_layers)  # ✅ FIXED
-        ])
-
-        self.layers = nn.ModuleList([
-            dglnn.GINEConv(
-                self.edge_encoders[i]  # Use different encoders per layer
-            ).to(device) for i in range(num_layers)
-        ])
-
-        # Optional normalization layers
-        self.norms = nn.ModuleList([
-            nn.LayerNorm(self.hidden_dim).to(device) for _ in range(num_layers)
-        ])
-
-        self.linear_2 = nn.Linear(7, self.hidden_dim).to(device)  # Ensure feature transformation
-
+        self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
+        # self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
+        # self.decoder_1 = nn.Linear(input_dim, input_dim)
+        # self.decoder_2 = nn.Linear(input_dim, input_dim)
+        # self.linear = nn.Linear(hidden_dim, output_dim)
+        self.linear_2 = nn.Linear(7, hidden_dim)  # added to change 7 dim feat vecs to the larger dim
         self.codebook_size = codebook_size
         self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8, use_cosine_sim=False)
-
         self.lamb_edge = lamb_edge
         self.lamb_node = lamb_node
         self.lamb_div_ele = lamb_div_ele
@@ -213,62 +201,72 @@ class SAGE(nn.Module):
     def forward(self, blocks, feats, epoch):
         import torch
         import dgl
-        # ----------------------------------------
-        # Collect global node IDs from blocks.
-        # ----------------------------------------
-        device = feats.device
+
+        # --- Preprocess Node Features ---
+        # Ensure h requires gradients and apply your transformation.
+        h = feats.clone() if not feats.requires_grad else feats
+        # h = transform_node_feats(h)  # Your custom transformation
+        init_feat = h.clone()  # Store initial features (for later use)
+        torch.save(init_feat, "/h.pt")  # Save for reference
+
+        # Get the device from h (e.g., cuda:0)
+        device = h.device
+
+        # --- Reindexing for Mini-Batch ---
+        # Collect global node IDs from all blocks.
         global_node_ids = set()
         for block in blocks:
             src, dst = block.all_edges()
             global_node_ids.update(src.tolist())
             global_node_ids.update(dst.tolist())
+
+        # Sort the global IDs to have a deterministic ordering.
         global_node_ids = sorted(global_node_ids)
+
         # Create a mapping: global ID -> local ID (0-indexed)
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
+        # print("Number of nodes in mini-batch:", len(global_to_local))
+        # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
+
+        # Create an index tensor from global_node_ids on the correct device.
         idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
 
-        # ----------------------------------------
-        # Get an input tensor from feats
-        # ----------------------------------------
-        h = feats.clone() if not feats.requires_grad else feats
-        init_feat = h.clone()  # Store initial features (for later use)
-        torch.save(init_feat, "/h.pt")  # Save for reference
+        # *** Reindex the feature tensor and the initial features ***
+        # This ensures both h and init_feat only have the mini-batch nodes.
         h = h[idx_tensor]
         init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
 
-        # ------------------------------------------------------------
-        # Remap Edge Indices and Bond Orders from global to local
-        # ------------------------------------------------------------
+        # --- Remap Edge Indices and Bond Orders ---
         remapped_edge_list = []
-        remapped_bond_orders = []
+        remapped_bond_orders = []  # List to hold bond orders, if available
+
         for block in blocks:
             src, dst = block.all_edges()
             src = src.to(torch.int64)
             dst = dst.to(torch.int64)
+
             # Remap global indices to local indices and ensure they are on the correct device.
             local_src = torch.tensor([global_to_local[i.item()] for i in src],
                                      dtype=torch.int64, device=device)
             local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
                                      dtype=torch.int64, device=device)
+
+            # Append both directions (bidirectional graph)
             remapped_edge_list.append((local_src, local_dst))
             remapped_edge_list.append((local_dst, local_src))
+
             # If bond orders are present in the block, remap and duplicate them.
             if "bond_order" in block.edata:
                 bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                 remapped_bond_orders.append(bond_order)
                 remapped_bond_orders.append(bond_order)  # For the reverse edge
+
         # --- Construct the DGL Graph ---
+        # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
+        g = dgl.DGLGraph().to(device)
+        g.add_nodes(len(global_node_ids))
 
-        edges_src = torch.cat([edge[0] for edge in remapped_edge_list])
-        edges_dst = torch.cat([edge[1] for edge in remapped_edge_list])
-
-        # Create the graph correctly
-        g = dgl.graph((edges_src, edges_dst)).to(device)
-        g = dgl.add_self_loop(g)  # Optional, if self-loops are needed
-
-        # --------------------------------------
-        # Insert bond order info into the graphs
-        # --------------------------------------
+        # Add edges along with bond order features if available.
         if remapped_bond_orders:
             for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                 g.add_edges(src, dst, data={"bond_order": bond_order})
@@ -279,37 +277,17 @@ class SAGE(nn.Module):
         # Optionally add self-loops (if desired)
         g = dgl.add_self_loop(g)
 
-        if epoch == 1:
-            sample_feat = h.clone().detach()
-            adj_sample = g.adjacency_matrix().to_dense()
-            import sys
-            # torch.set_printoptions(threshold=torch.inf)  # Remove print limit
+        # --- Continue with Your Forward Pass ---
+        # For example, get the dense adjacency matrix.
+        adj = g.adjacency_matrix().to_dense().to(device)
 
-        # --------------------------------------
-        # Insert bond order info into the graphs
-        # --------------------------------------
         h_list = []  # To store intermediate node representations
-        h = self.linear_2(h)  # node vector, 7 to 32 dim
 
-        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}") # g.edata['bond_order'] torch.Size([282310])
-        if "bond_order" in g.edata:
-            g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)
-            # for i in range(self.num_layers):
-            #     g.edata["bond_order"] = self.edge_encoders[i](
-            #         g.edata["bond_order"])
-        print(f"g.edata['bond_order'] {g.edata['bond_order'].shape}") # g.edata['bond_order'] torch.Size([282310, 1])
-        # --------------------------------------
-        #
-        # --------------------------------------
-        with g.local_scope():
-            g.ndata["h"] = h
-            g.edata["bond_order"] = g.edata["bond_order"]
-            g.update_all(dgl.function.copy_e("bond_order", "msg"), dgl.function.mean("msg", "bond_agg"))
-            g.ndata["bond_agg"] = g.ndata["bond_agg"].to(device)
-            h = g.ndata["h"] + g.ndata["bond_agg"]  # Ensures `h.shape = [num_nodes, 32]`
+        # Example: Apply a linear transformation and the first graph layer
+        h = self.linear_2(h)
+        h = self.graph_layer_1(g, h)
 
-        for idx, layer in enumerate(self.layers):
-            h = layer(g, h, edge_feat=g.edata["bond_order"])
+        # Apply normalization if necessary.
         if self.norm_type != "none":
             h = self.norms[0](h)
 
@@ -424,22 +402,14 @@ class SAGE(nn.Module):
 
             # Store adjacency matrix for first batch
             if idx == 0:
-                # Get edge indices
-                src0, dst0 = g.edges()
-                # Create an empty adjacency matrix with bond orders
-                adj_weighted = torch.zeros((g.num_nodes(), g.num_nodes()), device=g.device)
-                # Assign bond orders to the adjacency matrix
-                adj_weighted[src0, dst0] = g.edata["bond_order"].squeeze()  # Remove extra dimension if needed
-
                 sample_feat = h.clone().detach()
-                print("adj_weighted in INF")
-                print(adj_weighted)
-                sample_adj = adj_weighted.to_dense()
+                adj_matrix = g.adjacency_matrix().to_dense()
+                sample_adj = adj_matrix.to_dense()
 
             # --- Graph Layer Processing ---
             h_list = []
             h = self.linear_2(h)
-            h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
+            h = self.graph_layer_1(g, h)
             if self.norm_type != "none":
                 h = self.norms[0](h)
             h_list.append(h)
@@ -473,17 +443,17 @@ class SAGE(nn.Module):
 
 class GAT(nn.Module):
     def __init__(
-        self,
-        num_layers,
-        input_dim,
-        hidden_dim,
-        output_dim,
-        dropout_ratio,
-        activation,
-        num_heads=8,
-        attn_drop=0.3,
-        negative_slope=0.2,
-        residual=False,
+            self,
+            num_layers,
+            input_dim,
+            hidden_dim,
+            output_dim,
+            dropout_ratio,
+            activation,
+            num_heads=8,
+            attn_drop=0.3,
+            negative_slope=0.2,
+            residual=False,
     ):
         super(GAT, self).__init__()
         # For GAT, the number of layers is required to be > 1
@@ -553,17 +523,17 @@ class GAT(nn.Module):
 
 class APPNP(nn.Module):
     def __init__(
-        self,
-        num_layers,
-        input_dim,
-        hidden_dim,
-        output_dim,
-        dropout_ratio,
-        activation,
-        norm_type="none",
-        edge_drop=0.5,
-        alpha=0.1,
-        k=10,
+            self,
+            num_layers,
+            input_dim,
+            hidden_dim,
+            output_dim,
+            dropout_ratio,
+            activation,
+            norm_type="none",
+            edge_drop=0.5,
+            alpha=0.1,
+            k=10,
     ):
 
         super(APPNP, self).__init__()
