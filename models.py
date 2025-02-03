@@ -304,6 +304,12 @@ class SAGE(nn.Module):
 
         # Example: Apply a linear transformation and the first graph layer
         h = self.linear_2(h)
+        # Ensure bond_order is correctly shaped
+        if "bond_order" in g.edata:
+            g.edata["bond_order"] = g.edata["bond_order"].unsqueeze(-1)  # Ensure shape [E, 1]
+            g.edata["bond_order"] = self.edge_encoder(g.edata["bond_order"])  # Transform to [E, hidden_dim]
+
+        # Pass graph, node features, and transformed edge features
         h = self.graph_layer_1(g, h, edge_feat=g.edata["bond_order"])
 
         # Apply normalization if necessary.
