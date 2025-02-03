@@ -623,7 +623,7 @@ def run_inductive(
                 # -----------------------------
                 # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list, input_nodes
                 # print("EVAL 1 STARAT -------------!")
-                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list0, latent_trans, sample_list1 = evaluate(
+                obs_out, loss_train, score_train, h_list, dist, codebook, loss_list1, latent_trans, sample_list1 = evaluate(
                     model,
                     obs_data_eval,
                     obs_feats,
@@ -662,25 +662,25 @@ def run_inductive(
             # -----------------------------
             # 2 nd evaluate
             # -----------------------------
-            print(f"EVAL 2 -------------------")
-            # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
-            out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, sample_list2 = evaluate(
-                model,
-                data_eval,   #
-                test_feats,       #
-                test_label,      #
-                criterion,
-                evaluator,
-                idx_test_ind
-            )
+            # print(f"EVAL 2 -------------------")
+            # # out, loss, score, h_list, dist, codebook, loss_list, latent_vectors, embed_ind_list
+            # out, loss_test_ind, acc_ind, h_list, dist, codebook, loss_list1, latent_ind, sample_list2 = evaluate(
+            #     model,
+            #     data_eval,   #
+            #     test_feats,       #
+            #     test_label,      #
+            #     criterion,
+            #     evaluator,
+            #     idx_test_ind
+            # )
 
             # -----------------------------------------------------
             # save embed indices for comparison to actual molecules
             # -----------------------------------------------------
             # sample_list = [sample_ind, sample_feat, sample_adj]
-            np.savez(f"./sample_emb_ind", sample_list2[0].cpu())
-            np.savez(f"./sample_node_feat", sample_list2[1].cpu())
-            np.savez(f"./sample_adj", sample_list2[2].cpu())
+            np.savez(f"./sample_emb_ind", sample_list1[0].cpu())
+            np.savez(f"./sample_node_feat", sample_list1[1].cpu())
+            np.savez(f"./sample_adj", sample_list1[2].cpu())
 
         if conf["train_or_infer"] == "train":
 
