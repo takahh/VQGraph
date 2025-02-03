@@ -329,7 +329,8 @@ class SAGE(nn.Module):
             print("Node feature shape (h)  1:", h.shape)  # Should be [num_nodes, hidden_dim]
 
             # Concatenate aggregated bond order and node features
-            h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1).to(device)  # Ensure it's on CUDA
+            h = g.ndata["h"] + g.ndata["bond_agg"]  # Ensures `h.shape = [num_nodes, 32]`
+            # h = torch.cat([g.ndata["h"], g.ndata["bond_agg"]], dim=1).to(device)  # Ensure it's on CUDA
 
         # Node feature shape (h): torch.Size([9997, 64])
         # Bond order shape: torch.Size([282310, 32])
