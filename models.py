@@ -305,12 +305,13 @@ class SAGE(nn.Module):
         # Example: Apply a linear transformation and the first graph layer
         h = self.linear_2(h)
         # Ensure bond_order is correctly shaped
-        # Ensure bond_order is stored as edge features
-        # Ensure bond_order is correctly shaped
-        # Ensure bond_order is correctly shaped
         if "bond_order" in g.edata:
             g.edata["bond_order"] = g.edata["bond_order"].view(-1, 1).to(device)  # Ensure shape [E, 1]
             g.edata["bond_order"] = self.edge_encoder(g.edata["bond_order"])  # Transform to [E, hidden_dim]
+
+        # Debugging print to verify fix
+        print("Updated Bond order shape:", g.edata["bond_order"].shape)  # Should be [num_edges, hidden_dim]
+        assert h.shape[1] == g.edata["bond_order"].shape[1], "Mismatch in feature dimensions!"
 
         # Ensure everything stays on the correct device
         with g.local_scope():
