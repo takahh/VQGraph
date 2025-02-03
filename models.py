@@ -254,7 +254,8 @@ class SAGE(nn.Module):
             # Append both directions (bidirectional graph)
             remapped_edge_list.append((local_src, local_dst))
             remapped_edge_list.append((local_dst, local_src))
-
+            print("block.edata[bond_order]")
+            print(block.edata["bond_order"])
             # If bond orders are present in the block, remap and duplicate them.
             if "bond_order" in block.edata:
                 bond_order = block.edata["bond_order"].to(torch.float32).to(device)

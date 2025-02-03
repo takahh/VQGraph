@@ -133,8 +133,8 @@ def load_cpf_data(dataset, dataset_path, seed, labelrate_train, labelrate_val, t
     # print(f"adj_sp? {adj_sp}")
     g = dgl.graph((adj_sp.row, adj_sp.col))
     g.edata["bond_order"] = torch.FloatTensor(adj_sp.data)  # Preserve bond multiplicity
-    print("g.edata[bond_order")
-    print(g.edata["bond_order"])
+    # print("g.edata[bond_order")
+    # print(g.edata["bond_order"])
     g.ndata["feat"] = features
     idx_train = torch.LongTensor(idx_train)
     idx_val = torch.LongTensor(idx_val)
