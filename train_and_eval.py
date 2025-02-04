@@ -682,11 +682,10 @@ def run_inductive(
             np.savez(f"./sample_node_feat_{epoch}", sample_list1[1].cpu())
             np.savez(f"./sample_adj_{epoch}", sample_list1[2].cpu())
             np.savez(f"./sample_bond_order_{epoch}", sample_list1[3].cpu())
-            print("sample_list1[4]")
-            print(sample_list1[4])
+            print([x.cpu() for x in sample_list1[4]])
             np.savez(
                 f"./sample_bond_to_edge_{epoch}",
-                [x.cpu().numpy() if isinstance(x, torch.Tensor) else x for x in sample_list1[4]]
+                [x.cpu() for x in sample_list1[4]]
             )
 
         if conf["train_or_infer"] == "train":
