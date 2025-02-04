@@ -680,7 +680,7 @@ def run_inductive(
             # sample_list = [sample_ind, sample_feat, sample_adj]
             np.savez(f"./sample_emb_ind_{epoch}", sample_list1[0].cpu())
             np.savez(f"./sample_node_feat_{epoch}", sample_list1[1].cpu())
-            np.savez(f"./sample_adj_{epoch}", sample_list1[2].cpu())
+            np.savez(f"./sample_adj_{epoch}", sample_list1[2].cpu()[:1000, :1000])
             np.savez(f"./sample_bond_order_{epoch}", sample_list1[3].cpu())
             # print("sample_list1[4] len")
             # print(len(sample_list1[4]))
