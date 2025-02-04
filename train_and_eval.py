@@ -691,8 +691,8 @@ def run_inductive(
             # print("converted_list")
             # print(converted_list[0])
             # print(converted_list)
-            np.savez(f"./sample_bond_to_edge_{epoch}_0.npz", sample_list1[4][0][0])
-            np.savez(f"./sample_bond_to_edge_{epoch}_1.npz", sample_list1[4][0][1])
+            np.savez(f"./sample_bond_to_edge_{epoch}_0.npz", sample_list1[4][0][0].cpu())
+            np.savez(f"./sample_bond_to_edge_{epoch}_1.npz", sample_list1[4][0][1].cpu())
 
         if conf["train_or_infer"] == "train":
 
