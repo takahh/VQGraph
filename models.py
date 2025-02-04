@@ -367,6 +367,7 @@ class SAGE(nn.Module):
             # --- Remap Edge Indices ---
             remapped_edge_list = []
             remapped_bond_orders = []
+            global_edge_list = []
 
             for block in blocks:
                 src, dst = block.all_edges()
@@ -379,6 +380,8 @@ class SAGE(nn.Module):
                 # Add bidirectional edges
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
+                global_edge_list.append((src, dst))
+                global_edge_list.append((dst, src))
 
                 # Remap bond orders if present
                 if "bond_order" in block.edata:
@@ -405,7 +408,6 @@ class SAGE(nn.Module):
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
-
             # --- Graph Layer Processing ---
             h_list = []
             h = self.linear_2(h)
@@ -433,7 +435,8 @@ class SAGE(nn.Module):
 
             if idx == 0:
                 sample_ind = embed_ind
-                sample_list = [sample_ind, sample_feat, sample_adj, bond_order]
+                sample_bond_to_edge = global_edge_list
+                sample_list = [sample_ind, sample_feat, sample_adj, bond_order, sample_bond_to_edge]
 
         return h_list, y, loss, dist_all, codebook, [
             div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
