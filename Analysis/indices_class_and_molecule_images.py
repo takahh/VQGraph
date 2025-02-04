@@ -1,13 +1,14 @@
 import numpy as np
 from rdkit.Chem import Draw
 from scipy.sparse import csr_matrix
-np.set_printoptions(threshold=np.inf)
+# np.set_printoptions(threshold=np.inf)
 from rdkit import Chem
 from scipy.sparse.csgraph import connected_components
-import numpy as np
 from icecream import ic
 import matplotlib.pyplot as plt
 from rdkit.Geometry import Point2D
+import torch
+import numpy as np
 
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
@@ -279,10 +280,6 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, bond_matrix, feature_m
         plt.axis("off")
     plt.show()
 
-import torch
-import torch
-import numpy as np
-
 def restore_node_feats(transformed):
     # Convert to PyTorch tensor if it's a NumPy array
     if isinstance(transformed, np.ndarray):
@@ -353,7 +350,6 @@ def main():
     EPOCH = 2
     adj_file = f"{path}/sample_adj_{EPOCH}.npz"                     # input data
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
-    # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
     bond_file = f"{path}sample_bond_order_{EPOCH}.npz"
     bond_to_edge_file = f"{path}sample_bond_to_edge_2.npz"
@@ -361,15 +357,12 @@ def main():
     arr_bond = getdata(bond_file)   # indices of the input
     arr_bond_to_edge = getdata(bond_to_edge_file)   # indices of the input
     print("arr_bond_to_edge.shape")
-    print(arr_bond_to_edge.shape)
+    print(arr_bond_to_edge)
     print("arr_bond.shape")
-    print(arr_bond.shape)
+    print(arr_bond)
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
-    # print(f"node id {arr_indices.shape}, class {arr_class.shape}")
-    # print(arr_adj)
-    # print(arr_feat)
     arr_feat = restore_node_feats(arr_feat)
     node_indices = [int(x) for x in arr_indices.tolist()]
     print(node_indices)
@@ -377,29 +370,6 @@ def main():
     # Ensure bond_matrix is 2D
     if len(arr_bond.shape) == 1:
         arr_bond = arr_bond.reshape(arr_adj.shape)  # Reshape to adjacency matrix size
-
-    # -------------------------------------
-    # rebuild attr matrix
-    # -------------------------------------
-    # attr_data = arr_input["attr_data"]
-    # attr_indices = arr_input["attr_indices"]
-    # attr_indptr = arr_input["attr_indptr"]
-    # attr_shape = arr_input["attr_shape"]
-    # attr_matrix = csr_matrix((attr_data, attr_indices, attr_indptr), shape=attr_shape)
-    # ic(node_indices[0])
-    # subset_attr_matrix = attr_matrix[node_indices[0]:node_indices[0] + 200, :].toarray()
-    # subset_attr_matrix = attr_matrix.toarray()
-
-    # -------------------------------------
-    # rebuild adj matrix
-    # -------------------------------------
-    # Assuming you have these arrays from your input
-    # adj_data = arr_input["adj_data"]
-    # adj_indices = arr_input["adj_indices"]
-    # adj_indptr = arr_input["adj_indptr"]
-    # adj_shape = arr_input["adj_shape"]
-    # Reconstruct the sparse adjacency matrix
-    # adj_matrix = csr_matrix((adj_data, adj_indices, adj_indptr), shape=adj_shape)
     subset_adj_matrix = arr_adj[0:200, 0:200]
     subset_attr_matrix = arr_feat[:200]
     subset_bond_matrix = arr_bond[:200, :200]
