@@ -490,6 +490,8 @@ def run_inductive(
         # -------------------------
         # all obs data FULL sampling (for inference/test)
         # -------------------------
+        print("Does the original graph have edge (0, 10000)?", obs_g.has_edges_between(0, 10000))
+
         obs_dataloader_eval = dgl.dataloading.DataLoader(
             obs_g,
             obs_idx_val,
