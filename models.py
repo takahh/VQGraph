@@ -382,8 +382,8 @@ class SAGE(nn.Module):
                 remapped_edge_list.append((local_dst, local_src))
                 global_edge_list.append((src, dst))
                 global_edge_list.append((dst, src))
-                print("global_edge_list")
-                print(global_edge_list)
+                print("(src, dst)")
+                print((src, dst))
                 # Remap bond orders if present
                 if "bond_order" in block.edata:
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
