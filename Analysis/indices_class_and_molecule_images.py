@@ -350,14 +350,18 @@ def restore_node_feats(transformed):
 def main():
     PATH = "/Users/taka/Documents/vqgraph_0204/"
     path = PATH
-    EPOCH = 4
+    EPOCH = 2
     adj_file = f"{path}/sample_adj_{EPOCH}.npz"                     # input data
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
     # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
     bond_file = f"{path}sample_bond_order_{EPOCH}.npz"
+    bond_to_edge_file = f"{path}sample_bond_to_edge_2.npz"
 
     arr_bond = getdata(bond_file)   # indices of the input
+    arr_bond_to_edge = getdata(bond_to_edge_file)   # indices of the input
+    print("arr_bond_to_edge.shape")
+    print(arr_bond_to_edge.shape)
     print("arr_bond.shape")
     print(arr_bond.shape)
     arr_indices = getdata(indices_file)   # indices of the input
