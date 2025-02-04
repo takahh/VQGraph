@@ -352,16 +352,15 @@ def main():
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
     bond_file = f"{path}sample_bond_order_{EPOCH}.npz"
+    bond_to_edge_file_0 = f"{path}sample_bond_to_edge_{EPOCH}_0.npz"
     bond_to_edge_file_1 = f"{path}sample_bond_to_edge_{EPOCH}_1.npz"
-    bond_to_edge_file_2 = f"{path}sample_bond_to_edge_{EPOCH}_2.npz"
 
     arr_bond = getdata(bond_file)   # indices of the input
+    arr_bond_to_edge_0 = getdata(bond_to_edge_file_0)   # indices of the input
     arr_bond_to_edge_1 = getdata(bond_to_edge_file_1)   # indices of the input
-    arr_bond_to_edge_2 = getdata(bond_to_edge_file_2)   # indices of the input
-    print("arr_bond_to_edge.shape")
+    print("arr_bond_to_edge_0")
+    print(arr_bond_to_edge_0)
     print(arr_bond_to_edge_1)
-    print("arr_bond.shape")
-    print(arr_bond)
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
