@@ -400,10 +400,6 @@ class SAGE(nn.Module):
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
-            print("src_list")
-            print(src_list[:20])
-            print("dst_list")
-            print(dst_list[:20])
             # Add edges (and bond orders if available)
             if remapped_bond_orders:
                 for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
