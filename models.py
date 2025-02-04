@@ -383,6 +383,7 @@ class SAGE(nn.Module):
                 global_edge_list.append((src, dst))
                 global_edge_list.append((dst, src))
                 print("(src, dst)")
+                print(len(src))
                 print((src, dst))
                 # Remap bond orders if present
                 if "bond_order" in block.edata:
