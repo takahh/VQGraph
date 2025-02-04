@@ -368,9 +368,13 @@ class SAGE(nn.Module):
             remapped_edge_list = []
             remapped_bond_orders = []
             global_edge_list = []
+            src_list = []
+            dst_list = []
 
             for block in blocks:
                 src, dst = block.all_edges()
+                src_list.append(src)
+                dst_list.append(dst)
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
 
                 # Map to local IDs
@@ -382,9 +386,6 @@ class SAGE(nn.Module):
                 remapped_edge_list.append((local_dst, local_src))
                 global_edge_list.append((src, dst))
                 global_edge_list.append((dst, src))
-                print("(src, dst)")
-                print(len(src))
-                print((src, dst))
                 # Remap bond orders if present
                 if "bond_order" in block.edata:
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
@@ -393,7 +394,10 @@ class SAGE(nn.Module):
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
-
+            print("src_list")
+            print(src_list)
+            print("dst_list")
+            print(dst_list)
             # Add edges (and bond orders if available)
             if remapped_bond_orders:
                 for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):

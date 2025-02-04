@@ -359,8 +359,8 @@ def main():
     arr_bond_to_edge_0 = getdata(bond_to_edge_file_0)   # indices of the input
     arr_bond_to_edge_1 = getdata(bond_to_edge_file_1)   # indices of the input
     print("arr_bond_to_edge_0")
-    print(arr_bond_to_edge_0)
-    print(arr_bond_to_edge_1)
+    print(arr_bond_to_edge_0[:20])
+    print(arr_bond_to_edge_1[:20])
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
