@@ -217,6 +217,12 @@ class SAGE(nn.Module):
         global_node_ids = set()
         for block in blocks:
             src, dst = block.all_edges()
+
+            print("src")
+            print(src[:20])
+            print("dst")
+            print(dst[:20])
+
             global_node_ids.update(src.tolist())
             global_node_ids.update(dst.tolist())
 
@@ -343,10 +349,6 @@ class SAGE(nn.Module):
             global_node_ids = set()
             for block in blocks:
                 src, dst = block.all_edges()
-                print("src")
-                print(src[:20])
-                print("dst")
-                print(dst[:20])
                 global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
                 global_node_ids.update(dst.tolist())
 
