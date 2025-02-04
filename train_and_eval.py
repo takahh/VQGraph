@@ -684,6 +684,7 @@ def run_inductive(
             np.savez(f"./sample_bond_order_{epoch}", sample_list1[3].cpu())
             print("sample_list1[4].shape")
             print(sample_list1[4].shape)
+            print(sample_list1[4][:1])
             converted_list = [[[t1.cpu().numpy()], [t2.cpu().numpy()]] for t1, t2 in sample_list1[4]]
             # print("converted_list")
             # print(converted_list[0])
