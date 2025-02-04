@@ -388,8 +388,6 @@ class SAGE(nn.Module):
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                     remapped_bond_orders.append(bond_order)
                     remapped_bond_orders.append(bond_order)  # Bidirectional bond orders
-            print("global_edge_list")
-            print(global_edge_list)
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
