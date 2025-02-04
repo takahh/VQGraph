@@ -686,12 +686,13 @@ def run_inductive(
             # print(len(sample_list1[4]))
             # print("len(sample_list1[4][0])")
             # print(len(sample_list1[4][0]))
-            # print("len(sample_list1[4][0][0])")
-            # print(len(sample_list1[4][0][0]))
+            print("len(sample_list1[4][0][0])")
+            print(len(sample_list1[4][0][0]))
             # print("converted_list")
             # print(converted_list[0])
             # print(converted_list)
-            np.savez(f"./sample_bond_to_edge_{epoch}.npz", sample_list1[4][0])
+            np.savez(f"./sample_bond_to_edge_{epoch}_0.npz", sample_list1[4][0][0])
+            np.savez(f"./sample_bond_to_edge_{epoch}_1.npz", sample_list1[4][0][1])
 
         if conf["train_or_infer"] == "train":
 
