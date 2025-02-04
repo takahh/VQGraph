@@ -686,6 +686,8 @@ def run_inductive(
             print(len(sample_list1[4]))
             print("len(sample_list1[4][0])")
             print(len(sample_list1[4][0]))
+            print("len(sample_list1[4][0][0])")
+            print(len(sample_list1[4][0][0]))
             converted_list = [[[t1.cpu().numpy()], [t2.cpu().numpy()]] for t1, t2 in sample_list1[4]]
             # print("converted_list")
             # print(converted_list[0])
