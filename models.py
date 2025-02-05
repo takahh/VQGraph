@@ -360,7 +360,7 @@ class SAGE(nn.Module):
             idx_tensor = torch.tensor(input_nodes, dtype=torch.int64, device=device)
 
             # Ensure valid feature indexing
-            assert torch.max(idx_tensor) < batch_feats.shape[0], "Index out of bounds in batch_feats!"
+            print(f"batch_feats.shape {batch_feats.shape}, idx_tensor {idx_tensor}")
             h = batch_feats[idx_tensor]
             init_feat = h  # Keep track of the initial features
 
