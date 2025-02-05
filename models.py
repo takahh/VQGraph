@@ -368,23 +368,23 @@ class SAGE(nn.Module):
             edge_list = []
             bond_orders = []
 
-            for block in blocks:
-                src, dst = block.all_edges()
-                src, dst = src.to(torch.int64), dst.to(torch.int64)
-
-                # Map to local IDs
-                # local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
-                # local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
-                #
-                # # Add bidirectional edges
-                edge_list.append((src, dst))
-                edge_list.append((dst, src))
-
-                # Remap bond orders if present
-                if "bond_order" in block.edata:
-                    bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-                    bond_orders.append(bond_order)
-                    bond_orders.append(bond_order)  # Bidirectional bond orders
+            # for block in blocks:
+            #     src, dst = block.all_edges()
+            #     src, dst = src.to(torch.int64), dst.to(torch.int64)
+            #
+            #     # Map to local IDs
+            #     # local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
+            #     # local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
+            #     #
+            #     # # Add bidirectional edges
+            #     edge_list.append((src, dst))
+            #     edge_list.append((dst, src))
+            #
+            #     # Remap bond orders if present
+            #     if "bond_order" in block.edata:
+            #         bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+            #         bond_orders.append(bond_order)
+            #         bond_orders.append(bond_order)  # Bidirectional bond orders
 
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
