@@ -523,12 +523,14 @@ def run_inductive(
             print(bond_order.shape)
             all_nodes = torch.cat((src, dst), dim=0)
             print(f"all_nodes {all_nodes.shape}")
-            unique_edges, counts = torch.unique(all_nodes, return_counts=True, dim=0)
-            print(f"unique_edges {unique_edges.shape}")
-            print(f"unique_edges {unique_edges}")
-            missing_nodes = torch.setdiff1d(input_nodes, torch.cat((src, dst)))
+            unique_nodes = torch.unique(all_nodes, dim=0)
+            print(f"unique_edges {unique_nodes.shape}")
+            print(f"unique_edges {unique_nodes}")
+            mask = torch.isin(input_nodes, unique_nodes)
+            missing_nodes = input_nodes[~mask]
             print(f"Nodes in input_nodes but missing in bond order data: {missing_nodes.shape[0]}")
-            missing_nodes = torch.setdiff1d(output_nodes, torch.cat((src, dst)))
+            mask = torch.isin(output_nodes, unique_nodes)
+            missing_nodes = output_nodes[~mask]
             print(f"Nodes in output_nodes but missing in bond order data: {missing_nodes.shape[0]}")
 
 
