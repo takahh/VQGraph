@@ -360,7 +360,7 @@ class SAGE(nn.Module):
             idx_tensor = torch.tensor(input_nodes, dtype=torch.int64, device=device)
 
             # Ensure valid feature indexing
-            print(f"batch_feats.shape {batch_feats.shape}, idx_tensor {idx_tensor.shape}")
+
             h = batch_feats[idx_tensor]
             init_feat = h  # Keep track of the initial features
 
@@ -368,78 +368,78 @@ class SAGE(nn.Module):
             edge_list = []
             bond_orders = []
 
-            # for block in blocks:
-            #     src, dst = block.all_edges()
-            #     src, dst = src.to(torch.int64), dst.to(torch.int64)
-            #
-            #     # Map to local IDs
-            #     # local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
-            #     # local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
-            #     #
-            #     # # Add bidirectional edges
-            #     edge_list.append((src, dst))
-            #     edge_list.append((dst, src))
-            #
-            #     # Remap bond orders if present
-            #     if "bond_order" in block.edata:
-            #         bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-            #         bond_orders.append(bond_order)
-            #         bond_orders.append(bond_order)  # Bidirectional bond orders
+            for block in blocks:
+                src, dst = block.all_edges()
+                src, dst = src.to(torch.int64), dst.to(torch.int64)
+
+                # Map to local IDs
+                # local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
+                # local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
+                #
+                # # Add bidirectional edges
+                edge_list.append((src, dst))
+                edge_list.append((dst, src))
+
+                # Remap bond orders if present
+                if "bond_order" in block.edata:
+                    bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+                    bond_orders.append(bond_order)
+                    bond_orders.append(bond_order)  # Bidirectional bond orders
 
             # --- Construct DGL Graph ---
-        #     g = dgl.DGLGraph().to(device)
-        #     g.add_nodes(input_nodes.size(0))
-        #     # Add edges (and bond orders if available)
-        #     if bond_orders:
-        #         for (src, dst), bond_order in zip(edge_list, bond_orders):
-        #             g.add_edges(src, dst, data={"bond_order": bond_order})
-        #     else:
-        #         for src, dst in edge_list:
-        #             g.add_edges(src, dst)
-        #     g = dgl.add_self_loop(g)  # ✅ Add self-loops to prevent zero in-degree nodes
-        #     h = h[:g.num_nodes()]  # Adjust size if needed
-        #
-        #     print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
-        #     # Store adjacency matrix for first batch
-        #     if idx == 0:
-        #         sample_feat = h.clone().detach()
-        #         adj_matrix = g.adjacency_matrix().to_dense()
-        #         sample_adj = adj_matrix.to_dense()
-        #         sample_bond_orders = bond_orders
-        #
-        #     # --- Graph Layer Processing ---
-        #     h_list = []
-        #     h = self.linear_2(h)
-        #     h = self.graph_layer_1(g, h)
-        #     if self.norm_type != "none":
-        #         h = self.norms[0](h)
-        #     h_list.append(h)
-        #
-        #     # --- Quantization ---
-        #     (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
-        #      spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
-        #      ringy_div_loss, h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = self.vq(h, init_feat)
-        #
-        #     # Store computed values
-        #     embed_ind_list.append(embed_ind)
-        #     input_node_list.append(input_nodes)
-        #     div_ele_loss_list.append(div_ele_loss)
-        #     bond_num_div_loss_list.append(bond_num_div_loss)
-        #     aroma_div_loss_list.append(aroma_div_loss)
-        #     ringy_div_loss_list.append(ringy_div_loss)
-        #     h_num_div_loss_list.append(h_num_div_loss)
-        #     elec_state_div_loss_list.append(elec_state_div_loss)
-        #     charge_div_loss_list.append(charge_div_loss)
-        #     sil_loss_list.append(sil_loss)
-        #
-        #     if idx == 0:
-        #         sample_ind = embed_ind
-        #         sample_list = [sample_ind, sample_feat, sample_adj, sample_bond_orders]
-        #
-        # return h_list, y, loss, dist_all, codebook, [
-        #     div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
-        #     h_num_div_loss_list, charge_div_loss_list, elec_state_div_loss_list, spread_loss, pair_loss, sil_loss_list
-        # ], latent_list, sample_list
+            g = dgl.DGLGraph().to(device)
+            g.add_nodes(input_nodes.size(0))
+            # Add edges (and bond orders if available)
+            if bond_orders:
+                for (src, dst), bond_order in zip(edge_list, bond_orders):
+                    g.add_edges(src, dst, data={"bond_order": bond_order})
+            else:
+                for src, dst in edge_list:
+                    g.add_edges(src, dst)
+            g = dgl.add_self_loop(g)  # ✅ Add self-loops to prevent zero in-degree nodes
+            h = h[:g.num_nodes()]  # Adjust size if needed
+
+            print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
+            # Store adjacency matrix for first batch
+            if idx == 0:
+                sample_feat = h.clone().detach()
+                adj_matrix = g.adjacency_matrix().to_dense()
+                sample_adj = adj_matrix.to_dense()
+                sample_bond_orders = bond_orders
+
+            # --- Graph Layer Processing ---
+            h_list = []
+            h = self.linear_2(h)
+            h = self.graph_layer_1(g, h)
+            if self.norm_type != "none":
+                h = self.norms[0](h)
+            h_list.append(h)
+
+            # --- Quantization ---
+            (quantized, embed_ind, loss, dist, codebook, raw_commit_loss, latent_vectors, margin_loss,
+             spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss, aroma_div_loss,
+             ringy_div_loss, h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = self.vq(h, init_feat)
+
+            # Store computed values
+            embed_ind_list.append(embed_ind)
+            input_node_list.append(input_nodes)
+            div_ele_loss_list.append(div_ele_loss)
+            bond_num_div_loss_list.append(bond_num_div_loss)
+            aroma_div_loss_list.append(aroma_div_loss)
+            ringy_div_loss_list.append(ringy_div_loss)
+            h_num_div_loss_list.append(h_num_div_loss)
+            elec_state_div_loss_list.append(elec_state_div_loss)
+            charge_div_loss_list.append(charge_div_loss)
+            sil_loss_list.append(sil_loss)
+
+            if idx == 0:
+                sample_ind = embed_ind
+                sample_list = [sample_ind, sample_feat, sample_adj, sample_bond_orders]
+
+        return h_list, y, loss, dist_all, codebook, [
+            div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
+            h_num_div_loss_list, charge_div_loss_list, elec_state_div_loss_list, spread_loss, pair_loss, sil_loss_list
+        ], latent_list, sample_list
 
 
 class GAT(nn.Module):
