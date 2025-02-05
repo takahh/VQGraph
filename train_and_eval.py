@@ -172,6 +172,8 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
         print(f"step {step}")
+        if step < 2:
+            continue
         # ✅ Filter out small graphs while keeping input/output nodes aligned
         print(f"original input nodes {len(input_nodes)}")
         input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6)
