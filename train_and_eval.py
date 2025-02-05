@@ -17,6 +17,11 @@ import dgl
 import torch
 from scipy.sparse.csgraph import connected_components
 
+import dgl
+import torch
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import csr_matrix
+
 
 def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6):
     """
@@ -24,8 +29,8 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
     while keeping `input_nodes` and `output_nodes` correctly aligned.
 
     Args:
-        input_nodes (torch.Tensor): Global node IDs of input nodes in the batch (on CPU).
-        output_nodes (torch.Tensor): Global node IDs of output nodes in the batch (on CPU).
+        input_nodes (torch.Tensor): Global node IDs of input nodes in the batch (on GPU).
+        output_nodes (torch.Tensor): Global node IDs of output nodes in the batch (on GPU).
         blocks (list of DGLBlock): Mini-batch of graph blocks.
         min_size (int): Minimum graph size to keep.
 
@@ -37,32 +42,26 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
     filtered_output_nodes = []
 
     for blk_idx, block in enumerate(blocks):
-        print(f"blk_idx {blk_idx}")
-        src, dst = block.edges()  # Get all edges in the block
+        src, dst = block.edges()  # Get edge list directly
 
-        # Create adjacency matrix
+        # Convert to sparse adjacency matrix format (FASTER than dense numpy conversion)
         num_nodes = block.num_nodes()
-        adj_matrix = torch.zeros((num_nodes, num_nodes), device=block.device)
-        adj_matrix[src, dst] = 1
-        adj_matrix[dst, src] = 1  # Ensure symmetry (undirected graph)
+        adj_matrix_sparse = csr_matrix(
+            (torch.ones_like(src).cpu().numpy(), (src.cpu().numpy(), dst.cpu().numpy())),
+            shape=(num_nodes, num_nodes)
+        )
 
-        print(f"adj_matrix {adj_matrix}")
-        # Convert adjacency to CPU for `connected_components`
-        adj_matrix_np = adj_matrix.cpu().numpy()
-        print(f"adj_matrix_np {adj_matrix_np}")
         # Identify connected components (independent small graphs)
-        num_components, labels = connected_components(csgraph=adj_matrix_np, directed=False)
-        print(f"labels {labels}")
+        num_components, labels = connected_components(csgraph=adj_matrix_sparse, directed=False)
 
         # Filter out small graphs
         keep_nodes = []
+        labels_tensor = torch.tensor(labels, device=input_nodes.device)  # Faster than NumPy conversion
         for i in range(num_components):
-            component_nodes = torch.where(torch.tensor(labels) == i)[0].to(input_nodes.device)
-            print(f"component_nodes: {len(component_nodes)}")
+            component_nodes = torch.where(labels_tensor == i)[0]
             if len(component_nodes) >= min_size:  # ✅ Keep only large graphs
                 keep_nodes.extend(component_nodes.tolist())
-        print(f"keep_nodes: {len(keep_nodes)}")
-        print(f"input_nodes: {len(input_nodes)}")
+
         if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
 
