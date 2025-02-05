@@ -230,7 +230,7 @@ class SAGE(nn.Module):
         global_node_ids = sorted(global_node_ids)
 
         # Create a mapping: global ID -> local ID (0-indexed)
-        global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
+        # global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
         # print("Number of nodes in mini-batch:", len(global_to_local))
         # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
 
@@ -246,26 +246,26 @@ class SAGE(nn.Module):
         remapped_edge_list = []
         remapped_bond_orders = []  # List to hold bond orders, if available
 
-        for block in blocks:
-            src, dst = block.all_edges()
-            src = src.to(torch.int64)
-            dst = dst.to(torch.int64)
-
-            # Remap global indices to local indices and ensure they are on the correct device.
-            local_src = torch.tensor([global_to_local[i.item()] for i in src],
-                                     dtype=torch.int64, device=device)
-            local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
-                                     dtype=torch.int64, device=device)
-
-            # Append both directions (bidirectional graph)
-            remapped_edge_list.append((local_src, local_dst))
-            remapped_edge_list.append((local_dst, local_src))
-
-            # If bond orders are present in the block, remap and duplicate them.
-            if "bond_order" in block.edata:
-                bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-                remapped_bond_orders.append(bond_order)
-                remapped_bond_orders.append(bond_order)  # For the reverse edge
+        # for block in blocks:
+        #     src, dst = block.all_edges()
+        #     src = src.to(torch.int64)
+        #     dst = dst.to(torch.int64)
+        #
+        #     # Remap global indices to local indices and ensure they are on the correct device.
+        #     local_src = torch.tensor([global_to_local[i.item()] for i in src],
+        #                              dtype=torch.int64, device=device)
+        #     local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
+        #                              dtype=torch.int64, device=device)
+        #
+        #     # Append both directions (bidirectional graph)
+        #     remapped_edge_list.append((local_src, local_dst))
+        #     remapped_edge_list.append((local_dst, local_src))
+        #
+        #     # If bond orders are present in the block, remap and duplicate them.
+        #     if "bond_order" in block.edata:
+        #         bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+        #         remapped_bond_orders.append(bond_order)
+        #         remapped_bond_orders.append(bond_order)  # For the reverse edge
 
         # --- Construct the DGL Graph ---
         # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
