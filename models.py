@@ -229,6 +229,9 @@ class SAGE(nn.Module):
             print("bond_order")
             print(bond_order)
             print(bond_order.shape)
+            all_uniq_nodes = set(src + dst)
+            print("all_uniq_nodes")
+            print(len(all_uniq_nodes))
 
         h = feats  # this is already a subset
 
