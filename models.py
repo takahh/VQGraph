@@ -229,7 +229,7 @@ class SAGE(nn.Module):
             print("bond_order")
             print(bond_order)
             print(bond_order.shape)
-            all_nodes = torch.stack((src, dst), dim=1)
+            all_nodes = torch.stack((src, dst), dim=0)
             print(f"all_nodes {all_nodes.shape}")
             unique_edges, counts = torch.unique(all_nodes, return_counts=True, dim=0)
             print(f"unique_edges {unique_edges.shape}")
