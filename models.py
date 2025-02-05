@@ -389,7 +389,6 @@ class SAGE(nn.Module):
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
-            print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
             # Add edges (and bond orders if available)
             if bond_orders:
                 for (src, dst), bond_order in zip(edge_list, bond_orders):
@@ -400,6 +399,7 @@ class SAGE(nn.Module):
             g = dgl.add_self_loop(g)  # ✅ Add self-loops to prevent zero in-degree nodes
             h = h[:g.num_nodes()]  # Adjust size if needed
 
+            print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
             # Store adjacency matrix for first batch
             if idx == 0:
                 sample_feat = h.clone().detach()
