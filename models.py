@@ -339,25 +339,25 @@ class SAGE(nn.Module):
             batch_feats = feats[input_nodes]
             batch_feats = transform_node_feats(batch_feats)
 
-            # --- Reindexing for Mini-Batch ---
-            global_node_ids = set()
-            for block in blocks:
-                src, dst = block.all_edges()
-                global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
-                global_node_ids.update(dst.tolist())
-
-            global_node_ids = sorted(global_node_ids)
+            # # --- Reindexing for Mini-Batch ---
+            # global_node_ids = set()
+            # for block in blocks:
+            #     src, dst = block.all_edges()
+            #     global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
+            #     global_node_ids.update(dst.tolist())
+            #
+            # global_node_ids = sorted(global_node_ids)
 
             # Ensure valid indexing
-            assert len(global_node_ids) > 0, "global_node_ids is empty!"
-            assert max(global_node_ids) < feats.shape[0], "Index out of bounds in global_node_ids!"
-            assert min(global_node_ids) >= 0, "Negative indices found in global_node_ids!"
+            # assert len(global_node_ids) > 0, "global_node_ids is empty!"
+            # assert max(global_node_ids) < feats.shape[0], "Index out of bounds in global_node_ids!"
+            # assert min(global_node_ids) >= 0, "Negative indices found in global_node_ids!"
 
             # Create a mapping: global ID -> local ID
-            global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
+            # global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
 
             # Create an index tensor from global_node_ids on the correct device
-            idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
+            idx_tensor = torch.tensor(input_nodes, dtype=torch.int64, device=device)
 
             # Ensure valid feature indexing
             assert torch.max(idx_tensor) < batch_feats.shape[0], "Index out of bounds in batch_feats!"
@@ -388,7 +388,7 @@ class SAGE(nn.Module):
 
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
-            g.add_nodes(len(global_node_ids))
+            g.add_nodes(input_nodes.size(0))
             # Add edges (and bond orders if available)
             if bond_orders:
                 for (src, dst), bond_order in zip(edge_list, bond_orders):
