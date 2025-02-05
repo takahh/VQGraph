@@ -391,9 +391,12 @@ class SAGE(nn.Module):
             g.add_nodes(len(global_node_ids))
 
             # Add edges (and bond orders if available)
-            for (src, dst), bond_order in zip(edge_list, bond_orders):
-                g.add_edges(src, dst, data={"bond_order": bond_order})
-            g = dgl.add_self_loop(g)
+            if bond_orders:
+                for (src, dst), bond_order in zip(edge_list, bond_orders):
+                    g.add_edges(src, dst, data={"bond_order": bond_order})
+            else:
+                for src, dst in edge_list:
+                    g.add_edges(src, dst)
 
             # Store adjacency matrix for first batch
             if idx == 0:
