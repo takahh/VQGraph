@@ -503,6 +503,8 @@ def run_inductive(
         )
         for step, (input_nodes, output_nodes, blocks) in enumerate(obs_dataloader_eval):
             print(f"Batch {step}: -----------------------------------------")
+            input_nodes = torch.unique(input_nodes, dim=0)
+            output_nodes = torch.unique(output_nodes, dim=0)
             print(f"  Input nodes: {len(input_nodes)}")
             print(f"  Output nodes: {len(output_nodes)}")
 
