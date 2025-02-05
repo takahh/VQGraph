@@ -389,7 +389,7 @@ class SAGE(nn.Module):
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
-
+            print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
             # Add edges (and bond orders if available)
             if bond_orders:
                 for (src, dst), bond_order in zip(edge_list, bond_orders):
