@@ -15,16 +15,20 @@ import dgl
 import torch
 from scipy.sparse.csgraph import connected_components
 
+import dgl
+import torch
+from scipy.sparse.csgraph import connected_components
+
 
 def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6):
     """
     Remove small subgraphs (connected components) with fewer than `min_size` nodes
-    and update `input_nodes` and `output_nodes` accordingly.
+    while keeping input_nodes and output_nodes consistent.
 
     Args:
         input_nodes (torch.Tensor): Global node IDs of input nodes in the batch.
         output_nodes (torch.Tensor): Global node IDs of output nodes in the batch.
-        blocks (list of DGLGraph): Mini-batch of graph blocks.
+        blocks (list of DGLBlock): Mini-batch of graph blocks.
         min_size (int): Minimum graph size to keep.
 
     Returns:
@@ -35,48 +39,24 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
     filtered_output_nodes = []
 
     for blk_idx, block in enumerate(blocks):
-        src, dst = block.all_edges()  # Get all edges in the block
+        src, dst = block.edges()  # Get all edges in the block
 
-        # Convert to adjacency matrix
-        num_nodes = block.num_nodes()
-        adj_matrix = torch.zeros((num_nodes, num_nodes), device=block.device)
-        adj_matrix[src, dst] = 1
-        adj_matrix[dst, src] = 1  # Ensure symmetry (undirected graph)
+        # Identify unique nodes in this block
+        unique_nodes = torch.unique(torch.cat([src, dst]))  # Get all connected nodes
 
-        # Identify connected components (independent molecules)
-        num_components, labels = connected_components(csgraph=adj_matrix.cpu().numpy(), directed=False)
+        if unique_nodes.shape[0] >= min_size:  # ✅ Keep only blocks with large enough graphs
+            filtered_blocks.append(block)  # Keep this block
+            filtered_input_nodes.append(input_nodes)  # Keep the same input nodes
+            filtered_output_nodes.append(output_nodes)  # Keep the same output nodes
 
-        # Filter out small graphs
-        keep_nodes = []
-        for i in range(num_components):
-            component_nodes = torch.where(torch.tensor(labels) == i)[0]
-            if len(component_nodes) >= min_size:  # ✅ Keep only large graphs
-                keep_nodes.extend(component_nodes.tolist())
+    if not filtered_blocks:  # If no valid blocks, return empty tensors
+        return (
+            torch.tensor([], dtype=torch.int64, device=input_nodes.device),
+            torch.tensor([], dtype=torch.int64, device=output_nodes.device),
+            []
+        )
 
-        if keep_nodes:
-            filtered_block = dgl.node_subgraph(block, keep_nodes)  # Create subgraph
-            filtered_blocks.append(filtered_block)
-
-            # Map the filtered nodes back to global node indices
-            global_keep_nodes = input_nodes[keep_nodes]
-            filtered_input_nodes.append(global_keep_nodes)
-
-            # Ensure output nodes also remain valid
-            global_keep_output_nodes = output_nodes[keep_nodes]
-            filtered_output_nodes.append(global_keep_output_nodes)
-
-    # Convert to tensors
-    if filtered_input_nodes:
-        filtered_input_nodes = torch.cat(filtered_input_nodes, dim=0)
-    else:
-        filtered_input_nodes = torch.tensor([], dtype=torch.int64, device=input_nodes.device)
-
-    if filtered_output_nodes:
-        filtered_output_nodes = torch.cat(filtered_output_nodes, dim=0)
-    else:
-        filtered_output_nodes = torch.tensor([], dtype=torch.int64, device=output_nodes.device)
-
-    return filtered_input_nodes, filtered_output_nodes, filtered_blocks  # ✅ Keep everything aligned
+    return torch.cat(filtered_input_nodes), torch.cat(filtered_output_nodes), filtered_blocks
 
 
 def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
