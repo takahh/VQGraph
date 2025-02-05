@@ -215,19 +215,20 @@ class SAGE(nn.Module):
         # --- Reindexing for Mini-Batch ---
         # Collect global node IDs from all blocks.
         global_node_ids = set()
-        for block in blocks:
+        for idx, block in enumerate(blocks):
             src, dst = block.all_edges()
 
+            print(idx)
             print("src")
             print(src[:20])
             print("dst")
             print(dst[:20])
 
-            global_node_ids.update(src.tolist())
-            global_node_ids.update(dst.tolist())
-
-        # Sort the global IDs to have a deterministic ordering.
-        global_node_ids = sorted(global_node_ids)
+        #     global_node_ids.update(src.tolist())
+        #     global_node_ids.update(dst.tolist())
+        #
+        # # Sort the global IDs to have a deterministic ordering.
+        # global_node_ids = sorted(global_node_ids)
 
         # Create a mapping: global ID -> local ID (0-indexed)
         # global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
