@@ -231,7 +231,8 @@ class SAGE(nn.Module):
             print(bond_order.shape)
             all_nodes = torch.stack((src, dst), dim=1)
             unique_edges, counts = torch.unique(all_nodes, return_counts=True, dim=0)
-            print(f"count {counts}")
+            print(f"unique_edges {unique_edges.shape}")
+            print(f"unique_edges {unique_edges}")
 
         h = feats  # this is already a subset
 
