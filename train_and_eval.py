@@ -503,8 +503,8 @@ def run_inductive(
         )
         for step, (input_nodes, output_nodes, blocks) in enumerate(obs_dataloader_eval):
             print(f"Batch {step}: -----------------------------------------")
-            print(f"  Input nodes: {input_nodes[:10]}")
-            print(f"  Output nodes: {output_nodes[:10]}")
+            print(f"  Input nodes: {len(input_nodes)}")
+            print(f"  Output nodes: {len(output_nodes)}")
 
         # -------------------------
         # all data, FULL sampling
