@@ -12,7 +12,7 @@ from rdkit.Geometry import Point2D
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 16
+EPOCH = 3
 PATH = "/Users/taka/Documents/vqgraph_0204/"
 
 def getdata(filename):
@@ -85,7 +85,6 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
 
         # Extract subgraph
         mol_adj = adj_matrix[component_indices, :][:, component_indices]
-        print("Adjacency Matrix:\n", mol_adj)
 
         mol_features = feature_matrix[component_indices]
 
@@ -122,8 +121,6 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         for x, y in zip(*np.where(mol_adj > 0)):
             if x < y:  # Avoid duplicate bonds
                 bond_order = int(mol_adj[x, y])  # Extract bond order
-                print("bond_order")
-                print(bond_order)
                 bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
                 mol.AddBond(int(x), int(y), bond_type)
 
@@ -271,18 +268,19 @@ def main():
     path = PATH
     adj_file = f"{path}/sample_adj_{EPOCH}.npz"                     # input data
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
-    # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
+    bond_order_file_0 = f"{path}sample_bond_order_0_{EPOCH}.npz"
+    bond_order_file_1 = f"{path}sample_bond_order_1_{EPOCH}.npz"
 
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
-    # print(f"node id {arr_indices.shape}, class {arr_class.shape}")
-    # print(arr_adj)
-    # print(arr_feat)
+    arr_bond_order_0 = getdata(bond_order_file_0)
+    arr_bond_order_1 = getdata(bond_order_file_1)
+    print("arr_bond_order_0")
+    print(arr_bond_order_0)
     arr_feat = restore_node_feats(arr_feat)
     node_indices = [int(x) for x in arr_indices.tolist()]
-    print(node_indices)
 
     # -------------------------------------
     # rebuild attr matrix

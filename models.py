@@ -365,39 +365,34 @@ class SAGE(nn.Module):
             init_feat = h  # Keep track of the initial features
 
             # --- Remap Edge Indices ---
-            remapped_edge_list = []
-            remapped_bond_orders = []
+            edge_list = []
+            bond_orders = []
 
             for block in blocks:
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
 
                 # Map to local IDs
-                local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
-                local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
-
-                # Add bidirectional edges
-                remapped_edge_list.append((local_src, local_dst))
-                remapped_edge_list.append((local_dst, local_src))
+                # local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
+                # local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
+                #
+                # # Add bidirectional edges
+                edge_list.append((src, dst))
+                edge_list.append((dst, src))
 
                 # Remap bond orders if present
                 if "bond_order" in block.edata:
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-                    remapped_bond_orders.append(bond_order)
-                    remapped_bond_orders.append(bond_order)  # Bidirectional bond orders
+                    bond_orders.append(bond_order)
+                    bond_orders.append(bond_order)  # Bidirectional bond orders
 
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
 
             # Add edges (and bond orders if available)
-            if remapped_bond_orders:
-                for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
-                    g.add_edges(src, dst, data={"bond_order": bond_order})
-            else:
-                for src, dst in remapped_edge_list:
-                    g.add_edges(src, dst)
-
+            for (src, dst), bond_order in zip(edge_list, bond_orders):
+                g.add_edges(src, dst, data={"bond_order": bond_order})
             g = dgl.add_self_loop(g)
 
             # Store adjacency matrix for first batch
@@ -405,6 +400,7 @@ class SAGE(nn.Module):
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
+                sample_bond_orders = bond_orders
 
             # --- Graph Layer Processing ---
             h_list = []
@@ -433,7 +429,7 @@ class SAGE(nn.Module):
 
             if idx == 0:
                 sample_ind = embed_ind
-                sample_list = [sample_ind, sample_feat, sample_adj, remapped_bond_orders]
+                sample_list = [sample_ind, sample_feat, sample_adj, sample_bond_orders]
 
         return h_list, y, loss, dist_all, codebook, [
             div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
