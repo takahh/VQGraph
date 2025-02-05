@@ -232,6 +232,7 @@ class SAGE(nn.Module):
         for node in [853, 1486, 2037, 2071, 3264, 4230, 6614, 7411, 7564, 7754, 9997]:
             neighbors = g.predecessors(node)  # Get incoming edges
             print(f"Node {node} has {len(neighbors)} incoming edges: {neighbors.tolist()}")
+            print(feats[node])
 
         # for block in blocks:
         #     src, dst = block.all_edges()

@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from rdkit.Geometry import Point2D
 import torch
 import numpy as np
+# from torch.utils.tensorboard.summary import image
 
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
@@ -203,7 +204,70 @@ def to_superscript(number):
 #         plt.axis("off")
 #     plt.tight_layout()  # Automatically adjust spacing
 #     plt.show()
+import numpy as np
+from rdkit import Chem
+from rdkit.Chem import Draw
 
+
+
+def adjacency_to_molecule(node_features, adj_matrix):
+    """
+    Convert an adjacency matrix and node features into an RDKit molecule.
+    """
+    image_list = []
+    mol = Chem.RWMol()
+    atom_map = {}  # Maps graph indices to RDKit atom indices
+
+    # Step 1: Add atoms
+    for i, features in enumerate(node_features):
+        atomic_num = int(features[0])  # Atomic number
+        formal_charge = int(features[2])  # Formal charge
+        is_aromatic = bool(features[4])  # Aromaticity
+        in_ring = bool(features[5])  # Ring membership
+
+        atom = Chem.Atom(atomic_num)
+        atom.SetFormalCharge(formal_charge)
+
+        mol_idx = mol.AddAtom(atom)
+        atom_map[i] = mol_idx  # Store mapping
+
+    # Step 2: Add bonds using adjacency matrix
+    num_atoms = len(node_features)
+    for i in range(num_atoms):
+        for j in range(i + 1, num_atoms):  # Avoid duplicate bonds
+            if adj_matrix[i, j] > 0:
+                bond_type = Chem.BondType.SINGLE  # Default to single bond
+
+                # Infer bond order based on known hybridization/aromaticity
+                if node_features[i][3] == 2 and node_features[j][3] == 2:  # sp2 hybridization → Double bond
+                    if not (node_features[i][0] == 8 or node_features[j][0] == 8):  # Oxygen should not exceed valence 2
+                        bond_type = Chem.BondType.DOUBLE
+                elif node_features[i][3] == 1 and node_features[j][3] == 1:  # sp hybridization → Triple bond
+                    bond_type = Chem.BondType.TRIPLE
+
+                # ✅ Only assign AROMATIC bonds if both atoms are in a ring
+                if is_aromatic and in_ring:
+                    bond_type = Chem.BondType.AROMATIC
+
+                mol.AddBond(atom_map[i], atom_map[j], bond_type)
+
+    # Step 3: Convert to a standard RDKit molecule and generate 2D coordinates
+    mol = mol.GetMol()
+    # Chem.SanitizeMol(mol)
+    Chem.rdDepictor.Compute2DCoords(mol)
+
+    AllChem.Compute2DCoords(mol)
+
+    img = Draw.MolToImage(mol, size=(300, 300))
+    image_list.append(img)
+
+    # Display images
+    for i, img in enumerate(image_list):
+        plt.figure()
+        plt.title(f"Molecule {i+1}")
+        plt.imshow(img)
+        plt.axis("off")
+    plt.show()
 
 def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, classes):
     """
@@ -237,6 +301,8 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         mol_adj = adj_matrix[component_indices, :][:, component_indices]
         mol_features = feature_matrix[component_indices]
         np.fill_diagonal(mol_adj, 0)
+
+        adjacency_to_molecule(mol_features, mol_adj)
 
         print(mol_adj)
         print(mol_features)
