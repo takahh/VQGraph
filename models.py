@@ -224,32 +224,11 @@ class SAGE(nn.Module):
             print("dst")
             print(dst[:20])
 
-        #     global_node_ids.update(src.tolist())
-        #     global_node_ids.update(dst.tolist())
-        #
-        # # Sort the global IDs to have a deterministic ordering.
-        # global_node_ids = sorted(global_node_ids)
+        h = feats  # this is already a subset
 
-        # Create a mapping: global ID -> local ID (0-indexed)
-        # global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
-        # print("Number of nodes in mini-batch:", len(global_to_local))
-        # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
-
-        # Create an index tensor from global_node_ids on the correct device.
-        # idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
-
-        # *** Reindex the feature tensor and the initial features ***
-        # This ensures both h and init_feat only have the mini-batch nodes.
-        # h = h[idx_tensor]
-        # init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
-        h = feats
-        print("feats.shape")
-        print(feats.shape)
-
-        # --- Remap Edge Indices and Bond Orders ---
-        remapped_edge_list = []
-        remapped_bond_orders = []  # List to hold bond orders, if available
-
+        bond_order = blocks[0].edata["bond_order"].to(torch.float32).to(device)
+        print("bond_order")
+        print(bond_order)
         # for block in blocks:
         #     src, dst = block.all_edges()
         #     src = src.to(torch.int64)
@@ -276,13 +255,13 @@ class SAGE(nn.Module):
         g = dgl.DGLGraph().to(device)
         g.add_nodes(len(global_node_ids))
 
-        # Add edges along with bond order features if available.
-        if remapped_bond_orders:
-            for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
-                g.add_edges(src, dst, data={"bond_order": bond_order})
-        else:
-            for src, dst in remapped_edge_list:
-                g.add_edges(src, dst)
+        # # Add edges along with bond order features if available.
+        # if remapped_bond_orders:
+        #     for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
+        #         g.add_edges(src, dst, data={"bond_order": bond_order})
+        # else:
+        #     for src, dst in remapped_edge_list:
+        #         g.add_edges(src, dst)
 
         # Optionally add self-loops (if desired)
         g = dgl.add_self_loop(g)
