@@ -15,6 +15,10 @@ import dgl
 import torch
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
+import dgl
+import torch
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import csr_matrix
 
 def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6):
     """
@@ -70,8 +74,8 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
             global_keep_nodes = input_nodes[keep_nodes]  # Convert local to global node indices
 
             # ✅ Ensure only valid indices are used
-            valid_input_nodes = input_nodes[(input_nodes <= 9999) & input_nodes.isin(global_keep_nodes)]
-            valid_output_nodes = output_nodes[(output_nodes <= 9999) & output_nodes.isin(global_keep_nodes)]
+            valid_input_nodes = input_nodes[(input_nodes <= 9999) & torch.isin(input_nodes, global_keep_nodes)]
+            valid_output_nodes = output_nodes[(output_nodes <= 9999) & torch.isin(output_nodes, global_keep_nodes)]
 
             filtered_input_nodes.append(valid_input_nodes)
             filtered_output_nodes.append(valid_output_nodes)
