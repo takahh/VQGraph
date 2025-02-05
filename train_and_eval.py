@@ -47,9 +47,10 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
 
         # Convert adjacency to CPU for `connected_components`
         adj_matrix_np = adj_matrix.cpu().numpy()
-
+        print(f"adj_matrix_np {adj_matrix_np}")
         # Identify connected components (independent small graphs)
         num_components, labels = connected_components(csgraph=adj_matrix_np, directed=False)
+        print(f"labels {labels}")
 
         # Filter out small graphs
         keep_nodes = []
