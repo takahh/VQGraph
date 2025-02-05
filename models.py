@@ -211,6 +211,8 @@ class SAGE(nn.Module):
         # --- Preprocess Node Features ---
         # Ensure h requires gradients and apply your transformation.
         h = feats.clone() if not feats.requires_grad else feats
+        print("h.shape +++++++++++++++++++++!!!!!!!!!!")
+        print(h.shape)
         # h = transform_node_feats(h)  # Your custom transformation
         init_feat = h.clone()  # Store initial features (for later use)
         torch.save(init_feat, "/h.pt")  # Save for reference
@@ -228,7 +230,7 @@ class SAGE(nn.Module):
 
         # Sort the global IDs to have a deterministic ordering.
         global_node_ids = sorted(global_node_ids)
-
+        print(f"global_node_ids: {global_node_ids[:20]}, {global_node_ids[-20:]}")
         # Create a mapping: global ID -> local ID (0-indexed)
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
         # print("Number of nodes in mini-batch:", len(global_to_local))
