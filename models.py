@@ -229,10 +229,11 @@ class SAGE(nn.Module):
         isolated_nodes = torch.where(in_degrees == 0)[0]  # Get node indices with no incoming edges
 
         print(f"🚨 Isolated nodes (zero in-degree): {isolated_nodes.tolist()}")
-        for node in [853, 1486, 2037, 2071, 3264, 4230, 6614, 7411, 7564, 7754, 9997]:
-            neighbors = g.predecessors(node)  # Get incoming edges
-            print(f"Node {node} has {len(neighbors)} incoming edges: {neighbors.tolist()}")
-            print(feats[node])
+        # for node in [853, 1486, 2037, 2071, 3264, 4230, 6614, 7411, 7564, 7754, 9997]:
+        print("feats[850:860]")
+        print(feats[850:860])
+        print("feats[853]")
+        print(feats[853])
 
         # for block in blocks:
         #     src, dst = block.all_edges()
