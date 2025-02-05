@@ -213,6 +213,7 @@ class SAGE(nn.Module):
         device = h.device
         g = dgl.DGLGraph().to(device)
         g.add_nodes(h.shape[0])
+        print(f"NUMBER of NODEs is {h.shape[0]}")
         # --- Reindexing for Mini-Batch ---
         # Collect global node IDs from all blocks.
         for idx, block in enumerate(blocks):
@@ -221,8 +222,7 @@ class SAGE(nn.Module):
             dst = dst.type(torch.int64)
             g.add_edges(src,dst)
             g.add_edges(dst,src)
-            g.add_nodes(src)
-            g.add_nodes(dst)
+            print(f"min, max  {min(src), min(dst)}")
             bond_order = block.edata["bond_order"].to(torch.float32).to(device)
 
         import torch
