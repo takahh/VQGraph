@@ -46,7 +46,7 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
         adj_matrix[src, dst] = 1
         adj_matrix[dst, src] = 1  # Ensure symmetry (undirected graph)
 
-        print(f"num_nodes {num_nodes}")
+        print(f"adj_matrix {adj_matrix}")
         # Convert adjacency to CPU for `connected_components`
         adj_matrix_np = adj_matrix.cpu().numpy()
         print(f"adj_matrix_np {adj_matrix_np}")
