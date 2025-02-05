@@ -57,6 +57,12 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
             if len(valid_nodes) >= min_size:
                 keep_nodes.extend(valid_nodes)
 
+        print(f"keep_nodes {keep_nodes[:20]}  {keep_nodes[-20:]}")
+        print(f"keep_nodes len {len(keep_nodes)}")
+        print(f"input_nodes {input_nodes[:20]}  {input_nodes[-20:]}")
+        print(f"input_nodes len {len(input_nodes)}")
+        print(f"output_nodes {output_nodes[:20]}  {output_nodes[-20:]}")
+        print(f"output_nodes len {len(output_nodes)}")
         if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
 
@@ -163,12 +169,6 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
         input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6)
         print(f"filtered input nodes {len(input_nodes)}")
 
-        print(f"keep_nodes {keep_nodes[:20]}  {keep_nodes[-20:]}")
-        print(f"keep_nodes len {len(keep_nodes)}")
-        print(f"input_nodes {input_nodes[:20]}  {input_nodes[-20:]}")
-        print(f"input_nodes len {len(input_nodes)}")
-        print(f"output_nodes {output_nodes[:20]}  {output_nodes[-20:]}")
-        print(f"output_nodes len {len(output_nodes)}")
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         # print(f"batch_feats {batch_feats[:30]}")
