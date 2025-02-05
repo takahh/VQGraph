@@ -364,7 +364,8 @@ class SAGE(nn.Module):
             print(batch_feats.shape[0])
             print(idx_tensor)
             assert torch.max(idx_tensor) < batch_feats.shape[0], "Index out of bounds in batch_feats!"
-            h = batch_feats[idx_tensor]
+            # h = batch_feats[idx_tensor]
+            h = batch_feats
             init_feat = h  # Keep track of the initial features
 
             # --- Remap Edge Indices ---
