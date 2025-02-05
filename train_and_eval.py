@@ -37,6 +37,7 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
     filtered_output_nodes = []
 
     for blk_idx, block in enumerate(blocks):
+        print(f"blk_idx {blk_idx}")
         src, dst = block.edges()  # Get all edges in the block
 
         # Create adjacency matrix
@@ -45,6 +46,7 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
         adj_matrix[src, dst] = 1
         adj_matrix[dst, src] = 1  # Ensure symmetry (undirected graph)
 
+        print(f"num_nodes {num_nodes}")
         # Convert adjacency to CPU for `connected_components`
         adj_matrix_np = adj_matrix.cpu().numpy()
         print(f"adj_matrix_np {adj_matrix_np}")
