@@ -19,11 +19,15 @@ import dgl
 import torch
 from scipy.sparse.csgraph import connected_components
 
+import dgl
+import torch
+from scipy.sparse.csgraph import connected_components
+
 
 def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6):
     """
     Remove small subgraphs (connected components) with fewer than `min_size` nodes
-    while keeping input_nodes and output_nodes consistent.
+    while keeping `input_nodes` and `output_nodes` correctly aligned.
 
     Args:
         input_nodes (torch.Tensor): Global node IDs of input nodes in the batch.
@@ -46,8 +50,13 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
 
         if unique_nodes.shape[0] >= min_size:  # ✅ Keep only blocks with large enough graphs
             filtered_blocks.append(block)  # Keep this block
-            filtered_input_nodes.append(input_nodes)  # Keep the same input nodes
-            filtered_output_nodes.append(output_nodes)  # Keep the same output nodes
+
+            # ✅ Keep only input/output nodes that are present in this block
+            valid_input_nodes = input_nodes[unique_nodes]  # Slice input nodes correctly
+            valid_output_nodes = output_nodes[unique_nodes]  # Slice output nodes correctly
+
+            filtered_input_nodes.append(valid_input_nodes)
+            filtered_output_nodes.append(valid_output_nodes)
 
     if not filtered_blocks:  # If no valid blocks, return empty tensors
         return (
