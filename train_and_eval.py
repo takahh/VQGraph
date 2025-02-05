@@ -507,28 +507,6 @@ def run_inductive(
             output_nodes = torch.unique(output_nodes, dim=0)
             print(f"  Input nodes: {len(input_nodes)}")
             print(f"  Output nodes: {len(output_nodes)}")
-        for idx, block in enumerate(blocks):
-            src, dst = block.all_edges()
-
-            print(idx)
-            print("src")
-            print(src[:20])
-            print(src.shape)
-            print("dst")
-            print(dst[:20])
-            print(dst.shape)
-            all_nodes = torch.cat((src, dst), dim=0)
-            print(f"all_nodes {all_nodes.shape}")
-            unique_nodes = torch.unique(all_nodes, dim=0)
-            print(f"unique_edges {unique_nodes.shape}")
-            print(f"unique_edges {unique_nodes}")
-            mask = torch.isin(input_nodes, unique_nodes)
-            missing_nodes = input_nodes[~mask]
-            print(f"Nodes in input_nodes but missing in bond order data: {missing_nodes.shape[0]}")
-            mask = torch.isin(output_nodes, unique_nodes)
-            missing_nodes = output_nodes[~mask]
-            print(f"Nodes in output_nodes but missing in bond order data: {missing_nodes.shape[0]}")
-
 
         # -------------------------
         # all data, FULL sampling
@@ -711,8 +689,8 @@ def run_inductive(
             np.savez(f"./sample_emb_ind_{epoch}", sample_list1[0].cpu())
             np.savez(f"./sample_node_feat_{epoch}", sample_list1[1].cpu())
             np.savez(f"./sample_adj_{epoch}", sample_list1[2].cpu()[:1000, :1000])
-            print("sample_list1[2].cpu()[:1000, :1000].shape")
-            print(sample_list1[2].cpu()[:1000, :1000].shape)
+            np.savez(f"./sample_bond_order_0_{epoch}", sample_list1[3].cpu()[0][0])
+            np.savez(f"./sample_bond_order_1_{epoch}", sample_list1[3].cpu()[0][1])
             # print("sample_list1[4] len")
             # print(len(sample_list1[4]))
             # print("len(sample_list1[4][0])")

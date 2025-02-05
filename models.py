@@ -433,7 +433,7 @@ class SAGE(nn.Module):
 
             if idx == 0:
                 sample_ind = embed_ind
-                sample_list = [sample_ind, sample_feat, sample_adj]
+                sample_list = [sample_ind, sample_feat, sample_adj, remapped_bond_orders]
 
         return h_list, y, loss, dist_all, codebook, [
             div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,

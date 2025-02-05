@@ -1,19 +1,19 @@
 import numpy as np
 from rdkit.Chem import Draw
 from scipy.sparse import csr_matrix
-# np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=np.inf)
 from rdkit import Chem
 from scipy.sparse.csgraph import connected_components
+import numpy as np
 from icecream import ic
 import matplotlib.pyplot as plt
 from rdkit.Geometry import Point2D
-import torch
-import numpy as np
-# from torch.utils.tensorboard.summary import image
 
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
+EPOCH = 16
+PATH = "/Users/taka/Documents/vqgraph_0204/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -53,340 +53,155 @@ def to_superscript(number):
     return "".join(superscript_map.get(char, char) for char in str(number))
 
 
-# def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, classes):
-#     """
-#     Visualizes molecules with node classes shown near the atoms.
-#
-#     Args:
-#         adj_matrix (scipy.sparse.csr_matrix): Combined adjacency matrix for all molecules.
-#         feature_matrix (numpy.ndarray): Node feature matrix. First column is atomic numbers.
-#         indices_file (str): Path to file containing node indices for all atoms.
-#         class_file (str): Path to file containing classes for the nodes.
-#
-#     Returns:
-#         None: Displays molecule images with annotated classes near atoms.
-#     """
-#     # Step 1: Load indices and classes
-#     node_indices = list(range(8000))
-#     # Map node indices to classes
-#     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
-#
-#     # Step 2: Identify connected components (molecules)
-#     n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
-#     print(n_components)
-#     # Step 3: Extract and annotate molecules
-#     images = []
-#     for i in range(n_components - 2):
-#         print(f"$$$$$$$$$$$$$$$$$$$. {i}")
-#         # Get node indices for this molecule
-#         component_indices = np.where(labels == i)[0]
-#
-#         # Extract subgraph
-#         mol_adj = adj_matrix[component_indices, :][:, component_indices]
-#         print("Adjacency Matrix:\n", mol_adj)
-#
-#         mol_features = feature_matrix[component_indices]
-#
-#         # Create RDKit molecule
-#         mol = Chem.RWMol()
-#
-#         # Add atoms and annotate classes
-#         atom_labels = {}
-#         for idx, features in zip(component_indices, mol_features):
-#             atomic_num = int(features[0])  # First element is the atomic number
-#             atom = Chem.Atom(atomic_num)
-#             atom_idx = mol.AddAtom(atom)
-#             print("------")
-#             print(atom_idx)
-#             print(features)
-#             # Annotate with superscript class label
-#             class_label = node_to_class.get(idx, "Unknown")
-#             if class_label != "Unknown":
-#                 class_label_sup = to_superscript(class_label)
-#                 atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
-#             else:
-#                 atom_labels[atom_idx] = Chem.GetPeriodicTable().GetElementSymbol(atomic_num)
-#             # print(atom_labels[atom_idx])
-#                 # Annotate with inline format
-#
-#         # # Add bonds
-#         # for x, y in zip(*np.where(mol_adj > 0)):
-#         #     if x < y:  # Avoid duplicate bonds
-#         #         # mol.AddBond(int(x), int(y), Chem.BondType.SINGLE)
-#
-#         # Add bonds with correct bond order
-#         bond_type_map = {1: Chem.BondType.SINGLE,
-#                          2: Chem.BondType.DOUBLE,
-#                          3: Chem.BondType.TRIPLE,
-#                          4: Chem.BondType.AROMATIC}  # Assuming 4 means aromatic
-#
-#         for x, y in zip(*np.where(mol_adj > 0)):
-#             if x < y:  # Avoid duplicate bonds
-#                 bond_order = int(mol_adj[x, y])  # Extract bond order
-#                 bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
-#                 mol.AddBond(int(x), int(y), bond_type)
-#
-#         for x, y in zip(*np.where(mol_adj > 0)):
-#             if x < y:
-#                 print(f"Bond {x}-{y}, Order: {mol_adj[x, y]}")
-#
-#         Chem.SanitizeMol(mol)  # Fixes valence issues
-#         Chem.Kekulize(mol, clearAromaticFlags=True)  # Ensures explicit representation
-#
-#         # Compute 2D coordinates for proper display
-#         AllChem.Compute2DCoords(mol)
-#
-#         # Ensure bonds are explicitly drawn
-#         Chem.Kekulize(mol, clearAromaticFlags=True)
-#
-#         # Sanitize molecule
-#         Chem.SanitizeMol(mol)
-#         drawer = Draw.MolDraw2DCairo(CANVAS_WIDTH, CANVAS_HEIGHT)  # Increase the size (width, height)
-#         options = drawer.drawOptions()
-#         options.bondLineWidth = 2  # Make bonds thicker if needed
-#         options.scaleBondWidth = True  # Scale bond width relative to image size
-#         options.atomLabelFontSize = FONTSIZE
-#         options.atomLabelPadding = 0.4  # Default is 0.2; increase for more space between labels
-#
-#         for idx, label in atom_labels.items():
-#             options.atomLabels[idx] = label  # Assign custom labels to atoms
-#
-#         # Calculate and set the scale
-#         minv, maxv = compute_molecule_bounds(mol)
-#
-#         # Set canvas dimensions
-#         canvas_width = CANVAS_WIDTH
-#         canvas_height = CANVAS_HEIGHT
-#
-#         # Calculate molecule dimensions
-#         mol_width = maxv.x - minv.x
-#         mol_height = maxv.y - minv.y
-#
-#         # Add padding
-#         padding = 0.1
-#         mol_width_with_padding = mol_width * (1 + padding)
-#         mol_height_with_padding = mol_height * (1 + padding)
-#
-#         # Calculate scale
-#         scale_x = canvas_width / mol_width_with_padding
-#         scale_y = canvas_height / mol_height_with_padding
-#         scale = min(scale_x, scale_y)
-#
-#         # Center the molecule
-#         center_x = (canvas_width / scale - mol_width) / 2 - minv.x
-#         center_y = (canvas_height / scale - mol_height) / 2 - minv.y
-#
-#         # Center the molecule (convert to integers for SetOffset)
-#         center_x = int((canvas_width / scale - mol_width) / 2 - minv.x)
-#         center_y = int((canvas_height / scale - mol_height) / 2 - minv.y)
-#
-#         drawer.SetOffset(center_x, center_y)
-#
-#         # Draw the molecule
-#         drawer.DrawMolecule(mol)
-#         drawer.FinishDrawing()
-#
-#         # Get the binary image data
-#         img_data = drawer.GetDrawingText()
-#
-#         # Convert binary image data to an image
-#         from PIL import Image
-#         from io import BytesIO
-#
-#         img = Image.open(BytesIO(img_data))
-#         images.append(img)
-#
-#     # Step 4: Display images
-#     for i, img in enumerate(images):
-#         plt.figure(dpi=150)
-#         plt.title(f"Molecule {i+1}")
-#         plt.imshow(img)
-#         plt.axis("off")
-#     plt.tight_layout()  # Automatically adjust spacing
-#     plt.show()
-import numpy as np
-from rdkit import Chem
-from rdkit.Chem import Draw
-
-
-
-def adjacency_to_molecule(node_features, adj_matrix):
-    """
-    Convert an adjacency matrix and node features into an RDKit molecule.
-    """
-    image_list = []
-    mol = Chem.RWMol()
-    atom_map = {}  # Maps graph indices to RDKit atom indices
-
-    # Step 1: Add atoms
-    for i, features in enumerate(node_features):
-        atomic_num = int(features[0])  # Atomic number
-        formal_charge = int(features[2])  # Formal charge
-        is_aromatic = bool(features[4])  # Aromaticity
-        in_ring = bool(features[5])  # Ring membership
-
-        atom = Chem.Atom(atomic_num)
-        atom.SetFormalCharge(formal_charge)
-
-        mol_idx = mol.AddAtom(atom)
-        atom_map[i] = mol_idx  # Store mapping
-
-    # Step 2: Add bonds using adjacency matrix
-    num_atoms = len(node_features)
-    for i in range(num_atoms):
-        for j in range(i + 1, num_atoms):  # Avoid duplicate bonds
-            if adj_matrix[i, j] > 0:
-                bond_type = Chem.BondType.SINGLE  # Default to single bond
-
-                # Infer bond order based on known hybridization/aromaticity
-                if node_features[i][3] == 2 and node_features[j][3] == 2:  # sp2 hybridization → Double bond
-                    if not (node_features[i][0] == 8 or node_features[j][0] == 8):  # Oxygen should not exceed valence 2
-                        bond_type = Chem.BondType.DOUBLE
-                elif node_features[i][3] == 1 and node_features[j][3] == 1:  # sp hybridization → Triple bond
-                    bond_type = Chem.BondType.TRIPLE
-
-                # ✅ Only assign AROMATIC bonds if both atoms are in a ring
-                if is_aromatic and in_ring:
-                    bond_type = Chem.BondType.AROMATIC
-
-                mol.AddBond(atom_map[i], atom_map[j], bond_type)
-
-    # Step 3: Convert to a standard RDKit molecule and generate 2D coordinates
-    mol = mol.GetMol()
-    # Chem.SanitizeMol(mol)
-    Chem.rdDepictor.Compute2DCoords(mol)
-
-    AllChem.Compute2DCoords(mol)
-
-    img = Draw.MolToImage(mol, size=(300, 300))
-    image_list.append(img)
-
-    # Display images
-    for i, img in enumerate(image_list):
-        plt.figure()
-        plt.title(f"Molecule {i+1}")
-        plt.imshow(img)
-        plt.axis("off")
-    plt.show()
-
 def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, classes):
     """
-    Visualizes molecules with correct bond orders.
+    Visualizes molecules with node classes shown near the atoms.
 
     Args:
-        adj_matrix (scipy.sparse.csr_matrix): Adjacency matrix defining connectivity.
-        bond_matrix (scipy.sparse.csr_matrix): Bond order matrix with values 1, 2, 3, or 4.
-        feature_matrix (numpy.ndarray): Node feature matrix (first column is atomic numbers).
-        indices_file (str): File with node indices for atoms.
-        classes (list): Node classes.
+        adj_matrix (scipy.sparse.csr_matrix): Combined adjacency matrix for all molecules.
+        feature_matrix (numpy.ndarray): Node feature matrix. First column is atomic numbers.
+        indices_file (str): Path to file containing node indices for all atoms.
+        class_file (str): Path to file containing classes for the nodes.
 
     Returns:
-        None: Displays molecule images.
+        None: Displays molecule images with annotated classes near atoms.
     """
-    # Load node indices
-    node_indices = list(range(8000))  # Adjust based on actual data
+    # Step 1: Load indices and classes
+    node_indices = list(range(8000))
+    # Map node indices to classes
     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
 
-    # Identify connected components (molecules)
+    # Step 2: Identify connected components (molecules)
     n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
 
+    # Step 3: Extract and annotate molecules
     images = []
-    for k in range(n_components - 2):
-        print(f"Processing molecule {k}")
-
-        # Get indices of nodes in this molecule
-        component_indices = np.where(labels == k)[0]
+    for i in range(n_components - 2):
+        if i == 0:
+            continue
+        print(f"$$$$$$$$$$$$$$$$$$$. {i}")
+        # Get node indices for this molecule
+        component_indices = np.where(labels == i)[0]
 
         # Extract subgraph
         mol_adj = adj_matrix[component_indices, :][:, component_indices]
+        print("Adjacency Matrix:\n", mol_adj)
+
         mol_features = feature_matrix[component_indices]
-        np.fill_diagonal(mol_adj, 0)
 
-        adjacency_to_molecule(mol_features, mol_adj)
-
-        print(mol_adj)
-        print(mol_features)
         # Create RDKit molecule
         mol = Chem.RWMol()
-        atom_map = {}  # Maps graph indices to RDKit atom indices
 
-        # Add atoms
-        for idx, features in enumerate(mol_features):
-            atomic_num = int(features[0])  # Atomic number
-            formal_charge = int(features[2])  # Formal charge
-            hybridization = int(features[3])  # Hybridization (numeric)
-            is_aromatic = bool(features[4])  # **Possible** aromaticity
-            in_ring = bool(features[5])  # **Possible** ring membership
-
+        # Add atoms and annotate classes
+        atom_labels = {}
+        for idx, features in zip(component_indices, mol_features):
+            atomic_num = int(features[0])  # First element is the atomic number
             atom = Chem.Atom(atomic_num)
-            atom.SetFormalCharge(formal_charge)
+            atom_idx = mol.AddAtom(atom)
+            # Annotate with superscript class label
+            class_label = node_to_class.get(idx, "Unknown")
+            if class_label != "Unknown":
+                class_label_sup = to_superscript(class_label)
+                atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
+            else:
+                atom_labels[atom_idx] = Chem.GetPeriodicTable().GetElementSymbol(atomic_num)
+            # print(atom_labels[atom_idx])
+                # Annotate with inline format
 
-            # ✅ Do NOT set IsAromatic until molecule is built (RDKit handles this better)
-            mol_idx = mol.AddAtom(atom)
-            atom_map[idx] = mol_idx  # Store mapping
+        # # Add bonds
+        # for x, y in zip(*np.where(mol_adj > 0)):
+        #     if x < y:  # Avoid duplicate bonds
+        #         # mol.AddBond(int(x), int(y), Chem.BondType.SINGLE)
 
-        num_atoms = len(mol_features)  # ✅ Corrected num_atoms calculation
+        # Add bonds with correct bond order
+        bond_type_map = {1: Chem.BondType.SINGLE,
+                         2: Chem.BondType.DOUBLE,
+                         3: Chem.BondType.TRIPLE,
+                         4: Chem.BondType.AROMATIC}  # Assuming 4 means aromatic
 
-        # Step 2: Add bonds using adjacency matrix
-        for i in range(num_atoms):
-            for j in range(i + 1, num_atoms):  # Avoid duplicate bonds
-                if mol_adj[i, j] > 0:
-                    bond_type = Chem.BondType.SINGLE  # Default to single bond
+        for x, y in zip(*np.where(mol_adj > 0)):
+            if x < y:  # Avoid duplicate bonds
+                bond_order = int(mol_adj[x, y])  # Extract bond order
+                print("bond_order")
+                print(bond_order)
+                bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
+                mol.AddBond(int(x), int(y), bond_type)
 
-                    # Infer bond order based on hybridization and aromaticity
-                    if mol_features[i][3] == 2 and mol_features[j][
-                        3] == 2:  # sp2 hybridization → Possible double bond
-                        if not (mol_features[i][0] == 8 or mol_features[j][
-                            0] == 8):  # Oxygen (atomic num 8) should not exceed valence 2
-                            bond_type = Chem.BondType.DOUBLE
-                    if mol_features[i][3] == 1 and mol_features[j][3] == 1:  # sp hybridization → Triple bond
-                        bond_type = Chem.BondType.TRIPLE
-
-                    # ✅ Only assign AROMATIC bonds if RDKit later detects a ring
-                    if mol_features[i][4] == 1 and mol_features[j][4] == 1:
-                        bond_type = Chem.BondType.SINGLE  # Default to SINGLE
-                        atom_i = mol.GetAtomWithIdx(atom_map[i])
-                        atom_j = mol.GetAtomWithIdx(atom_map[j])
-
-                        # ✅ Only assign AROMATIC bonds if both are actually in a ring
-                        if atom_i.IsInRing() and atom_j.IsInRing():
-                            bond_type = Chem.BondType.AROMATIC  # ✅ Corrected aromatic bond assignment
-
-                    mol.AddBond(atom_map[i], atom_map[j], bond_type)
-
-        mol = mol.GetMol()  # ✅ Convert to RDKit Mol for processing
-
-        # ✅ Now safely set aromaticity AFTER molecule construction
-        for atom in mol.GetAtoms():
-            if mol_features[atom.GetIdx()][4] == 1 and atom.IsInRing():  # Only mark aromatic atoms in rings
-                atom.SetIsAromatic(True)
-
-        # ✅ Debugging: Check ring membership
-        for atom in mol.GetAtoms():
-            print(
-                f"Atom {atom.GetIdx()}: RDKit Ring={atom.IsInRing()}, FeatureMatrix Ring={mol_features[atom.GetIdx()][5]}")
-
-        print("Checking aromatic atoms before sanitization:")
-        for atom in mol.GetAtoms():
-            if atom.GetIsAromatic() and not atom.IsInRing():
-                print(f"🚨 ERROR: Atom {atom.GetIdx()} is aromatic but not in a ring! Removing aromatic flag.")
-                atom.SetIsAromatic(False)  # ✅ Fix RDKit Kekulization error
-
-        # Sanitize and Draw Molecule
-        Chem.SanitizeMol(mol)
+        # Compute 2D coordinates for proper display
         AllChem.Compute2DCoords(mol)
 
-        img = Draw.MolToImage(mol, size=(300, 300))
+        # Ensure bonds are explicitly drawn
+        Chem.Kekulize(mol, clearAromaticFlags=True)
+
+        # Sanitize molecule
+        Chem.SanitizeMol(mol)
+        drawer = Draw.MolDraw2DCairo(CANVAS_WIDTH, CANVAS_HEIGHT)  # Increase the size (width, height)
+        options = drawer.drawOptions()
+        options.bondLineWidth = 2  # Make bonds thicker if needed
+        options.scaleBondWidth = True  # Scale bond width relative to image size
+        options.atomLabelFontSize = FONTSIZE
+        options.atomLabelPadding = 0.4  # Default is 0.2; increase for more space between labels
+
+        for idx, label in atom_labels.items():
+            options.atomLabels[idx] = label  # Assign custom labels to atoms
+
+        # Calculate and set the scale
+        minv, maxv = compute_molecule_bounds(mol)
+
+        # Set canvas dimensions
+        canvas_width = CANVAS_WIDTH
+        canvas_height = CANVAS_HEIGHT
+
+        # Calculate molecule dimensions
+        mol_width = maxv.x - minv.x
+        mol_height = maxv.y - minv.y
+
+        # Add padding
+        padding = 0.1
+        mol_width_with_padding = mol_width * (1 + padding)
+        mol_height_with_padding = mol_height * (1 + padding)
+
+        # Calculate scale
+        scale_x = canvas_width / mol_width_with_padding
+        scale_y = canvas_height / mol_height_with_padding
+        scale = min(scale_x, scale_y)
+
+        # Center the molecule
+        center_x = (canvas_width / scale - mol_width) / 2 - minv.x
+        center_y = (canvas_height / scale - mol_height) / 2 - minv.y
+
+        # Center the molecule (convert to integers for SetOffset)
+        center_x = int((canvas_width / scale - mol_width) / 2 - minv.x)
+        center_y = int((canvas_height / scale - mol_height) / 2 - minv.y)
+
+        drawer.SetOffset(center_x, center_y)
+
+        # Draw the molecule
+        drawer.DrawMolecule(mol)
+        drawer.FinishDrawing()
+
+        # Get the binary image data
+        img_data = drawer.GetDrawingText()
+
+        # Convert binary image data to an image
+        from PIL import Image
+        from io import BytesIO
+
+        img = Image.open(BytesIO(img_data))
         images.append(img)
 
-
-    # Display images
+    # Step 4: Display images
     for i, img in enumerate(images):
-        plt.figure()
+        plt.figure(dpi=150)
         plt.title(f"Molecule {i+1}")
         plt.imshow(img)
         plt.axis("off")
+    plt.tight_layout()  # Automatically adjust spacing
     plt.show()
+
+import torch
+import torch
+import numpy as np
 
 def restore_node_feats(transformed):
     # Convert to PyTorch tensor if it's a NumPy array
@@ -453,33 +268,46 @@ def restore_node_feats(transformed):
 
 
 def main():
-    PATH = "/Users/taka/Documents/vqgraph_0204/"
     path = PATH
-    EPOCH = 2
     adj_file = f"{path}/sample_adj_{EPOCH}.npz"                     # input data
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
+    # indices_file = f"{path}idx_test_ind_tosave_first8000_1.npz"  #
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
-    bond_file = f"{path}sample_bond_order_{EPOCH}.npz"
-    bond_to_edge_file_0 = f"{path}sample_bond_to_edge_{EPOCH}_0.npz"
-    bond_to_edge_file_1 = f"{path}sample_bond_to_edge_{EPOCH}_1.npz"
 
-    # arr_bond = getdata(bond_file)   # indices of the input
-    # arr_bond_to_edge_0 = getdata(bond_to_edge_file_0)   # indices of the input
-    # arr_bond_to_edge_1 = getdata(bond_to_edge_file_1)   # indices of the input
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
+    # print(f"node id {arr_indices.shape}, class {arr_class.shape}")
+    # print(arr_adj)
+    # print(arr_feat)
     arr_feat = restore_node_feats(arr_feat)
     node_indices = [int(x) for x in arr_indices.tolist()]
     print(node_indices)
 
-    # Ensure bond_matrix is 2D
-    # if len(arr_bond.shape) == 1:
-    #     arr_bond = arr_bond.reshape(arr_adj.shape)  # Reshape to adjacency matrix size
+    # -------------------------------------
+    # rebuild attr matrix
+    # -------------------------------------
+    # attr_data = arr_input["attr_data"]
+    # attr_indices = arr_input["attr_indices"]
+    # attr_indptr = arr_input["attr_indptr"]
+    # attr_shape = arr_input["attr_shape"]
+    # attr_matrix = csr_matrix((attr_data, attr_indices, attr_indptr), shape=attr_shape)
+    # ic(node_indices[0])
+    # subset_attr_matrix = attr_matrix[node_indices[0]:node_indices[0] + 200, :].toarray()
+    # subset_attr_matrix = attr_matrix.toarray()
+
+    # -------------------------------------
+    # rebuild adj matrix
+    # -------------------------------------
+    # Assuming you have these arrays from your input
+    # adj_data = arr_input["adj_data"]
+    # adj_indices = arr_input["adj_indices"]
+    # adj_indptr = arr_input["adj_indptr"]
+    # adj_shape = arr_input["adj_shape"]
+    # Reconstruct the sparse adjacency matrix
+    # adj_matrix = csr_matrix((adj_data, adj_indices, adj_indptr), shape=adj_shape)
     subset_adj_matrix = arr_adj[0:200, 0:200]
     subset_attr_matrix = arr_feat[:200]
-    # subset_bond_matrix = arr_bond[:200, :200]
-
     # -------------------------------------
     # split the matrix into molecules
     # -------------------------------------
