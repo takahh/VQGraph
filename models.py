@@ -389,7 +389,6 @@ class SAGE(nn.Module):
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                     bond_orders.append(bond_order)
                     bond_orders.append(bond_order)  # Bidirectional bond orders
-                    print(bond_orders)
 
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
@@ -411,6 +410,7 @@ class SAGE(nn.Module):
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
                 sample_bond_orders = bond_orders
+                print(sample_bond_orders)
 
             # --- Graph Layer Processing ---
             h_list = []
