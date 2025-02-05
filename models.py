@@ -410,8 +410,6 @@ class SAGE(nn.Module):
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
                 sample_bond_orders = bond_orders
-                print("sample_bond_orders")
-                print(sample_bond_orders)
 
             # --- Graph Layer Processing ---
             h_list = []
