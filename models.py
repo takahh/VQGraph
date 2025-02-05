@@ -398,6 +398,7 @@ class SAGE(nn.Module):
                 for src, dst in edge_list:
                     g.add_edges(src, dst)
             g = dgl.add_self_loop(g)  # ✅ Add self-loops to prevent zero in-degree nodes
+            h = h[:g.num_nodes()]  # Adjust size if needed
 
             # Store adjacency matrix for first batch
             if idx == 0:
