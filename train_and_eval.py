@@ -57,7 +57,8 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
             component_nodes = torch.where(torch.tensor(labels) == i)[0].to(input_nodes.device)
             if len(component_nodes) >= min_size:  # ✅ Keep only large graphs
                 keep_nodes.extend(component_nodes.tolist())
-
+        print(f"keep_nodes: {keep_nodes}")
+        print(f"input_nodes: {input_nodes}")
         if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
 
