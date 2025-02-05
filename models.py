@@ -6,6 +6,8 @@ from dgl.nn import GraphConv, SAGEConv, APPNPConv, GATConv
 from vq import VectorQuantize
 import dgl
 from train_and_eval import transform_node_feats
+from train_and_eval import filter_small_graphs_from_blocks
+from scipy.sparse.csgraph import connected_components
 
 
 class MLP(nn.Module):
@@ -158,6 +160,10 @@ class GCN(nn.Module):
 #
 #     return sparsity_loss
 
+import dgl
+import torch
+from scipy.sparse.csgraph import connected_components
+
 
 class SAGE(nn.Module):
     def __init__(
@@ -275,7 +281,7 @@ class SAGE(nn.Module):
                 g.add_edges(src, dst)
 
         # Optionally add self-loops (if desired)
-        g = dgl.add_self_loop(g)
+        # g = dgl.add_self_loop(g)
 
         # --- Continue with Your Forward Pass ---
         # For example, get the dense adjacency matrix.
@@ -327,6 +333,12 @@ class SAGE(nn.Module):
         charge_div_loss_list = []
 
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+            blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
+
+            # ✅ Filter out small graphs while keeping input/output nodes aligned
+            input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
+                                                                                min_size=6)
+
             # Ensure features are on the correct device
             input_nodes = input_nodes.to(device)
             output_nodes = output_nodes.to(device)
@@ -400,7 +412,7 @@ class SAGE(nn.Module):
             else:
                 for src, dst in edge_list:
                     g.add_edges(src, dst)
-            g = dgl.add_self_loop(g)  # ✅ Add self-loops to prevent zero in-degree nodes
+            # g = dgl.add_self_loop(g)  # ✅ Add self-loops to prevent zero in-degree nodes
             h = h[:g.num_nodes()]  # Adjust size if needed
 
             print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
