@@ -360,7 +360,7 @@ class SAGE(nn.Module):
             idx_tensor = torch.tensor(input_nodes, dtype=torch.int64, device=device)
 
             # Ensure valid feature indexing
-            print(f"batch_feats.shape {batch_feats.shape}, idx_tensor {idx_tensor}")
+            print(f"batch_feats.shape {batch_feats.shape}, idx_tensor {idx_tensor.shape}")
             h = batch_feats[idx_tensor]
             init_feat = h  # Keep track of the initial features
 
