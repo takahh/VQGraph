@@ -211,66 +211,75 @@ class SAGE(nn.Module):
 
         # Get the device from h (e.g., cuda:0)
         device = h.device
-        g = dgl.DGLGraph().to(device)
-        g.add_nodes(h.shape[0])
-        print(f"NUMBER of NODEs is {h.shape[0]}")
+
         # --- Reindexing for Mini-Batch ---
         # Collect global node IDs from all blocks.
-        for idx, block in enumerate(blocks):
+        global_node_ids = set()
+        for block in blocks:
             src, dst = block.all_edges()
-            src = src.type(torch.int64)
-            dst = dst.type(torch.int64)
-            g.add_edges(src,dst)
-            g.add_edges(dst,src)
-            print(f"min, max  {min(src), min(dst)}")
-            bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+            global_node_ids.update(src.tolist())
+            global_node_ids.update(dst.tolist())
 
-        import torch
+        # Sort the global IDs to have a deterministic ordering.
+        global_node_ids = sorted(global_node_ids)
 
-        in_degrees = g.in_degrees()
-        isolated_nodes = torch.where(in_degrees == 0)[0]  # Get node indices with no incoming edges
+        # Create a mapping: global ID -> local ID (0-indexed)
+        global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
+        # print("Number of nodes in mini-batch:", len(global_to_local))
+        # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
 
-        # print(f"🚨 Isolated nodes (zero in-degree): {isolated_nodes.tolist()}")
-        # # for node in [853, 1486, 2037, 2071, 3264, 4230, 6614, 7411, 7564, 7754, 9997]:
-        # print("feats[850:860]")
-        # print(feats[850:860])
-        # print("feats[853]")
-        # print(feats[853])
+        # Create an index tensor from global_node_ids on the correct device.
+        idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
 
-        # for block in blocks:
-        #     src, dst = block.all_edges()
-        #     src = src.to(torch.int64)
-        #     dst = dst.to(torch.int64)
-        #
-        #     # Remap global indices to local indices and ensure they are on the correct device.
-        #     local_src = torch.tensor([global_to_local[i.item()] for i in src],
-        #                              dtype=torch.int64, device=device)
-        #     local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
-        #                              dtype=torch.int64, device=device)
-        #
-        #     # Append both directions (bidirectional graph)
-        #     remapped_edge_list.append((local_src, local_dst))
-        #     remapped_edge_list.append((local_dst, local_src))
-        #
-        #     # If bond orders are present in the block, remap and duplicate them.
-        #     if "bond_order" in block.edata:
-        #         bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-        #         remapped_bond_orders.append(bond_order)
-        #         remapped_bond_orders.append(bond_order)  # For the reverse edge
+        # *** Reindex the feature tensor and the initial features ***
+        # This ensures both h and init_feat only have the mini-batch nodes.
+        h = h[idx_tensor]
+        init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
+
+        # --- Remap Edge Indices and Bond Orders ---
+        remapped_edge_list = []
+        remapped_bond_orders = []  # List to hold bond orders, if available
+
+        for block in blocks:
+            src, dst = block.all_edges()
+            src = src.to(torch.int64)
+            dst = dst.to(torch.int64)
+
+            # Remap global indices to local indices and ensure they are on the correct device.
+            local_src = torch.tensor([global_to_local[i.item()] for i in src],
+                                     dtype=torch.int64, device=device)
+            local_dst = torch.tensor([global_to_local[i.item()] for i in dst],
+                                     dtype=torch.int64, device=device)
+
+            # Append both directions (bidirectional graph)
+            remapped_edge_list.append((local_src, local_dst))
+            remapped_edge_list.append((local_dst, local_src))
+
+            # If bond orders are present in the block, remap and duplicate them.
+            if "bond_order" in block.edata:
+                bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+                remapped_bond_orders.append(bond_order)
+                remapped_bond_orders.append(bond_order)  # For the reverse edge
 
         # --- Construct the DGL Graph ---
         # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
+        g = dgl.DGLGraph().to(device)
+        g.add_nodes(len(global_node_ids))
 
-        # # Add edges along with bond order features if available.
-        # if remapped_bond_orders:
-        #     for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
-        #         g.add_edges(src, dst, data={"bond_order": bond_order})
-        # else:
-        #     for src, dst in remapped_edge_list:
-        #         g.add_edges(src, dst)
+        # Add edges along with bond order features if available.
+        if remapped_bond_orders:
+            for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
+                g.add_edges(src, dst, data={"bond_order": bond_order})
+        else:
+            for src, dst in remapped_edge_list:
+                g.add_edges(src, dst)
 
         # Optionally add self-loops (if desired)
-        # g = dgl.add_self_loop(g)
+        g = dgl.add_self_loop(g)
+
+        # --- Continue with Your Forward Pass ---
+        # For example, get the dense adjacency matrix.
+        adj = g.adjacency_matrix().to_dense().to(device)
 
         h_list = []  # To store intermediate node representations
 
@@ -358,14 +367,9 @@ class SAGE(nn.Module):
             # --- Remap Edge Indices ---
             remapped_edge_list = []
             remapped_bond_orders = []
-            global_edge_list = []
-            src_list = []
-            dst_list = []
 
             for block in blocks:
                 src, dst = block.all_edges()
-                src_list.append(src)
-                dst_list.append(dst)
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
 
                 # Map to local IDs
@@ -375,16 +379,17 @@ class SAGE(nn.Module):
                 # Add bidirectional edges
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
-                global_edge_list.append((src, dst))
-                global_edge_list.append((dst, src))
+
                 # Remap bond orders if present
                 if "bond_order" in block.edata:
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                     remapped_bond_orders.append(bond_order)
                     remapped_bond_orders.append(bond_order)  # Bidirectional bond orders
+
             # --- Construct DGL Graph ---
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
+
             # Add edges (and bond orders if available)
             if remapped_bond_orders:
                 for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
@@ -400,6 +405,7 @@ class SAGE(nn.Module):
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
+
             # --- Graph Layer Processing ---
             h_list = []
             h = self.linear_2(h)
@@ -427,8 +433,7 @@ class SAGE(nn.Module):
 
             if idx == 0:
                 sample_ind = embed_ind
-                sample_bond_to_edge = global_edge_list
-                sample_list = [sample_ind, sample_feat, sample_adj, bond_order, sample_bond_to_edge]
+                sample_list = [sample_ind, sample_feat, sample_adj]
 
         return h_list, y, loss, dist_all, codebook, [
             div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
