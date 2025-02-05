@@ -65,8 +65,11 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
         if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
             print(f"keep_nodes {keep_nodes[:20]}  {keep_nodes[-20:]}")
+            print(f"keep_nodes len {len(keep_nodes)}")
             print(f"input_nodes {input_nodes[:20]}  {input_nodes[-20:]}")
+            print(f"input_nodes len {len(input_nodes)}")
             print(f"output_nodes {output_nodes[:20]}  {output_nodes[-20:]}")
+            print(f"output_nodes len {len(output_nodes)}")
             # ✅ Keep only input/output nodes that are present in this block
             valid_input_nodes = input_nodes[keep_nodes]  # Slice input nodes correctly
             valid_output_nodes = output_nodes[keep_nodes]  # Slice output nodes correctly
