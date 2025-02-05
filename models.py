@@ -221,6 +221,8 @@ class SAGE(nn.Module):
             dst = dst.type(torch.int64)
             g.add_edges(src,dst)
             g.add_edges(dst,src)
+            g.add_nodes(src)
+            g.add_nodes(dst)
             bond_order = block.edata["bond_order"].to(torch.float32).to(device)
 
         import torch
@@ -228,12 +230,12 @@ class SAGE(nn.Module):
         in_degrees = g.in_degrees()
         isolated_nodes = torch.where(in_degrees == 0)[0]  # Get node indices with no incoming edges
 
-        print(f"🚨 Isolated nodes (zero in-degree): {isolated_nodes.tolist()}")
-        # for node in [853, 1486, 2037, 2071, 3264, 4230, 6614, 7411, 7564, 7754, 9997]:
-        print("feats[850:860]")
-        print(feats[850:860])
-        print("feats[853]")
-        print(feats[853])
+        # print(f"🚨 Isolated nodes (zero in-degree): {isolated_nodes.tolist()}")
+        # # for node in [853, 1486, 2037, 2071, 3264, 4230, 6614, 7411, 7564, 7754, 9997]:
+        # print("feats[850:860]")
+        # print(feats[850:860])
+        # print("feats[853]")
+        # print(feats[853])
 
         # for block in blocks:
         #     src, dst = block.all_edges()
