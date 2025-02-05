@@ -136,7 +136,9 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
         blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
 
         # ✅ Filter out small graphs while keeping input/output nodes aligned
+        print(f"original input nodes {len(input_nodes)}")
         input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6)
+        print(f"filtered input nodes {len(input_nodes)}")
 
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
