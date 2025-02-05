@@ -205,7 +205,7 @@ def to_superscript(number):
 #     plt.show()
 
 
-def visualize_molecules_with_classes_on_atoms(adj_matrix, bond_matrix, feature_matrix, indices_file, classes):
+def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, classes):
     """
     Visualizes molecules with correct bond orders.
 
@@ -227,43 +227,84 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, bond_matrix, feature_m
     n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
 
     images = []
-    for i in range(n_components - 2):
-        print(f"Processing molecule {i}")
+    for k in range(n_components - 2):
+        print(f"Processing molecule {k}")
 
         # Get indices of nodes in this molecule
-        component_indices = np.where(labels == i)[0]
+        component_indices = np.where(labels == k)[0]
 
         # Extract subgraph
         mol_adj = adj_matrix[component_indices, :][:, component_indices]
-        mol_bonds = bond_matrix[component_indices, :][:, component_indices]
         mol_features = feature_matrix[component_indices]
+        np.fill_diagonal(mol_adj, 0)
 
+        print(mol_adj)
+        print(mol_features)
         # Create RDKit molecule
         mol = Chem.RWMol()
+        atom_map = {}  # Maps graph indices to RDKit atom indices
 
         # Add atoms
-        atom_labels = {}
-        for idx, features in zip(component_indices, mol_features):
-            atomic_num = int(features[0])
+        for idx, features in enumerate(mol_features):
+            atomic_num = int(features[0])  # Atomic number
+            formal_charge = int(features[2])  # Formal charge
+            hybridization = int(features[3])  # Hybridization (numeric)
+            is_aromatic = bool(features[4])  # **Possible** aromaticity
+            in_ring = bool(features[5])  # **Possible** ring membership
+
             atom = Chem.Atom(atomic_num)
-            atom_idx = mol.AddAtom(atom)
+            atom.SetFormalCharge(formal_charge)
 
-            # Annotate atoms with class
-            class_label = node_to_class.get(idx, "Unknown")
-            atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
+            # ✅ Do NOT set IsAromatic until molecule is built (RDKit handles this better)
+            mol_idx = mol.AddAtom(atom)
+            atom_map[idx] = mol_idx  # Store mapping
 
-        # Bond Type Mapping
-        bond_type_map = {1: Chem.BondType.SINGLE,
-                         2: Chem.BondType.DOUBLE,
-                         3: Chem.BondType.TRIPLE,
-                         4: Chem.BondType.AROMATIC}
+        num_atoms = len(mol_features)  # ✅ Corrected num_atoms calculation
 
-        # Add bonds with correct bond order
-        for x, y in zip(*mol_adj.nonzero()):
-            if x < y:  # Avoid duplicate bonds
-                bond_order = int(mol_bonds[x, y])  # Read bond order
-                bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
-                mol.AddBond(int(x), int(y), bond_type)
+        # Step 2: Add bonds using adjacency matrix
+        for i in range(num_atoms):
+            for j in range(i + 1, num_atoms):  # Avoid duplicate bonds
+                if mol_adj[i, j] > 0:
+                    bond_type = Chem.BondType.SINGLE  # Default to single bond
+
+                    # Infer bond order based on hybridization and aromaticity
+                    if mol_features[i][3] == 2 and mol_features[j][
+                        3] == 2:  # sp2 hybridization → Possible double bond
+                        if not (mol_features[i][0] == 8 or mol_features[j][
+                            0] == 8):  # Oxygen (atomic num 8) should not exceed valence 2
+                            bond_type = Chem.BondType.DOUBLE
+                    if mol_features[i][3] == 1 and mol_features[j][3] == 1:  # sp hybridization → Triple bond
+                        bond_type = Chem.BondType.TRIPLE
+
+                    # ✅ Only assign AROMATIC bonds if RDKit later detects a ring
+                    if mol_features[i][4] == 1 and mol_features[j][4] == 1:
+                        bond_type = Chem.BondType.SINGLE  # Default to SINGLE
+                        atom_i = mol.GetAtomWithIdx(atom_map[i])
+                        atom_j = mol.GetAtomWithIdx(atom_map[j])
+
+                        # ✅ Only assign AROMATIC bonds if both are actually in a ring
+                        if atom_i.IsInRing() and atom_j.IsInRing():
+                            bond_type = Chem.BondType.AROMATIC  # ✅ Corrected aromatic bond assignment
+
+                    mol.AddBond(atom_map[i], atom_map[j], bond_type)
+
+        mol = mol.GetMol()  # ✅ Convert to RDKit Mol for processing
+
+        # ✅ Now safely set aromaticity AFTER molecule construction
+        for atom in mol.GetAtoms():
+            if mol_features[atom.GetIdx()][4] == 1 and atom.IsInRing():  # Only mark aromatic atoms in rings
+                atom.SetIsAromatic(True)
+
+        # ✅ Debugging: Check ring membership
+        for atom in mol.GetAtoms():
+            print(
+                f"Atom {atom.GetIdx()}: RDKit Ring={atom.IsInRing()}, FeatureMatrix Ring={mol_features[atom.GetIdx()][5]}")
+
+        print("Checking aromatic atoms before sanitization:")
+        for atom in mol.GetAtoms():
+            if atom.GetIsAromatic() and not atom.IsInRing():
+                print(f"🚨 ERROR: Atom {atom.GetIdx()} is aromatic but not in a ring! Removing aromatic flag.")
+                atom.SetIsAromatic(False)  # ✅ Fix RDKit Kekulization error
 
         # Sanitize and Draw Molecule
         Chem.SanitizeMol(mol)
@@ -271,6 +312,7 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, bond_matrix, feature_m
 
         img = Draw.MolToImage(mol, size=(300, 300))
         images.append(img)
+
 
     # Display images
     for i, img in enumerate(images):
@@ -355,17 +397,9 @@ def main():
     bond_to_edge_file_0 = f"{path}sample_bond_to_edge_{EPOCH}_0.npz"
     bond_to_edge_file_1 = f"{path}sample_bond_to_edge_{EPOCH}_1.npz"
 
-    arr_bond = getdata(bond_file)   # indices of the input
-    arr_bond_to_edge_0 = getdata(bond_to_edge_file_0)   # indices of the input
-    arr_bond_to_edge_1 = getdata(bond_to_edge_file_1)   # indices of the input
-    print("src[:200]")
-    print(arr_bond_to_edge_0[:200])
-    print("dst[:200]")
-    print(arr_bond_to_edge_1[:200])
-    print("src[-200:]")
-    print(arr_bond_to_edge_0[-200:])
-    print("dst[-200:]")
-    print(arr_bond_to_edge_1[-200:])
+    # arr_bond = getdata(bond_file)   # indices of the input
+    # arr_bond_to_edge_0 = getdata(bond_to_edge_file_0)   # indices of the input
+    # arr_bond_to_edge_1 = getdata(bond_to_edge_file_1)   # indices of the input
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
@@ -374,16 +408,16 @@ def main():
     print(node_indices)
 
     # Ensure bond_matrix is 2D
-    if len(arr_bond.shape) == 1:
-        arr_bond = arr_bond.reshape(arr_adj.shape)  # Reshape to adjacency matrix size
+    # if len(arr_bond.shape) == 1:
+    #     arr_bond = arr_bond.reshape(arr_adj.shape)  # Reshape to adjacency matrix size
     subset_adj_matrix = arr_adj[0:200, 0:200]
     subset_attr_matrix = arr_feat[:200]
-    subset_bond_matrix = arr_bond[:200, :200]
+    # subset_bond_matrix = arr_bond[:200, :200]
 
     # -------------------------------------
     # split the matrix into molecules
     # -------------------------------------
-    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_bond_matrix, subset_attr_matrix, None, node_indices)
+    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_attr_matrix, None, node_indices)
 
 
 if __name__ == '__main__':

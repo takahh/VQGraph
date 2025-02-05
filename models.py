@@ -211,31 +211,17 @@ class SAGE(nn.Module):
 
         # Get the device from h (e.g., cuda:0)
         device = h.device
-
+        g = dgl.DGLGraph().to(device)
+        g.add_nodes(h.shape[0])
         # --- Reindexing for Mini-Batch ---
         # Collect global node IDs from all blocks.
-        global_node_ids = set()
         for idx, block in enumerate(blocks):
             src, dst = block.all_edges()
-
-            # print(idx)
-            # print("src")
-            # print(src[:20])
-            # print(src.shape)
-            # print("dst")
-            # print(dst[:20])
-            # print(dst.shape)
-            # bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-            # print("bond_order")
-            # print(bond_order)
-            # print(bond_order.shape)
-            # all_nodes = torch.cat((src, dst), dim=0)
-            # print(f"all_nodes {all_nodes.shape}")
-            # unique_edges, counts = torch.unique(all_nodes, return_counts=True, dim=0)
-            # print(f"unique_edges {unique_edges.shape}")
-            # print(f"unique_edges {unique_edges}")
-
-        h = feats  # this is already a subset
+            src = src.type(torch.int64)
+            dst = dst.type(torch.int64)
+            g.add_edges(src,dst)
+            g.add_edges(dst,src)
+            bond_order = block.edata["bond_order"].to(torch.float32).to(device)
 
         # for block in blocks:
         #     src, dst = block.all_edges()
@@ -260,8 +246,6 @@ class SAGE(nn.Module):
 
         # --- Construct the DGL Graph ---
         # Create a graph with nodes equal to the number of unique nodes in the mini-batch.
-        g = dgl.DGLGraph().to(device)
-        g.add_nodes(len(global_node_ids))
 
         # # Add edges along with bond order features if available.
         # if remapped_bond_orders:
@@ -272,11 +256,7 @@ class SAGE(nn.Module):
         #         g.add_edges(src, dst)
 
         # Optionally add self-loops (if desired)
-        g = dgl.add_self_loop(g)
-
-        # --- Continue with Your Forward Pass ---
-        # For example, get the dense adjacency matrix.
-        adj = g.adjacency_matrix().to_dense().to(device)
+        # g = dgl.add_self_loop(g)
 
         h_list = []  # To store intermediate node representations
 
