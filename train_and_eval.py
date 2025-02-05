@@ -11,27 +11,16 @@ import dgl.dataloading
 1. Train and eval
 """
 
-from scipy.sparse.csgraph import connected_components
-
-import dgl
-import torch
-from scipy.sparse.csgraph import connected_components
-
 import dgl
 import torch
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
-
-import dgl
-import torch
-from scipy.sparse.csgraph import connected_components
-from scipy.sparse import csr_matrix
-
 
 def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=6):
     """
     Remove small subgraphs (connected components) with fewer than `min_size` nodes
     while keeping `input_nodes` and `output_nodes` correctly aligned.
+    Additionally, remove any node IDs greater than 9999.
 
     Args:
         input_nodes (torch.Tensor): Global node IDs of input nodes in the batch (on GPU).
@@ -59,29 +48,24 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
         # Identify connected components (independent small graphs)
         num_components, labels = connected_components(csgraph=adj_matrix_sparse, directed=False)
 
-        # Filter out small graphs
+        # Filter out small graphs and nodes > 9999
         keep_nodes = []
         labels_tensor = torch.tensor(labels, device=input_nodes.device)  # Faster than NumPy conversion
         for i in range(num_components):
             component_nodes = torch.where(labels_tensor == i)[0]
-            if len(component_nodes) >= min_size:  # ✅ Keep only large graphs
-                keep_nodes.extend(component_nodes.tolist())
+            valid_nodes = [node for node in component_nodes.tolist() if node <= 9999]  # ✅ Remove nodes > 9999
+            if len(valid_nodes) >= min_size:
+                keep_nodes.extend(valid_nodes)
 
         if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
 
-            print(f"keep_nodes {keep_nodes[:20]}  {keep_nodes[-20:]}")
-            print(f"keep_nodes len {len(keep_nodes)}")
-            print(f"input_nodes {input_nodes[:20]}  {input_nodes[-20:]}")
-            print(f"input_nodes len {len(input_nodes)}")
-            print(f"output_nodes {output_nodes[:20]}  {output_nodes[-20:]}")
-            print(f"output_nodes len {len(output_nodes)}")
             # ✅ Map `keep_nodes` back to global indices before indexing
             global_keep_nodes = input_nodes[keep_nodes]  # Convert local to global node indices
 
             # ✅ Ensure only valid indices are used
-            valid_input_nodes = input_nodes[input_nodes.isin(global_keep_nodes)]
-            valid_output_nodes = output_nodes[output_nodes.isin(global_keep_nodes)]
+            valid_input_nodes = input_nodes[(input_nodes <= 9999) & input_nodes.isin(global_keep_nodes)]
+            valid_output_nodes = output_nodes[(output_nodes <= 9999) & output_nodes.isin(global_keep_nodes)]
 
             filtered_input_nodes.append(valid_input_nodes)
             filtered_output_nodes.append(valid_output_nodes)
@@ -172,7 +156,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
         print(f"step {step}")
-        if step < 3:
+        if step < 2:
             continue
         # ✅ Filter out small graphs while keeping input/output nodes aligned
         print(f"original input nodes {len(input_nodes)}")
