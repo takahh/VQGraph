@@ -223,6 +223,13 @@ class SAGE(nn.Module):
             g.add_edges(dst,src)
             bond_order = block.edata["bond_order"].to(torch.float32).to(device)
 
+        import torch
+
+        in_degrees = g.in_degrees()
+        isolated_nodes = torch.where(in_degrees == 0)[0]  # Get node indices with no incoming edges
+
+        print(f"🚨 Isolated nodes (zero in-degree): {isolated_nodes.tolist()}")
+
         # for block in blocks:
         #     src, dst = block.all_edges()
         #     src = src.to(torch.int64)
