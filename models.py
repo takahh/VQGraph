@@ -225,13 +225,13 @@ class SAGE(nn.Module):
             print("dst")
             print(dst[:20])
             print(dst.shape)
+            bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+            print("bond_order")
+            print(bond_order)
+            print(bond_order.shape)
 
         h = feats  # this is already a subset
 
-        bond_order = blocks[0].edata["bond_order"].to(torch.float32).to(device)
-        print("bond_order")
-        print(bond_order)
-        print(bond_order.shape)
         # for block in blocks:
         #     src, dst = block.all_edges()
         #     src = src.to(torch.int64)
