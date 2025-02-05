@@ -11,12 +11,6 @@ import dgl.dataloading
 1. Train and eval
 """
 
-import dgl
-import torch
-from scipy.sparse.csgraph import connected_components
-
-import dgl
-import torch
 from scipy.sparse.csgraph import connected_components
 
 import dgl
@@ -30,8 +24,8 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
     while keeping `input_nodes` and `output_nodes` correctly aligned.
 
     Args:
-        input_nodes (torch.Tensor): Global node IDs of input nodes in the batch.
-        output_nodes (torch.Tensor): Global node IDs of output nodes in the batch.
+        input_nodes (torch.Tensor): Global node IDs of input nodes in the batch (on CPU).
+        output_nodes (torch.Tensor): Global node IDs of output nodes in the batch (on CPU).
         blocks (list of DGLBlock): Mini-batch of graph blocks.
         min_size (int): Minimum graph size to keep.
 
@@ -45,15 +39,31 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, min_size=
     for blk_idx, block in enumerate(blocks):
         src, dst = block.edges()  # Get all edges in the block
 
-        # Identify unique nodes in this block
-        unique_nodes = torch.unique(torch.cat([src, dst]))  # Get all connected nodes
+        # Create adjacency matrix
+        num_nodes = block.num_nodes()
+        adj_matrix = torch.zeros((num_nodes, num_nodes), device=block.device)
+        adj_matrix[src, dst] = 1
+        adj_matrix[dst, src] = 1  # Ensure symmetry (undirected graph)
 
-        if unique_nodes.shape[0] >= min_size:  # ✅ Keep only blocks with large enough graphs
+        # Convert adjacency to CPU for `connected_components`
+        adj_matrix_np = adj_matrix.cpu().numpy()
+
+        # Identify connected components (independent small graphs)
+        num_components, labels = connected_components(csgraph=adj_matrix_np, directed=False)
+
+        # Filter out small graphs
+        keep_nodes = []
+        for i in range(num_components):
+            component_nodes = torch.where(torch.tensor(labels) == i)[0].to(input_nodes.device)
+            if len(component_nodes) >= min_size:  # ✅ Keep only large graphs
+                keep_nodes.extend(component_nodes.tolist())
+
+        if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
 
             # ✅ Keep only input/output nodes that are present in this block
-            valid_input_nodes = input_nodes[unique_nodes]  # Slice input nodes correctly
-            valid_output_nodes = output_nodes[unique_nodes]  # Slice output nodes correctly
+            valid_input_nodes = input_nodes[keep_nodes]  # Slice input nodes correctly
+            valid_output_nodes = output_nodes[keep_nodes]  # Slice output nodes correctly
 
             filtered_input_nodes.append(valid_input_nodes)
             filtered_output_nodes.append(valid_output_nodes)
