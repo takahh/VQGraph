@@ -236,12 +236,15 @@ class SAGE(nn.Module):
         # print("Sample mapping:", dict(list(global_to_local.items())[:5]))
 
         # Create an index tensor from global_node_ids on the correct device.
-        idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
+        # idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
 
         # *** Reindex the feature tensor and the initial features ***
         # This ensures both h and init_feat only have the mini-batch nodes.
-        h = h[idx_tensor]
-        init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
+        # h = h[idx_tensor]
+        # init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
+        h = feats
+        print("feats.shape")
+        print(feats.shape)
 
         # --- Remap Edge Indices and Bond Orders ---
         remapped_edge_list = []
