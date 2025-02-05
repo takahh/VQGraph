@@ -507,6 +507,30 @@ def run_inductive(
             output_nodes = torch.unique(output_nodes, dim=0)
             print(f"  Input nodes: {len(input_nodes)}")
             print(f"  Output nodes: {len(output_nodes)}")
+        for idx, block in enumerate(blocks):
+            src, dst = block.all_edges()
+
+            print(idx)
+            print("src")
+            print(src[:20])
+            print(src.shape)
+            print("dst")
+            print(dst[:20])
+            print(dst.shape)
+            bond_order = block.edata["bond_order"].to(torch.float32).to(device)
+            print("bond_order")
+            print(bond_order)
+            print(bond_order.shape)
+            all_nodes = torch.cat((src, dst), dim=0)
+            print(f"all_nodes {all_nodes.shape}")
+            unique_edges, counts = torch.unique(all_nodes, return_counts=True, dim=0)
+            print(f"unique_edges {unique_edges.shape}")
+            print(f"unique_edges {unique_edges}")
+            missing_nodes = torch.setdiff1d(input_nodes, torch.cat((src, dst)))
+            print(f"Nodes in input_nodes but missing in bond order data: {missing_nodes.shape[0]}")
+            missing_nodes = torch.setdiff1d(output_nodes, torch.cat((src, dst)))
+            print(f"Nodes in output_nodes but missing in bond order data: {missing_nodes.shape[0]}")
+
 
         # -------------------------
         # all data, FULL sampling
