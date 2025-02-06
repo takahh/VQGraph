@@ -28,6 +28,7 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mod
 
     for blk_idx, block in enumerate(blocks):
         src, dst = block.edges()  # Get edge list directly
+        print(f"src {src[:20]} {src[-20:]}")
 
         # Convert to sparse adjacency matrix format (FASTER than dense numpy conversion)
         num_nodes = block.num_nodes()
