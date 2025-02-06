@@ -406,8 +406,8 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5, num_atom_
     """
     # One-hot encode atom types
     # atom_types = torch.nn.functional.one_hot(atom_types.long(), num_atom_types).float()
-    print(f"🚨 atom_types: {atom_types}")
-    print(f"🚨 num_atom_types: {num_atom_types}")
+    # print(f"🚨 atom_types: {atom_types}")
+    # print(f"🚨 num_atom_types: {num_atom_types}")
 
     try:
         atom_types = torch.nn.functional.one_hot(atom_types.long(), num_atom_types).float()

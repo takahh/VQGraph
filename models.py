@@ -310,7 +310,7 @@ class SAGE(nn.Module):
             h = batch_feats.clone()
             init_feat = h.clone()
             device = h.device
-            print("----INFER ------")
+            # print("----INFER ------")
             global_node_ids = set()
             for block in blocks:
                 src, dst = block.all_edges()
