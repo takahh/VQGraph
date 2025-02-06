@@ -15,7 +15,6 @@ from utils import (
     graph_split,
     feature_prop,
 )
-from train_and_eval import run_transductive, run_inductive
 
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
@@ -188,6 +187,7 @@ def run(args):
     len(score_lst) = 2 for the inductive/production setting.
     """
     from models import Model
+    from train_and_eval import run_transductive, run_inductive
 
     """ Set seed, device, and logger """
     set_seed(args.seed)
