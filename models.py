@@ -298,6 +298,13 @@ class SAGE(nn.Module):
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             print(f"IDX {idx}")
             blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
+            print(f"Original Input Nodes: min {input_nodes.min()} max {input_nodes.max()} shape {input_nodes.shape}")
+            print(
+                f"Original Output Nodes: min {output_nodes.min()} max {output_nodes.max()} shape {output_nodes.shape}")
+            for i, block in enumerate(blocks):
+                src, dst = block.edges()
+                print(f"Block {i}: min src {src.min()} max src {src.max()} shape {src.shape}")
+                print(f"Block {i}: min dst {dst.min()} max dst {dst.max()} shape {dst.shape}")
 
             input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
                                                                                 idx, "infer", min_size=6)
