@@ -306,7 +306,8 @@ class SAGE(nn.Module):
             for i, block in enumerate(blocks):
                 print(f"Block begin")
                 src, dst = block.edges()
-                print(f"src etc gt")
+                print(f"src {src[:20]}")
+                print(f"dst {dst[:20]}")
                 print(f"Block {i}: min src {src.min()} max src {src.max()} shape {src.shape}")
                 print(f"Block {i}: min dst {dst.min()} max dst {dst.max()} shape {dst.shape}")
 
