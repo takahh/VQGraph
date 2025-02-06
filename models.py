@@ -297,7 +297,7 @@ class SAGE(nn.Module):
         elec_state_div_loss_list = []
         charge_div_loss_list = []
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-            print(f"IDX {idx}")
+            # print(f"IDX {idx}")
 
             input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
                                                                                 idx, "infer", min_size=6)
