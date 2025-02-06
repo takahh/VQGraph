@@ -5,7 +5,6 @@ import sys
 import torch.optim as optim
 import torch.nn.functional as F
 from pathlib import Path
-from dataloader import load_data
 from utils import (
     get_logger,
     get_evaluator,
@@ -231,6 +230,7 @@ def run(args):
 
     check_writable(output_dir, overwrite=False)
     logger = get_logger(output_dir.joinpath("log"), args.console_log, args.log_level)
+    from dataloader import load_data
 
     """ Load data """
     g, labels, idx_train, idx_val, idx_test = load_data(
