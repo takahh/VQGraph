@@ -165,6 +165,18 @@ import torch
 from scipy.sparse.csgraph import connected_components
 
 
+def filetr_src_and_dst(src, dst):
+    new_src = []
+    new_dst = []
+    for src_value, dst_value in zip(src, dst):
+        if src_value > 9999 or dst_value > 9999:
+            continue
+        else:
+            new_src.append(src_value)
+            new_dst.append(dst_value)
+    return new_src, new_dst
+
+
 class SAGE(nn.Module):
     def __init__(
             self,
@@ -324,8 +336,12 @@ class SAGE(nn.Module):
             for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
-                print(f"src {src[:20]}, {src[-20:]}")
-                print(f"dst {dst[:20]}, {dst[-20:]}")
+
+                # -----------------------
+                # remove unusual node ids
+                # -----------------------
+                src, dst = filetr_src_and_dst(src, dst)
+
                 if idex == 0:
                     bond_to_link.append([src, dst])
                 edge_list.append((src, dst))
