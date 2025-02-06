@@ -344,7 +344,9 @@ class SAGE(nn.Module):
             else:
                 for src, dst in edge_list:
                     g.add_edges(src, dst)
+            print(f"h.shape before {h.shape}")
             h = h[:g.num_nodes()]  # Adjust size if needed
+            print(f"h.shape after {h.shape}")
 
             if idx == 0:
                 sample_feat = h.clone().detach()
