@@ -217,6 +217,7 @@ class SAGE(nn.Module):
         self.vq._codebook.reset_kmeans()
 
     def forward(self, blocks, feats, epoch):
+        # feats is batch_feats !!!!!!!!!!!
         h = feats.clone() if not feats.requires_grad else feats
         init_feat = h.clone()  # Store initial features (for later use)
         torch.save(init_feat, "/h.pt")  # Save for reference
@@ -298,32 +299,18 @@ class SAGE(nn.Module):
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             print(f"IDX {idx}")
 
-            print("----INFER ------")
-            blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
-            print(f"Original Input Nodes: min {input_nodes.min()} max {input_nodes.max()} shape {input_nodes.shape}")
-            print(
-                f"Original Output Nodes: min {output_nodes.min()} max {output_nodes.max()} shape {output_nodes.shape}")
-            for i, block in enumerate(blocks):
-                print(f"Block begin")
-                src, dst = block.edges()
-                print(f"src {src}")
-                print(f"dst {dst}")
-                print(f"Block {i}: min src {src.min()} max src {src.max()} shape {src.shape}")
-                print(f"Block {i}: min dst {dst.min()} max dst {dst.max()} shape {dst.shape}")
-
             input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
                                                                                 idx, "infer", min_size=6)
-            # Ensure features are on the correct device
-            input_nodes = input_nodes.to(device)
-            output_nodes = output_nodes.to(device)
-            # Ensure feats requires gradients if necessary
-            h = feats.clone() if not feats.requires_grad else feats
-            init_feat = h.clone()
-            blocks = [blk.int().to(device) for blk in blocks]
-            # Get batch node features
-            batch_feats = h[input_nodes]
+            blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
+            batch_feats = feats[input_nodes]
             batch_feats = transform_node_feats(batch_feats)
-            # --- Reindexing for Mini-Batch ---
+            # ------------------------------
+            # ここから SAGE.forward と同じにする
+            # ------------------------------
+            h = batch_feats.clone()
+            init_feat = h.clone()
+            device = h.device
+            print("----INFER ------")
             global_node_ids = set()
             for block in blocks:
                 src, dst = block.all_edges()
