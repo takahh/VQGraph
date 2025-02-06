@@ -759,8 +759,8 @@ def run_inductive(
             np.savez(f"./sample_adj_{epoch}", sample_list1[2].cpu()[:1000, :1000])
             # [tensor([2., 1., 1.,  ..., 1., 1., 1.], device='cuda:0'), tensor([2., 1., 1.,  ..., 1., 1., 1.], device='cuda:0'), tensor([2., 1., 1.,  ..., 1., 1., 1.], device='cuda:0'), tensor([2., 1., 1.,  ..., 1., 1., 1.], device='cuda:0'), tensor([2., 1., 2.,  ..., 1., 1., 1.], device='cuda:0'), tensor([2., 1., 2.,  ..., 1., 1., 1.], device='cuda:0')]
             np.savez(f"./sample_bond_order_{epoch}", sample_list1[3].cpu())
-            np.savez(f"./sample_bond_to_edge_0_{epoch}", sample_list1[4].cpu()[0])
-            np.savez(f"./sample_bond_to_edge_1_{epoch}", sample_list1[4].cpu()[1])
+            np.savez(f"./sample_bond_to_edge_0_{epoch}", sample_list1[4][0])
+            np.savez(f"./sample_bond_to_edge_1_{epoch}", sample_list1[4][1])
             # print("sample_list1[4] len")
             # print(len(sample_list1[4]))
             # print("len(sample_list1[4][0])")
