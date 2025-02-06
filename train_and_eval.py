@@ -155,17 +155,17 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
-        print("----TRAIN ------")
-        print(f"Original Input Nodes: min {input_nodes.min()} max {input_nodes.max()} shape {input_nodes.shape}")
-        print(
-            f"Original Output Nodes: min {output_nodes.min()} max {output_nodes.max()} shape {output_nodes.shape}")
+        # print("----TRAIN ------")
+        # print(f"Original Input Nodes: min {input_nodes.min()} max {input_nodes.max()} shape {input_nodes.shape}")
+        # print(
+        #     f"Original Output Nodes: min {output_nodes.min()} max {output_nodes.max()} shape {output_nodes.shape}")
         for i, block in enumerate(blocks):
             src, dst = block.edges()
-            print(f"Block {i}: min src {src.min()} max src {src.max()} shape {src.shape}")
-            print(f"Block {i}: min dst {dst.min()} max dst {dst.max()} shape {dst.shape}")
+            # print(f"Block {i}: min src {src.min()} max src {src.max()} shape {src.shape}")
+            # print(f"Block {i}: min dst {dst.min()} max dst {dst.max()} shape {dst.shape}")
 
         input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, "train",min_size=6)
-        print(f"[train] input_nodes: {input_nodes[:20]}, {input_nodes[-20:]}")
+        # print(f"[train] input_nodes: {input_nodes[:20]}, {input_nodes[-20:]}")
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         batch_feats = transform_node_feats(batch_feats)
@@ -570,11 +570,11 @@ def run_inductive(
             num_workers=conf["num_workers"],
         )
         for step, (input_nodes, output_nodes, blocks) in enumerate(obs_dataloader_eval):
-            print(f"Batch {step}: -----------------------------------------")
+            # print(f"Batch {step}: -----------------------------------------")
             input_nodes = torch.unique(input_nodes, dim=0)
             output_nodes = torch.unique(output_nodes, dim=0)
-            print(f"  Input nodes: {len(input_nodes)}")
-            print(f"  Output nodes: {len(output_nodes)}")
+            # print(f"  Input nodes: {len(input_nodes)}")
+            # print(f"  Output nodes: {len(output_nodes)}")
 
         # -------------------------
         # all data, FULL sampling
