@@ -227,7 +227,7 @@ class SAGE(nn.Module):
             global_node_ids.update(src.tolist())
             global_node_ids.update(dst.tolist())
         global_node_ids = sorted(global_node_ids)
-        print(f"global_node_ids = {global_node_ids[:20]}, {global_node_ids[-20:]}")
+        print(f"global_node_ids in train = {global_node_ids[:20]}, {global_node_ids[-20:]}")
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
         idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
         h = h[idx_tensor]
