@@ -227,10 +227,8 @@ class SAGE(nn.Module):
             global_node_ids.update(src.tolist())
             global_node_ids.update(dst.tolist())
         global_node_ids = sorted(global_node_ids)
-        print(f"global_node_ids in train = {global_node_ids[:20]}, {global_node_ids[-20:]}")
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
         idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
-        print(f"idx_tensor in train {idx_tensor[:20]}, {idx_tensor[-20:]}")
         h = h[idx_tensor]
         init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
         remapped_edge_list = []
@@ -275,6 +273,14 @@ class SAGE(nn.Module):
                 x, detached_quantize, latents)
 
     def inference(self, dataloader, feats):
+        # for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+        #     blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
+        #     input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, "train",min_size=6)
+        #     blocks = [blk.int().to(device) for blk in blocks]
+        #     batch_feats = feats[input_nodes]
+        #     batch_feats = transform_node_feats(batch_feats)
+        #     with torch.cuda.amp.autocast():
+        #         _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats, epoch)
         device = feats.device
         dist_all = torch.zeros(feats.shape[0], self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)

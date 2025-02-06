@@ -51,7 +51,6 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mod
         args = get_args()
         train_size = args.train_size
         batch_size = args.batch_size
-        print(f"batch size: {batch_size}, train size: {train_size}")
 
         if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
@@ -65,9 +64,10 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mod
                 valid_input_nodes = input_nodes[(input_nodes < (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
                 valid_output_nodes = output_nodes[(output_nodes < (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
             else:
+                print(f"input_nodes {input_nodes[:10]}, {input_nodes[-10:]}")
                 valid_input_nodes = input_nodes[(input_nodes < train_size + (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
+                print(f"valid_input_nodes {valid_input_nodes[:10]}, {valid_input_nodes[-10:]}")
                 valid_output_nodes = output_nodes[(output_nodes < train_size + (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
-            print(f"len(valid_input_nodes) {len(valid_input_nodes)} in mode {mode}")
             # print(f" valid_input_nodes selected {len(valid_input_nodes)}")
 
             filtered_input_nodes.append(valid_input_nodes)
@@ -158,34 +158,22 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
-        # print(f"step {step}")
-        # ✅ Filter out small graphs while keeping input/output nodes aligned
-        # print(f"original input nodes {len(input_nodes)}")
         input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, "train",min_size=6)
-        # print(f"filtered input nodes {len(input_nodes)}")
-
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
-        # print(f"batch_feats {batch_feats[:30]}")
         batch_feats = transform_node_feats(batch_feats)
-
-        # print(f"batch_feats {batch_feats[:30]}")
         with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats, epoch)
             loss = loss * lamb / accumulation_steps
         if not torch.isfinite(loss):
             continue
-
         # Initialize loss_list_list with empty sublists if it's the first step
         if step == 0:
             loss_list_list = [[] for _ in range(len(loss_list3))]
-
         # Append each element from loss_list3 to the corresponding sublist
         for i, loss_value in enumerate(loss_list3):
             loss_list_list[i].append(loss_value.item())
-
         scaler.scale(loss).backward()
-
         # Accumulation steps
         if (step + 1) % accumulation_steps == 0 or (step + 1) == len(dataloader):
             scaler.unscale_(optimizer)
@@ -193,15 +181,10 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
-
         total_loss += loss.item() * accumulation_steps
         latent_list.append(latent_train.detach().cpu())
         cb_list.append(cb.detach().cpu())
         loss_list.append(loss.detach().cpu())
-
-        # print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
-        # print(f"Reserved Memory: {torch.cuda.memory_reserved() / 1024 ** 3:.2f} GB")
-
     avg_loss = total_loss / len(dataloader)
     return avg_loss, loss_list_list, latent_list, latents
 
