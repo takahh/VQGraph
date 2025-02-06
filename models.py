@@ -316,6 +316,7 @@ class SAGE(nn.Module):
                 src, dst = block.all_edges()
                 global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
                 global_node_ids.update(dst.tolist())
+
             global_node_ids = sorted(global_node_ids)
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
@@ -333,15 +334,15 @@ class SAGE(nn.Module):
                 local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
-                if idex == 0:
-                    bond_to_link.append([src, dst])
-                edge_list.append((src, dst))
-                edge_list.append((dst, src))
-
+                edge_list.append((local_src, local_dst))
+                edge_list.append((local_dst, local_src))
                 if "bond_order" in block.edata:
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
                     remapped_bond_orders.append(bond_order)
                     remapped_bond_orders.append(bond_order)  # Bidirectional bond orders
+                if idex == 0 and idx == 0:
+                    sample_bond_to_edge = [local_src, local_dst]
+                    sample_bond_order = block.edata["bond_order"].to(torch.float32).to(device)
 
             g = dgl.DGLGraph().to(device)
             g.add_nodes(len(global_node_ids))
@@ -355,8 +356,6 @@ class SAGE(nn.Module):
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
-                sample_bond_orders = bond_orders
-                sample_bond_to_edge = bond_to_link
             # --- Graph Layer Processing ---
             h_list = []
             h = self.linear_2(h)
@@ -384,7 +383,7 @@ class SAGE(nn.Module):
 
             if idx == 0:
                 sample_ind = embed_ind
-                sample_list = [sample_ind, sample_feat, sample_adj, sample_bond_orders, sample_bond_to_edge]
+                sample_list = [sample_ind, sample_feat, sample_adj, sample_bond_order, sample_bond_to_edge]
 
         return h_list, y, loss, dist_all, codebook, [
             div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
