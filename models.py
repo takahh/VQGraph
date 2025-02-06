@@ -297,6 +297,8 @@ class SAGE(nn.Module):
         charge_div_loss_list = []
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             print(f"IDX {idx}")
+
+            print("----INFER ------")
             blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
             print(f"Original Input Nodes: min {input_nodes.min()} max {input_nodes.max()} shape {input_nodes.shape}")
             print(
