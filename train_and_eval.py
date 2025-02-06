@@ -72,14 +72,14 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, min
 
             # ✅ Map `keep_nodes` back to global indices before indexing
             global_keep_nodes = input_nodes[keep_nodes]  # Convert local to global node indices
-            print(f"input nodes selected {global_keep_nodes[:20]} {global_keep_nodes[-20:]}")
-            print(f"input nodes {input_nodes[:20]} {input_nodes[-20:]}")
+            # print(f"input nodes selected {global_keep_nodes[:20]} {global_keep_nodes[-20:]}")
+            # print(f"input nodes {input_nodes[:20]} {input_nodes[-20:]}")
 
             # ✅ Ensure only valid indices are used
             valid_input_nodes = input_nodes[(input_nodes < (step + 1) * 10000) & torch.isin(input_nodes, global_keep_nodes)]
             valid_output_nodes = output_nodes[(output_nodes < (step + 1) * 10000) & torch.isin(output_nodes, global_keep_nodes)]
 
-            print(f" valid_input_nodes selected {len(valid_input_nodes)}")
+            # print(f" valid_input_nodes selected {len(valid_input_nodes)}")
 
             filtered_input_nodes.append(valid_input_nodes)
             filtered_output_nodes.append(valid_output_nodes)
@@ -169,11 +169,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
 
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
-        print(f"step {step}")
+        # print(f"step {step}")
         # ✅ Filter out small graphs while keeping input/output nodes aligned
-        print(f"original input nodes {len(input_nodes)}")
+        # print(f"original input nodes {len(input_nodes)}")
         input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, min_size=6)
-        print(f"filtered input nodes {len(input_nodes)}")
+        # print(f"filtered input nodes {len(input_nodes)}")
 
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]

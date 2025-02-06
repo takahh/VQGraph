@@ -211,8 +211,8 @@ class SAGE(nn.Module):
         # --- Preprocess Node Features ---
         # Ensure h requires gradients and apply your transformation.
         h = feats.clone() if not feats.requires_grad else feats
-        print("h.shape +++++++++++++++++++++!!!!!!!!!!")
-        print(h.shape)
+        # print("h.shape +++++++++++++++++++++!!!!!!!!!!")
+        # print(h.shape)
         # h = transform_node_feats(h)  # Your custom transformation
         init_feat = h.clone()  # Store initial features (for later use)
         torch.save(init_feat, "/h.pt")  # Save for reference
@@ -230,7 +230,7 @@ class SAGE(nn.Module):
 
         # Sort the global IDs to have a deterministic ordering.
         global_node_ids = sorted(global_node_ids)
-        print(f"global_node_ids: {global_node_ids[:20]}, {global_node_ids[-20:]}")
+        # print(f"global_node_ids: {global_node_ids[:20]}, {global_node_ids[-20:]}")
         # Create a mapping: global ID -> local ID (0-indexed)
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
         # print("Number of nodes in mini-batch:", len(global_to_local))
@@ -374,9 +374,9 @@ class SAGE(nn.Module):
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
 
             # Ensure valid feature indexing
-            print("batch_feats.shape[0]")
-            print(batch_feats.shape[0])
-            print(idx_tensor)
+            # print("batch_feats.shape[0]")
+            # print(batch_feats.shape[0])
+            # print(idx_tensor)
             assert torch.max(idx_tensor) < batch_feats.shape[0], "Index out of bounds in batch_feats!"
             # h = batch_feats[idx_tensor]
             h = batch_feats
@@ -385,10 +385,13 @@ class SAGE(nn.Module):
             # --- Remap Edge Indices ---
             edge_list = []
             bond_orders = []
+            bond_to_link = []
 
-            for block in blocks:
+            for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
+                if idex == 0:
+                    bond_to_link.append([src, dst])
 
                 # Map to local IDs
                 # local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
@@ -417,13 +420,14 @@ class SAGE(nn.Module):
             # g = dgl.add_self_loop(g)  # ✅ Add self-loops to prevent zero in-degree nodes
             h = h[:g.num_nodes()]  # Adjust size if needed
 
-            print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
+            # print(f"+++++++++ g.num_nodes {g.num_nodes()}, h shape {h.shape}")
             # Store adjacency matrix for first batch
             if idx == 0:
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
                 sample_bond_orders = bond_orders
+                sample_bond_to_edge = bond_to_link
 
             # --- Graph Layer Processing ---
             h_list = []
@@ -452,7 +456,7 @@ class SAGE(nn.Module):
 
             if idx == 0:
                 sample_ind = embed_ind
-                sample_list = [sample_ind, sample_feat, sample_adj, sample_bond_orders]
+                sample_list = [sample_ind, sample_feat, sample_adj, sample_bond_orders, sample_bond_to_edge]
 
         return h_list, y, loss, dist_all, codebook, [
             div_ele_loss_list, bond_num_div_loss_list, aroma_div_loss_list, ringy_div_loss_list,
