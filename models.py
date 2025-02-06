@@ -339,7 +339,7 @@ class SAGE(nn.Module):
 
             # ✅ Filter out small graphs while keeping input/output nodes aligned
             input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
-                                                                                min_size=6)
+                                                                                idx, min_size=6)
 
             # Ensure features are on the correct device
             input_nodes = input_nodes.to(device)
