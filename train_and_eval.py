@@ -67,6 +67,8 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mod
             else:
                 valid_input_nodes = input_nodes[(input_nodes < train_size + (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
                 valid_output_nodes = output_nodes[(output_nodes < train_size + (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
+            if len(valid_input_nodes) < 9000:
+                print(f"len(valid_input_nodes) {len(valid_input_nodes)} in mode {mode}")
             # print(f" valid_input_nodes selected {len(valid_input_nodes)}")
 
             filtered_input_nodes.append(valid_input_nodes)

@@ -345,12 +345,6 @@ class SAGE(nn.Module):
                 for src, dst in edge_list:
                     g.add_edges(src, dst)
 
-            num_nodes = g.num_nodes()
-            num_edges = g.num_edges()
-
-            print(f"🔹 Number of nodes: {num_nodes}")
-            print(f"🔹 Number of edges: {num_edges}")
-
             h = h[:g.num_nodes()]  # Adjust size if needed
 
             if idx == 0:
