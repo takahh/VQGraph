@@ -331,8 +331,8 @@ class SAGE(nn.Module):
             for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
-                local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.iint64, device=device)
-                local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.iint64, device=device)
+                local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
+                local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
                 if idex == 0:
