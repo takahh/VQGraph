@@ -317,7 +317,7 @@ class SAGE(nn.Module):
             global_node_ids_list = list(global_node_ids)  # Convert set to list
             print(f"global_node_ids {global_node_ids_list[:20]}, {global_node_ids_list[-20:]}")
             global_node_ids = sorted(global_node_ids)
-            print(f"global_node_ids sorted {global_node_ids[:20]}, {global_node_ids[-20:]}")
+            print(f"global_node_ids in infer = {global_node_ids[:20]}, {global_node_ids[-20:]}")
             # Ensure valid indexing
             assert len(global_node_ids) > 0, "global_node_ids is empty!"
             assert max(global_node_ids) < feats.shape[0], "Index out of bounds in global_node_ids!"
