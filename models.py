@@ -310,7 +310,6 @@ class SAGE(nn.Module):
             assert min(global_node_ids) >= 0, "Negative indices found in global_node_ids!"
 
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
-
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
 
             print(f"idx_tensor {idx_tensor[:20]}, {idx_tensor[-20:]}")
