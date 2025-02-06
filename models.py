@@ -294,6 +294,7 @@ class SAGE(nn.Module):
             batch_feats = feats[input_nodes]
             batch_feats = transform_node_feats(batch_feats)
 
+            print(f"batch_feats {batch_feats.shape}")
             # --- Reindexing for Mini-Batch ---
             global_node_ids = set()
             for block in blocks:
