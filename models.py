@@ -321,6 +321,8 @@ class SAGE(nn.Module):
             for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
+                print(f"src {src[:20]}, {src[-20:]}")
+                print(f"dst {dst[:20]}, {dst[-20:]}")
                 if idex == 0:
                     bond_to_link.append([src, dst])
                 edge_list.append((src, dst))
