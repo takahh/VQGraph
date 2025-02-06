@@ -279,7 +279,7 @@ class SAGE(nn.Module):
             blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
 
             input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
-                                                                                idx, min_size=6)
+                                                                                idx, "infer", min_size=6)
 
             # Ensure features are on the correct device
             input_nodes = input_nodes.to(device)

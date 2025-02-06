@@ -31,6 +31,7 @@ from data_preprocess import (
     largest_connected_components,
     binarize_labels,
 )
+from train_teacher import get_args
 from ogb.nodeproppred import DglNodePropPredDataset
 
 
@@ -640,13 +641,11 @@ def get_train_val_test_split(
     train_examples_per_class=None,
     val_examples_per_class=None,
     test_examples_per_class=None,
-    train_size=59397,
-    val_size=14849,
-    test_size=14849,
-    # train_size=5939700,
-    # val_size=1484900,
-    # test_size=1484900,
 ):
+    args = get_args()
+    train_size = args.train_size
+    val_size = args.val_size
+    test_size = args.test_size
     # print(f"val_examples_per_class {val_examples_per_class}")
     num_samples, num_classes = labels.shape
     # print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
@@ -728,7 +727,6 @@ def get_train_val_test_split(
     return train_indices, val_indices, test_indices
 
 
-
 # ---------------------------------------------------------
 # this function split continuous test indicea for analysis
 # ---------------------------------------------------------
@@ -738,16 +736,12 @@ def get_train_val_test_split_continuous(
     train_examples_per_class=None,
     val_examples_per_class=None,
     test_examples_per_class=None,
-    # train_size=59397,
-    # val_size=14849,
-    # test_size=14849,
-    train_size=5930,
-    val_size=1485,
-    test_size=1485,
-    # train_size=5939700,
-    # val_size=1484900,
-    # test_size=1484900,
 ):
+    args = get_args()
+    train_size = args.train_size
+    val_size = args.val_size
+    test_size = args.test_size
+
     num_samples, num_classes = labels.shape
     # print(f"LABEL SHAPE is {labels.shape} ------------ !!!!!!!")
     remaining_indices = list(range(num_samples))

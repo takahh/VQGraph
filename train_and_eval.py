@@ -4,7 +4,7 @@ import torch
 import dgl
 from utils import set_seed
 import dgl.dataloading
-
+from train_teacher import get_args
 
 
 """
@@ -20,10 +20,8 @@ import torch
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, min_size=6):
-    print(f"step {step}")
-    print(f"input_nodes {input_nodes[:20]}, {input_nodes[-20:]}")
-    print(f"input_nodes len {len(input_nodes)}")
+
+def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mode, min_size=6):
     filtered_blocks = []
     filtered_input_nodes = []
     filtered_output_nodes = []
@@ -50,12 +48,11 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, min
             if len(valid_nodes) >= min_size:
                 keep_nodes.extend(valid_nodes)
 
-        # print(f"keep_nodes {keep_nodes[:20]}  {keep_nodes[-20:]}")
-        # print(f"keep_nodes len {len(keep_nodes)}")
-        # print(f"input_nodes {input_nodes[:20]}  {input_nodes[-20:]}")
-        # print(f"input_nodes len {len(input_nodes)}")
-        # print(f"output_nodes {output_nodes[:20]}  {output_nodes[-20:]}")
-        # print(f"output_nodes len {len(output_nodes)}")
+        args = get_args()
+        train_size = args.train_size
+        batch_size = args.batch_size
+        print(f"batch size: {batch_size}, train size: {train_size}")
+
         if keep_nodes:
             filtered_blocks.append(block)  # Keep this block
 
@@ -64,10 +61,12 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, min
             # print(f"input nodes selected {global_keep_nodes[:20]} {global_keep_nodes[-20:]}")
             # print(f"input nodes {input_nodes[:20]} {input_nodes[-20:]}")
 
-            # ✅ Ensure only valid indices are used
-            valid_input_nodes = input_nodes[(input_nodes < (step + 1) * 10000) & torch.isin(input_nodes, global_keep_nodes)]
-            valid_output_nodes = output_nodes[(output_nodes < (step + 1) * 10000) & torch.isin(output_nodes, global_keep_nodes)]
-
+            if mode == "train":
+                valid_input_nodes = input_nodes[(input_nodes < (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
+                valid_output_nodes = output_nodes[(output_nodes < (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
+            else:
+                valid_input_nodes = input_nodes[(input_nodes < train_size + (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
+                valid_output_nodes = output_nodes[(output_nodes < train_size + (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
             # print(f" valid_input_nodes selected {len(valid_input_nodes)}")
 
             filtered_input_nodes.append(valid_input_nodes)
@@ -161,7 +160,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
         # print(f"step {step}")
         # ✅ Filter out small graphs while keeping input/output nodes aligned
         # print(f"original input nodes {len(input_nodes)}")
-        input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, min_size=6)
+        input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, "train",min_size=6)
         # print(f"filtered input nodes {len(input_nodes)}")
 
         blocks = [blk.int().to(device) for blk in blocks]
