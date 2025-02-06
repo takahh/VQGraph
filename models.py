@@ -300,8 +300,8 @@ class SAGE(nn.Module):
                 src, dst = block.all_edges()
                 global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
                 global_node_ids.update(dst.tolist())
-
-            print(f"global_node_ids {global_node_ids[:20]}, {global_node_ids[-20:]}")
+            global_node_ids_list = list(global_node_ids)  # Convert set to list
+            print(f"global_node_ids {global_node_ids_list[:20]}, {global_node_ids_list[-20:]}")
             global_node_ids = sorted(global_node_ids)
             print(f"global_node_ids sorted {global_node_ids[:20]}, {global_node_ids[-20:]}")
             # Ensure valid indexing
