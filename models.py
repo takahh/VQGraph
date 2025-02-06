@@ -230,6 +230,7 @@ class SAGE(nn.Module):
         print(f"global_node_ids in train = {global_node_ids[:20]}, {global_node_ids[-20:]}")
         global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
         idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
+        print(f"idx_tensor in train {idx_tensor[:20]}, {idx_tensor[-20:]}")
         h = h[idx_tensor]
         init_feat = init_feat[idx_tensor]  # Important: reindex init_feat as well!
         remapped_edge_list = []
@@ -301,13 +302,9 @@ class SAGE(nn.Module):
             # Ensure feats requires gradients if necessary
             h = feats.clone() if not feats.requires_grad else feats
             blocks = [blk.int().to(device) for blk in blocks]
-            print(f"input_nodes {input_nodes[:20]}, {input_nodes[-20:]}")
-            print(f"feats {feats.shape}")
             # Get batch node features
             batch_feats = feats[input_nodes]
             batch_feats = transform_node_feats(batch_feats)
-
-            print(f"batch_feats {batch_feats.shape}")
             # --- Reindexing for Mini-Batch ---
             global_node_ids = set()
             for block in blocks:
@@ -315,9 +312,7 @@ class SAGE(nn.Module):
                 global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
                 global_node_ids.update(dst.tolist())
             global_node_ids_list = list(global_node_ids)  # Convert set to list
-            print(f"global_node_ids {global_node_ids_list[:20]}, {global_node_ids_list[-20:]}")
             global_node_ids = sorted(global_node_ids)
-            print(f"global_node_ids in infer = {global_node_ids[:20]}, {global_node_ids[-20:]}")
             # Ensure valid indexing
             assert len(global_node_ids) > 0, "global_node_ids is empty!"
             assert max(global_node_ids) < feats.shape[0], "Index out of bounds in global_node_ids!"
@@ -326,7 +321,7 @@ class SAGE(nn.Module):
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
 
-            print(f"idx_tensor {idx_tensor[:20]}, {idx_tensor[-20:]}")
+            print(f"idx_tensor in infer {idx_tensor[:20]}, {idx_tensor[-20:]}")
             assert torch.max(idx_tensor) < batch_feats.shape[0], "Index out of bounds in batch_feats!"
             h = batch_feats
             init_feat = h  # Keep track of the initial features
