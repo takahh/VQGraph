@@ -5,7 +5,6 @@ import sys
 import torch.optim as optim
 import torch.nn.functional as F
 from pathlib import Path
-from models import Model
 from dataloader import load_data
 from utils import (
     get_logger,
@@ -189,6 +188,7 @@ def run(args):
     len(score_lst) = 1 for the transductive setting.
     len(score_lst) = 2 for the inductive/production setting.
     """
+    from models import Model
 
     """ Set seed, device, and logger """
     set_seed(args.seed)
