@@ -61,11 +61,14 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mod
             # print(f"input nodes {input_nodes[:20]} {input_nodes[-20:]}")
 
             if mode == "train":
+                print(f"mode {mode}")
+                print(f"global_keep_nodes {global_keep_nodes[:10]}, {global_keep_nodes[-10:]}")
                 valid_input_nodes = input_nodes[(input_nodes < (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
+                print(f"valid_input_nodes {valid_input_nodes[:10]}, {valid_input_nodes[-10:]}")
                 valid_output_nodes = output_nodes[(output_nodes < (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
             else:
                 print(f"mode {mode}")
-                print(f"input_nodes {input_nodes[:10]}, {input_nodes[-10:]}")
+                print(f"global_keep_nodes {global_keep_nodes[:10]}, {global_keep_nodes[-10:]}")
                 valid_input_nodes = input_nodes[(input_nodes < train_size + (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
                 print(f"valid_input_nodes {valid_input_nodes[:10]}, {valid_input_nodes[-10:]}")
                 valid_output_nodes = output_nodes[(output_nodes < train_size + (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
