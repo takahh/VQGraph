@@ -305,12 +305,12 @@ class SAGE(nn.Module):
             # Ensure features are on the correct device
             input_nodes = input_nodes.to(device)
             output_nodes = output_nodes.to(device)
-
             # Ensure feats requires gradients if necessary
             h = feats.clone() if not feats.requires_grad else feats
+            init_feat = feats.clone()
             blocks = [blk.int().to(device) for blk in blocks]
             # Get batch node features
-            batch_feats = feats[input_nodes]
+            batch_feats = h[input_nodes]
             batch_feats = transform_node_feats(batch_feats)
             # --- Reindexing for Mini-Batch ---
             global_node_ids = set()
@@ -318,33 +318,23 @@ class SAGE(nn.Module):
                 src, dst = block.all_edges()
                 global_node_ids.update(src.tolist())  # Converting to a list is okay here for set operations
                 global_node_ids.update(dst.tolist())
-            global_node_ids_list = list(global_node_ids)  # Convert set to list
             global_node_ids = sorted(global_node_ids)
-            # Ensure valid indexing
-            assert len(global_node_ids) > 0, "global_node_ids is empty!"
-            assert max(global_node_ids) < feats.shape[0], "Index out of bounds in global_node_ids!"
-            assert min(global_node_ids) >= 0, "Negative indices found in global_node_ids!"
-
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
-
-            print(f"idx_tensor in infer {idx_tensor[:20]}, {idx_tensor[-20:]}")
-            assert torch.max(idx_tensor) < batch_feats.shape[0], "Index out of bounds in batch_feats!"
-            h = batch_feats
-            init_feat = h  # Keep track of the initial features
+            h = h[idx_tensor]
+            init_feat = init_feat[idx_tensor]
+            remapped_edge_list = []
+            remapped_bond_orders = []
             edge_list = []
             bond_orders = []
             bond_to_link = []
-
             for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
-
-                # -----------------------
-                # remove unusual node ids
-                # -----------------------
-                src, dst = filetr_src_and_dst(src, dst)
-
+                local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.iint64, device=device)
+                local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.iint64, device=device)
+                remapped_edge_list.append((local_src, local_dst))
+                remapped_edge_list.append((local_dst, local_src))
                 if idex == 0:
                     bond_to_link.append([src, dst])
                 edge_list.append((src, dst))
@@ -352,27 +342,23 @@ class SAGE(nn.Module):
 
                 if "bond_order" in block.edata:
                     bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-                    bond_orders.append(bond_order)
-                    bond_orders.append(bond_order)  # Bidirectional bond orders
+                    remapped_bond_orders.append(bond_order)
+                    remapped_bond_orders.append(bond_order)  # Bidirectional bond orders
 
             g = dgl.DGLGraph().to(device)
-            g.add_nodes(input_nodes.size(0))
-            if bond_orders:
-                for (src, dst), bond_order in zip(edge_list, bond_orders):
+            g.add_nodes(len(global_node_ids))
+            if remapped_bond_orders:
+                for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                     g.add_edges(src, dst, data={"bond_order": bond_order})
             else:
                 for src, dst in edge_list:
                     g.add_edges(src, dst)
-
-            h = h[:g.num_nodes()]  # Adjust size if needed
-
             if idx == 0:
                 sample_feat = h.clone().detach()
                 adj_matrix = g.adjacency_matrix().to_dense()
                 sample_adj = adj_matrix.to_dense()
                 sample_bond_orders = bond_orders
                 sample_bond_to_edge = bond_to_link
-
             # --- Graph Layer Processing ---
             h_list = []
             h = self.linear_2(h)
