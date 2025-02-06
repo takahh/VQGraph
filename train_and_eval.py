@@ -21,20 +21,9 @@ from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, min_size=6):
-    """
-    Remove small subgraphs (connected components) with fewer than `min_size` nodes
-    while keeping `input_nodes` and `output_nodes` correctly aligned.
-    Additionally, remove any node IDs greater than 9999.
-
-    Args:
-        input_nodes (torch.Tensor): Global node IDs of input nodes in the batch (on GPU).
-        output_nodes (torch.Tensor): Global node IDs of output nodes in the batch (on GPU).
-        blocks (list of DGLBlock): Mini-batch of graph blocks.
-        min_size (int): Minimum graph size to keep.
-
-    Returns:
-        Tuple: (filtered_input_nodes, filtered_output_nodes, filtered_blocks)
-    """
+    print(f"step {step}")
+    print(f"input_nodes {input_nodes[:20]}, {input_nodes[-20:]}")
+    print(f"input_nodes len {len(input_nodes)}")
     filtered_blocks = []
     filtered_input_nodes = []
     filtered_output_nodes = []
