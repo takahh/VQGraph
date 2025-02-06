@@ -301,7 +301,7 @@ class SAGE(nn.Module):
 
             input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
                                                                                 idx, "infer", min_size=6)
-
+            print(f"[infer] input_nodes: {input_nodes[:20]}, {input_nodes[-20:]}")
             # Ensure features are on the correct device
             input_nodes = input_nodes.to(device)
             output_nodes = output_nodes.to(device)

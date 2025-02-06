@@ -28,10 +28,6 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mod
 
     for blk_idx, block in enumerate(blocks):
         src, dst = block.edges()  # Get edge list directly
-        if mode == "infer":
-            src = src - src.min()
-            dst = dst - dst.min()
-        print(f"src {src[:20]} {src[-20:]}")
         # Convert to sparse adjacency matrix format (FASTER than dense numpy conversion)
         num_nodes = block.num_nodes()
         adj_matrix_sparse = csr_matrix(
@@ -64,16 +60,10 @@ def filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, mod
             # print(f"input nodes {input_nodes[:20]} {input_nodes[-20:]}")
 
             if mode == "train":
-                print(f"mode {mode}")
-                print(f"global_keep_nodes {global_keep_nodes[:10]}, {global_keep_nodes[-10:]}")
                 valid_input_nodes = input_nodes[(input_nodes < (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
-                print(f"valid_input_nodes {valid_input_nodes[:10]}, {valid_input_nodes[-10:]}")
                 valid_output_nodes = output_nodes[(output_nodes < (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
             else:
-                print(f"mode {mode}")
-                print(f"global_keep_nodes {global_keep_nodes[:10]}, {global_keep_nodes[-10:]}")
                 valid_input_nodes = input_nodes[(input_nodes < train_size + (step + 1) * batch_size) & torch.isin(input_nodes, global_keep_nodes)]
-                print(f"valid_input_nodes {valid_input_nodes[:10]}, {valid_input_nodes[-10:]}")
                 valid_output_nodes = output_nodes[(output_nodes < train_size + (step + 1) * batch_size) & torch.isin(output_nodes, global_keep_nodes)]
             # print(f" valid_input_nodes selected {len(valid_input_nodes)}")
 
@@ -166,6 +156,7 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, epoch, ac
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
         input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, "train",min_size=6)
+        print(f"[train] input_nodes: {input_nodes[:20]}, {input_nodes[-20:]}")
         blocks = [blk.int().to(device) for blk in blocks]
         batch_feats = feats[input_nodes]
         batch_feats = transform_node_feats(batch_feats)
