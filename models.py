@@ -318,7 +318,7 @@ class SAGE(nn.Module):
             output_nodes = output_nodes.to(device)
             # Ensure feats requires gradients if necessary
             h = feats.clone() if not feats.requires_grad else feats
-            init_feat = feats.clone()
+            init_feat = h.clone()
             blocks = [blk.int().to(device) for blk in blocks]
             # Get batch node features
             batch_feats = h[input_nodes]
