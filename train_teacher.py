@@ -247,8 +247,8 @@ def run(args):
     # # logger.info(f"Total {g.number_of_edges()} edges.")
 
     # feats = g.ndata["feat"]
-    args.feat_dim = g.ndata["feat"].shape[1]
-    # args.feat_dim = args.hidden_dim
+    # args.feat_dim = g.ndata["feat"].shape[1]
+    args.feat_dim = args.hidden_dim
     # args.label_dim = labels.int().max().item() + 1
 
     # if 0 < args.feature_noise <= 1:
