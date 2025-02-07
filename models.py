@@ -362,6 +362,13 @@ class SAGE(nn.Module):
             print(f"len(remapped_edge_list) {len(remapped_edge_list)}")
             g = dgl.DGLGraph().to(device)
             g.add_nodes(new_node_count_total)
+
+            num_nodes_in_g = g.num_nodes()
+            h_shape = h.shape[0]
+
+            print(f"🔹 Number of nodes in g: {num_nodes_in_g}")
+            print(f"🔹 Shape of h: {h_shape}")
+
             if remapped_bond_orders:
                 for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                     g.add_edges(src, dst, data={"bond_order": bond_order})
