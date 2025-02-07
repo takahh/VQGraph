@@ -15,8 +15,8 @@ from io import BytesIO
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 16
-PATH = "/Users/taka/Documents/vqgraph_0204/"
+EPOCH = 8
+PATH = "/Users/taka/Documents/vqgraph_0207/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"

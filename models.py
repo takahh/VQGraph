@@ -177,6 +177,17 @@ def filetr_src_and_dst(src, dst):
     return new_src, new_dst
 
 
+def remove_bond_with_other_blocks(src, dst):
+    print("before src.shape, dst.shape")
+    print(src.shape, dst.shape)
+    mask = torch.abs(src - dst) < 5000
+    filtered_src = src[mask]
+    filtered_dst = dst[mask]
+    print("after src.shape, dst.shape")
+    print(src.shape, dst.shape)
+    return filtered_src, filtered_dst
+
+
 class SAGE(nn.Module):
     def __init__(
             self,
@@ -332,6 +343,7 @@ class SAGE(nn.Module):
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
                 local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
                 local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
+                local_src, local_dst = remove_bond_with_other_blocks(local_src, local_dst)
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
                 edge_list.append((local_src, local_dst))

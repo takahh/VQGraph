@@ -12,8 +12,8 @@ from rdkit.Geometry import Point2D
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 3
-PATH = "/Users/taka/Documents/vqgraph_0204/"
+EPOCH = 8
+PATH = "/Users/taka/Documents/vqgraph_0207/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -269,16 +269,25 @@ def main():
     adj_file = f"{path}/sample_adj_{EPOCH}.npz"                     # input data
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
-    bond_order_file_0 = f"{path}sample_bond_order_0_{EPOCH}.npz"
-    bond_order_file_1 = f"{path}sample_bond_order_1_{EPOCH}.npz"
+    bond_order_file = f"{path}sample_bond_order_{EPOCH}.npz" # sample_bond_to_edge_1_8.npz
+    bond_to_edge_file_0 = f"{path}sample_bond_to_edge_0_{EPOCH}.npz"
+    bond_to_edge_file_1 = f"{path}sample_bond_to_edge_1_{EPOCH}.npz"
 
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
-    arr_bond_order_0 = getdata(bond_order_file_0)
-    arr_bond_order_1 = getdata(bond_order_file_1)
-    print("arr_bond_order_0")
-    print(arr_bond_order_0)
+    arr_bond_order = getdata(bond_order_file)
+    arr_bond_to_edge_0 = getdata(bond_to_edge_file_0)
+    arr_bond_to_edge_1 = getdata(bond_to_edge_file_1)
+    print("arr_bond_order")
+    print(arr_bond_order[:10])
+    print(arr_bond_order[-10:])
+    print("arr_bond_to_edge_0")
+    print(arr_bond_to_edge_0[:10])
+    print(arr_bond_to_edge_0[-10:])
+    print("arr_bond_to_edge_1")
+    print(arr_bond_to_edge_1[:10])
+    print(arr_bond_to_edge_1[-10:])
     arr_feat = restore_node_feats(arr_feat)
     node_indices = [int(x) for x in arr_indices.tolist()]
 
