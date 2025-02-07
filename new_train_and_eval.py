@@ -45,6 +45,7 @@ dataloader = DataLoader(dataset, batch_size=32, shuffle=False, collate_fn=collat
 for adj_batch, attr_batch in dataloader:
     print(f"-------------")
     print("Adjacency batch shape:", adj_batch.shape)
+    print("Adjacency batch shape:", adj_batch[0, :20, :20])
     print("Attribute batch shape:", attr_batch.shape)
 
 
