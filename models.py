@@ -181,18 +181,12 @@ def filetr_src_and_dst(src, dst):
 
 def remove_bond_with_other_blocks(src, dst):
     args = get_args()
-    print("before src.shape, dst.shape")
-    print(src.shape, dst.shape)
-    print(src[:20])
     mask = torch.abs(src - dst) < args.batch_size * 0.5
-    print("mask")
-    print(mask)
     filtered_src = src[mask]
     filtered_dst = dst[mask]
-    print("after src.shape, dst.shape")
-    print(filtered_src.shape, filtered_dst.shape)
-    print(src[:20])
-    return filtered_src, filtered_dst
+    unique_values = torch.unique(torch.cat([filtered_src, filtered_dst]))
+
+    return filtered_src, filtered_dst, unique_values.numel()  # Return count of unique values
 
 
 class SAGE(nn.Module):
@@ -350,7 +344,7 @@ class SAGE(nn.Module):
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
                 local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
                 local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
-                local_src, local_dst = remove_bond_with_other_blocks(local_src, local_dst)
+                local_src, local_dst, new_node_count = remove_bond_with_other_blocks(local_src, local_dst)
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
                 edge_list.append((local_src, local_dst))
@@ -364,7 +358,7 @@ class SAGE(nn.Module):
                     sample_bond_order = block.edata["bond_order"].to(torch.float32).to(device)
 
             g = dgl.DGLGraph().to(device)
-            g.add_nodes(len(global_node_ids))
+            g.add_nodes(new_node_count)
             if remapped_bond_orders:
                 for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                     g.add_edges(src, dst, data={"bond_order": bond_order})
