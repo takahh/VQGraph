@@ -190,7 +190,7 @@ def remove_bond_with_other_blocks(src, dst):
     filtered_src = src[mask]
     filtered_dst = dst[mask]
     print("after src.shape, dst.shape")
-    print(src.shape, dst.shape)
+    print(filtered_src.shape, filtered_dst.shape)
     print(src[:20])
     return filtered_src, filtered_dst
 
