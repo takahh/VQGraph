@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import glob
 
-DATAPATH = "data"
+DATAPATH = "data/both_mono"
 
 class MoleculeGraphDataset(Dataset):
     def __init__(self, adj_dir, attr_dir):
