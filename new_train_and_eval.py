@@ -78,8 +78,8 @@ dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
 dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
 
 # Iterate through batches
-for adj_batch, attr_batch in dataloader:
-    print(f"-------------")
+for idx, (adj_batch, attr_batch) in enumerate(dataloader):
+    print(f"------{idx}-------")
     print("Adjacency batch shape:", adj_batch.shape)
     print("Attribute batch shape:", attr_batch.shape)
 
