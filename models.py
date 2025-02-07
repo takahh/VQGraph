@@ -320,6 +320,8 @@ class SAGE(nn.Module):
             # ここから SAGE.forward と同じにする
             # ------------------------------
             h = batch_feats.clone()
+            print("h.shape +++++++++++++++++++")
+            print(h.shape)
             init_feat = h.clone()
             device = h.device
             # print("----INFER ------")
