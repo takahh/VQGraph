@@ -67,7 +67,7 @@ def collate_fn(batch):
 
 # Initialize dataset and dataloader
 dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
-dataloader = DataLoader(dataset, batch_size=32, shuffle=False, collate_fn=collate_fn)
+dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn, drop_last=True)
 
 # Iterate through batches
 for adj_batch, attr_batch in dataloader:
