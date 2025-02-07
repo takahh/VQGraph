@@ -355,6 +355,8 @@ class SAGE(nn.Module):
                     sample_bond_to_edge = [local_src, local_dst]
                     sample_bond_order = block.edata["bond_order"].to(torch.float32).to(device)
             new_nodes = torch.unique(torch.cat([total_src, total_dst]))
+            print(f"new_nodes {new_nodes[:10]}, {new_nodes[-10:]}")
+            print(f"total new nodes count {new_nodes.shape}")
             new_nodes_global = torch.tensor([local_to_global[i.item()] for i in new_nodes], dtype=torch.int64, device=device)
             print(f"new_nodes_global {new_nodes_global[:10]}, {new_nodes_global[-10:]}")
             print(f"total new nodes count {new_nodes_global.shape}")
