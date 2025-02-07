@@ -67,8 +67,6 @@ def collate_fn(batch):
         return padded_adj, padded_attr
 
     except RuntimeError as e:
-        print(f"⚠️ Collate Error: {e}")
-        print(f"Skipping batch with inconsistent sizes.")
         return (None, None)  # Skip batch
 
 
