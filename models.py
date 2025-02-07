@@ -358,7 +358,8 @@ class SAGE(nn.Module):
                 if idex == 0 and idx == 0:
                     sample_bond_to_edge = [local_src, local_dst]
                     sample_bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-
+            print(f"new_node_count_total {new_node_count_total}")
+            print(f"len(remapped_edge_list) {len(remapped_edge_list)}")
             g = dgl.DGLGraph().to(device)
             g.add_nodes(new_node_count_total)
             if remapped_bond_orders:
