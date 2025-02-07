@@ -96,6 +96,7 @@ def collate_fn(batch):
 
 
 def convert_to_dgl(adj_matrix, attr_matrix):
+    print(adj_matrix)
     g = dgl.from_numpy(adj_matrix)
     g.ndata["feat"] = torch.tensor(attr_matrix, dtype=torch.float32)
     return g
