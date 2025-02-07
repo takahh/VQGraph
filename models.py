@@ -284,14 +284,6 @@ class SAGE(nn.Module):
                 x, detached_quantize, latents)
 
     def inference(self, dataloader, feats):
-        # for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-        #     blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
-        #     input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks, step, "train",min_size=6)
-        #     blocks = [blk.int().to(device) for blk in blocks]
-        #     batch_feats = feats[input_nodes]
-        #     batch_feats = transform_node_feats(batch_feats)
-        #     with torch.cuda.amp.autocast():
-        #         _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, batch_feats, epoch)
         device = feats.device
         dist_all = torch.zeros(feats.shape[0], self.codebook_size, device=device)
         y = torch.zeros(feats.shape[0], self.output_dim, device=device)
@@ -307,10 +299,6 @@ class SAGE(nn.Module):
         elec_state_div_loss_list = []
         charge_div_loss_list = []
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-            # print(f"IDX {idx}")
-
-            # input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
-            #                                                                     idx, "infer", min_size=6)
             blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
             batch_feats = feats[input_nodes]
             batch_feats = transform_node_feats(batch_feats)
@@ -332,6 +320,8 @@ class SAGE(nn.Module):
 
             global_node_ids = sorted(global_node_ids)
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
+            local_to_global = {local_id: global_id for global_id, local_id in global_to_local.items()}
+
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
             # h = h[idx_tensor]
             init_feat = init_feat[idx_tensor]
@@ -365,8 +355,9 @@ class SAGE(nn.Module):
                     sample_bond_to_edge = [local_src, local_dst]
                     sample_bond_order = block.edata["bond_order"].to(torch.float32).to(device)
             new_nodes = torch.unique(torch.cat([total_src, total_dst]))
-            print(f"new_nodes {new_nodes[:10]}, {new_nodes[-10:]}")
-            print(f"total new nodes count {new_nodes.shape}")
+            new_nodes_global = torch.tensor([global_to_local[i.item()] for i in new_nodes], dtype=torch.int64, device=device)
+            print(f"new_nodes_global {new_nodes_global[:10]}, {new_nodes_global[-10:]}")
+            print(f"total new nodes count {new_nodes_global.shape}")
             g = dgl.DGLGraph().to(device)
             g.add_nodes(new_node_count_total)
 
