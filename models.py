@@ -334,14 +334,15 @@ class SAGE(nn.Module):
             global_node_ids = sorted(global_node_ids)
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
-            h = h[idx_tensor]
+            # h = h[idx_tensor]
             init_feat = init_feat[idx_tensor]
             remapped_edge_list = []
             remapped_bond_orders = []
             edge_list = []
-            bond_orders = []
-            bond_to_link = []
             new_node_count_total = 0
+            # ----------------------------------------------
+            # obtain edge source and destination from block
+            # ----------------------------------------------
             for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
