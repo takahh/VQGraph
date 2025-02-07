@@ -79,6 +79,8 @@ dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collat
 
 # Iterate through batches
 for idx, (adj_batch, attr_batch) in enumerate(dataloader):
+    if idx == 12:
+        break
     print(f"------{idx}-------")
     print("Adjacency batch shape:", adj_batch.shape)
     print("Attribute batch shape:", attr_batch.shape)
