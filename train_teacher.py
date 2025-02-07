@@ -249,7 +249,7 @@ def run(args):
     # feats = g.ndata["feat"]
     # args.feat_dim = g.ndata["feat"].shape[1]
     args.feat_dim = args.hidden_dim
-    # args.label_dim = labels.int().max().item() + 1
+    args.label_dim = 1
 
     # if 0 < args.feature_noise <= 1:
     #     feats = (
