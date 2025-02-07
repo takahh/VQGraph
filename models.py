@@ -321,10 +321,10 @@ class SAGE(nn.Module):
             global_node_ids = sorted(global_node_ids)
             global_to_local = {global_id: local_id for local_id, global_id in enumerate(global_node_ids)}
             print("global_to_local")
-            print(global_to_local)
+            print(global_to_local[:20])
             local_to_global = {local_id: global_id for global_id, local_id in global_to_local.items()}
             print("local_to_global")
-            print(local_to_global)
+            print(local_to_global[:20])
 
             idx_tensor = torch.tensor(global_node_ids, dtype=torch.int64, device=device)
             # h = h[idx_tensor]
