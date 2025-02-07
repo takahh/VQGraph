@@ -187,7 +187,7 @@ def run(args):
     len(score_lst) = 2 for the inductive/production setting.
     """
     from models import Model
-    from train_and_eval import run_transductive, run_inductive
+    from new_train_and_eval import run_inductive
 
     """ Set seed, device, and logger """
     set_seed(args.seed)
@@ -231,30 +231,30 @@ def run(args):
     check_writable(output_dir, overwrite=False)
     logger = get_logger(output_dir.joinpath("log"), args.console_log, args.log_level)
     from dataloader import load_data
+    #
+    # """ Load data """
+    # g, labels, idx_train, idx_val, idx_test = load_data(
+    #     args.dataset,
+    #     args.data_path,
+    #     split_idx=args.split_idx,
+    #     seed=args.seed,
+    #     labelrate_train=args.labelrate_train,
+    #     labelrate_val=args.labelrate_val,
+    #     train_or_infer=args.train_or_infer,
+    #     percent=args.percent
+    # )
+    # # logger.info(f"Total {g.number_of_nodes()} nodes.")
+    # # logger.info(f"Total {g.number_of_edges()} edges.")
 
-    """ Load data """
-    g, labels, idx_train, idx_val, idx_test = load_data(
-        args.dataset,
-        args.data_path,
-        split_idx=args.split_idx,
-        seed=args.seed,
-        labelrate_train=args.labelrate_train,
-        labelrate_val=args.labelrate_val,
-        train_or_infer=args.train_or_infer,
-        percent=args.percent
-    )
-    # logger.info(f"Total {g.number_of_nodes()} nodes.")
-    # logger.info(f"Total {g.number_of_edges()} edges.")
-
-    feats = g.ndata["feat"]
+    # feats = g.ndata["feat"]
     # args.feat_dim = g.ndata["feat"].shape[1]
-    args.feat_dim = args.hidden_dim
-    args.label_dim = labels.int().max().item() + 1
+    # args.feat_dim = args.hidden_dim
+    # args.label_dim = labels.int().max().item() + 1
 
-    if 0 < args.feature_noise <= 1:
-        feats = (
-            1 - args.feature_noise
-        ) * feats + args.feature_noise * torch.randn_like(feats)
+    # if 0 < args.feature_noise <= 1:
+    #     feats = (
+    #         1 - args.feature_noise
+    #     ) * feats + args.feature_noise * torch.randn_like(feats)
 
     """ Model config """
     conf = {}
@@ -280,45 +280,45 @@ def run(args):
     """ Data split and run """
     loss_and_score = []
     latent_train_list = None
-    if args.exp_setting == "tran":
-        indices = (idx_train, idx_val, idx_test)
+    # if args.exp_setting == "tran":
+    #     # indices = (idx_train, idx_val, idx_test)
+    #
+    #     # propagate node feature
+    #     if args.feature_aug_k > 0:
+    #         feats = feature_prop(feats, g, args.feature_aug_k)
+    #
+    #     # out, score_val, score_test, h_list, dist, codebook =
+    #     out, score_val, score_test, h_list, dist, codebook, loss_list = run_transductive(
+    #         conf,
+    #         model,
+    #         g,
+    #         feats,
+    #         labels,
+    #         indices,
+    #         criterion,
+    #         evaluator,
+    #         optimizer,
+    #         logger,
+    #         loss_and_score,
+    #     )
+    #     # print(dist.shape)
+    #
+    #     score_lst = [score_test]
 
-        # propagate node feature
-        if args.feature_aug_k > 0:
-            feats = feature_prop(feats, g, args.feature_aug_k)
-
-        # out, score_val, score_test, h_list, dist, codebook = 
-        out, score_val, score_test, h_list, dist, codebook, loss_list = run_transductive(
-            conf,
-            model,
-            g,
-            feats,
-            labels,
-            indices,
-            criterion,
-            evaluator,
-            optimizer,
-            logger,
-            loss_and_score,
-        )
-        # print(dist.shape)
-        
-        score_lst = [score_test]
-
-    elif args.exp_setting == "ind":
+    if args.exp_setting == "ind":
         # indices = (obs_idx_train, obs_idx_val, obs_idx_test, idx_obs, idx_test_ind)  indices[4] is idx_test_ind
         # --------------------------------------------
         # make train/valid/test data into mini-batches
         # --------------------------------------------
-        indices = graph_split(idx_train, idx_val, idx_test, args.split_rate, args.seed, args.train_or_infer)
+        # indices = graph_split(idx_train, idx_val, idx_test, args.split_rate, args.seed, args.train_or_infer)
 
         # propagate node feature. The propagation for the observed graph only happens within the subgraph obs_g
-        if args.feature_aug_k > 0:
-            idx_obs = indices[3]
-            obs_g = g.subgraph(idx_obs)
-            obs_feats = feature_prop(feats[idx_obs], obs_g, args.feature_aug_k)
-            feats = feature_prop(feats, g, args.feature_aug_k)
-            feats[idx_obs] = obs_feats
+        # if args.feature_aug_k > 0:
+        #     idx_obs = indices[3]
+        #     obs_g = g.subgraph(idx_obs)
+        #     obs_feats = feature_prop(feats[idx_obs], obs_g, args.feature_aug_k)
+        #     feats = feature_prop(feats, g, args.feature_aug_k)
+        #     feats[idx_obs] = obs_feats
 
         # ----------------------------------------------------------------------------
         # run the model
@@ -326,15 +326,7 @@ def run(args):
         out, score_val, score_test_tran, score_test_ind, h_list, dist, codebook, latents_trans, latents_ind, latent_train_list = run_inductive(
             conf,
             model,
-            g,
-            feats,
-            labels,
-            indices,
-            criterion,
-            evaluator,
             optimizer,
-            logger,
-            loss_and_score,
             args.accumulation_steps
         )
         score_lst = [score_test_tran, score_test_ind]

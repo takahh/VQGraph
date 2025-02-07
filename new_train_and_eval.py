@@ -104,15 +104,7 @@ def convert_to_dgl(adj_matrix, attr_matrix):
 def run_inductive(
         conf,
         model,
-        g,
-        feats,
-        labels,
-        indices,
-        criterion,
-        evaluator,
         optimizer,
-        logger,
-        loss_and_score,
         accumulation_steps=1
 ):
     # Initialize dataset and dataloader
