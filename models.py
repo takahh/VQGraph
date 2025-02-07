@@ -339,14 +339,14 @@ class SAGE(nn.Module):
             edge_list = []
             bond_orders = []
             bond_to_link = []
+            new_node_count_total = 0
             for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
                 local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
                 local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
                 local_src, local_dst, new_node_count = remove_bond_with_other_blocks(local_src, local_dst)
-                print("new_node_count")
-                print(new_node_count)
+                new_node_count_total += new_node_count
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
                 edge_list.append((local_src, local_dst))
