@@ -19,9 +19,27 @@ class MoleculeGraphDataset(Dataset):
         attr_matrix = np.load(self.attr_files[idx])  # Load atom features
         return torch.tensor(adj_matrix, dtype=torch.float32), torch.tensor(attr_matrix, dtype=torch.float32)
 
+
+def collate_fn(batch):
+    """Custom collate function to pad variable-sized tensors."""
+    adj_matrices, attr_matrices = zip(*batch)
+
+    # Find max number of nodes in batch
+    max_nodes = max(adj.shape[0] for adj in adj_matrices)
+
+    # Pad adjacency matrices
+    padded_adj = [torch.nn.functional.pad(adj, (0, max_nodes - adj.shape[0], 0, max_nodes - adj.shape[1])) for adj in adj_matrices]
+    padded_adj = torch.stack(padded_adj)
+
+    # Pad attribute matrices
+    padded_attr = [torch.nn.functional.pad(attr, (0, 0, 0, max_nodes - attr.shape[0])) for attr in attr_matrices]
+    padded_attr = torch.stack(padded_attr)
+
+    return padded_adj, padded_attr
+
 # Initialize dataset and dataloader
 dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
-dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
+dataloader = DataLoader(dataset, batch_size=32, shuffle=False, collate_fn=collate_fn)
 
 # Iterate through batches
 for adj_batch, attr_batch in dataloader:
