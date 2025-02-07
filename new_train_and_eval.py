@@ -2,8 +2,52 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 import glob
-
+import numpy as np
+import copy
+import torch
+import dgl
+from utils import set_seed
+import dgl.dataloading
+from train_teacher import get_args
+import dgl
+import torch
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import csr_matrix
+import dgl
+import torch
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import csr_matrix
 DATAPATH = "data/both_mono"
+
+#                model, g,    attr_batch, optimizer, epoch, accumulation_steps
+def train_sage(model, dataloader, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
+    model.train()
+    total_loss = 0
+    loss_list, latent_list = [], []
+    cb_list = []
+    loss_list_list = []  # Initialize a list for tracking loss_list3 over steps
+    scaler = torch.cuda.amp.GradScaler()
+    optimizer.zero_grad()
+
+    for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
+        with torch.cuda.amp.autocast():
+            _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, feats, epoch)
+            loss = loss * lamb / accumulation_steps
+        for i, loss_value in enumerate(loss_list3):
+            loss_list_list[i].append(loss_value.item())
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        scaler.step(optimizer)
+        scaler.update()
+        optimizer.zero_grad()
+        total_loss += loss.item() * accumulation_steps
+        latent_list.append(latent_train.detach().cpu())
+        cb_list.append(cb.detach().cpu())
+        loss_list.append(loss.detach().cpu())
+        avg_loss = total_loss / len(dataloader)
+        return avg_loss, loss_list_list, latent_list, latents
+
 
 class MoleculeGraphDataset(Dataset):
     def __init__(self, adj_dir, attr_dir):
@@ -19,25 +63,6 @@ class MoleculeGraphDataset(Dataset):
         attr_matrix = np.load(self.attr_files[idx])  # Load atom features
         return torch.tensor(adj_matrix, dtype=torch.float32), torch.tensor(attr_matrix, dtype=torch.float32)
 
-
-# def collate_fn(batch):
-#     """Custom collate function to pad variable-sized tensors."""
-#     adj_matrices, attr_matrices = zip(*batch)
-#
-#     # Find max number of nodes in batch
-#     max_nodes = max(adj.shape[0] for adj in adj_matrices)
-#
-#     # Pad adjacency matrices
-#     padded_adj = [torch.nn.functional.pad(adj, (0, max_nodes - adj.shape[0], 0, max_nodes - adj.shape[1])) for adj in adj_matrices]
-#     padded_adj = torch.stack(padded_adj)
-#
-#     # Pad attribute matrices
-#     padded_attr = [torch.nn.functional.pad(attr, (0, 0, 0, max_nodes - attr.shape[0])) for attr in attr_matrices]
-#     padded_attr = torch.stack(padded_attr)
-#
-#     return padded_adj, padded_attr
-import torch
-import torch
 
 def collate_fn(batch):
     """Pads adjacency matrices and attributes while handling size mismatches."""
@@ -70,17 +95,54 @@ def collate_fn(batch):
         return (None, None)  # Skip batch
 
 
+def convert_to_dgl(adj_matrix, attr_matrix):
+    g = dgl.from_numpy(adj_matrix)
+    g.ndata["feat"] = torch.tensor(attr_matrix, dtype=torch.float32)
+    return g
 
-# Initialize dataset and dataloader
-dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
-dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
 
-# Iterate through batches
-for idx, (adj_batch, attr_batch) in enumerate(dataloader):
-    if idx == 12:
-        break
-    print(f"------{idx}-------")
-    print("Adjacency batch shape:", adj_batch.shape)
-    print("Attribute batch shape:", attr_batch.shape)
+def run_inductive(
+        conf,
+        model,
+        g,
+        feats,
+        labels,
+        indices,
+        criterion,
+        evaluator,
+        optimizer,
+        logger,
+        loss_and_score,
+        accumulation_steps=1
+):
+    # Initialize dataset and dataloader
+    dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
 
+    for epoch in range(1, conf["max_epoch"] + 1):
+        # --------------------------------
+        # run only in train mode
+        # --------------------------------
+        if conf["train_or_infer"] == "train":
+
+            # Iterate through batches
+            for idx, (adj_batch, attr_batch) in enumerate(dataloader):
+                if idx == 8:
+                    break
+                print(f"------{idx}-------")
+                print("Adjacency batch shape:", adj_batch.shape)
+                print("Attribute batch shape:", attr_batch.shape)
+                g = convert_to_dgl(adj_batch, attr_batch)
+
+                loss, loss_list_list, latent_train, latents = train_sage(
+                    model, g, attr_batch, optimizer, epoch, accumulation_steps
+                )
+                model.encoder.reset_kmeans()
+                # cb_new = model.encoder.vq._codebook.init_embed_(latents)
+                # save codebook and vectors every epoch
+                # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
+                # np.savez(f"./init_codebook_{epoch}", cb_new.cpu().detach().numpy())
+                # latents = torch.squeeze(latents)
+                # # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
+                # np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
 
