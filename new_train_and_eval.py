@@ -20,20 +20,38 @@ class MoleculeGraphDataset(Dataset):
         return torch.tensor(adj_matrix, dtype=torch.float32), torch.tensor(attr_matrix, dtype=torch.float32)
 
 
+# def collate_fn(batch):
+#     """Custom collate function to pad variable-sized tensors."""
+#     adj_matrices, attr_matrices = zip(*batch)
+#
+#     # Find max number of nodes in batch
+#     max_nodes = max(adj.shape[0] for adj in adj_matrices)
+#
+#     # Pad adjacency matrices
+#     padded_adj = [torch.nn.functional.pad(adj, (0, max_nodes - adj.shape[0], 0, max_nodes - adj.shape[1])) for adj in adj_matrices]
+#     padded_adj = torch.stack(padded_adj)
+#
+#     # Pad attribute matrices
+#     padded_attr = [torch.nn.functional.pad(attr, (0, 0, 0, max_nodes - attr.shape[0])) for attr in attr_matrices]
+#     padded_attr = torch.stack(padded_attr)
+#
+#     return padded_adj, padded_attr
+
 def collate_fn(batch):
-    """Custom collate function to pad variable-sized tensors."""
+    from torch.nn.utils.rnn import pad_sequence
+    """Pads adjacency matrices and attributes to the size of the largest molecule in the batch."""
     adj_matrices, attr_matrices = zip(*batch)
 
-    # Find max number of nodes in batch
+    # Find max nodes in batch
     max_nodes = max(adj.shape[0] for adj in adj_matrices)
 
     # Pad adjacency matrices
     padded_adj = [torch.nn.functional.pad(adj, (0, max_nodes - adj.shape[0], 0, max_nodes - adj.shape[1])) for adj in adj_matrices]
-    padded_adj = torch.stack(padded_adj)
+    padded_adj = pad_sequence(padded_adj, batch_first=True)  # Now safely stack
 
     # Pad attribute matrices
     padded_attr = [torch.nn.functional.pad(attr, (0, 0, 0, max_nodes - attr.shape[0])) for attr in attr_matrices]
-    padded_attr = torch.stack(padded_attr)
+    padded_attr = pad_sequence(padded_attr, batch_first=True)  # Now safely stack
 
     return padded_adj, padded_attr
 
@@ -45,7 +63,6 @@ dataloader = DataLoader(dataset, batch_size=32, shuffle=False, collate_fn=collat
 for adj_batch, attr_batch in dataloader:
     print(f"-------------")
     print("Adjacency batch shape:", adj_batch.shape)
-    print("Adjacency batch shape:", adj_batch[0, :20, :20])
     print("Attribute batch shape:", attr_batch.shape)
 
 
