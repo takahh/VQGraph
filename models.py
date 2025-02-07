@@ -360,7 +360,7 @@ class SAGE(nn.Module):
                     sample_bond_order = block.edata["bond_order"].to(torch.float32).to(device)
 
             g = dgl.DGLGraph().to(device)
-            g.add_nodes(new_node_count)
+            g.add_nodes(new_node_count_total)
             if remapped_bond_orders:
                 for (src, dst), bond_order in zip(remapped_edge_list, remapped_bond_orders):
                     g.add_edges(src, dst, data={"bond_order": bond_order})
