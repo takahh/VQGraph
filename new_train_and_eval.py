@@ -69,7 +69,7 @@ def collate_fn(batch):
     except RuntimeError as e:
         print(f"⚠️ Collate Error: {e}")
         print(f"Skipping batch with inconsistent sizes.")
-        return None  # Skip batch
+        return (None, None)  # Skip batch
 
 
 
