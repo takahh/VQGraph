@@ -184,9 +184,7 @@ def remove_bond_with_other_blocks(src, dst):
     mask = torch.abs(src - dst) < args.batch_size * 0.5
     filtered_src = src[mask]
     filtered_dst = dst[mask]
-    unique_values = torch.unique(torch.cat([filtered_src, filtered_dst]))
-
-    return filtered_src, filtered_dst, unique_values.numel()  # Return count of unique values
+    return filtered_src, filtered_dst  # Return count of unique values
 
 
 class SAGE(nn.Module):
@@ -344,13 +342,17 @@ class SAGE(nn.Module):
             # ----------------------------------------------
             # obtain edge source and destination from block
             # ----------------------------------------------
+            total_src = torch.empty(0, dtype=torch.int64, device=device)
+            total_dst = torch.empty(0, dtype=torch.int64, device=device)
+
             for idex, block in enumerate(blocks):
                 src, dst = block.all_edges()
                 src, dst = src.to(torch.int64), dst.to(torch.int64)
                 local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
                 local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
-                local_src, local_dst, new_node_count = remove_bond_with_other_blocks(local_src, local_dst)
-                new_node_count_total += new_node_count
+                local_src, local_dst = remove_bond_with_other_blocks(local_src, local_dst)
+                total_src = torch.cat((total_src, local_src))
+                total_dst = torch.cat((total_dst, local_dst))
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
                 edge_list.append((local_src, local_dst))
@@ -362,8 +364,9 @@ class SAGE(nn.Module):
                 if idex == 0 and idx == 0:
                     sample_bond_to_edge = [local_src, local_dst]
                     sample_bond_order = block.edata["bond_order"].to(torch.float32).to(device)
-            print(f"new_node_count_total {new_node_count_total}")
-            print(f"len(remapped_edge_list) {len(remapped_edge_list)}")
+            new_nodes = torch.unique(torch.cat([total_src, total_dst]))
+            print(f"new_nodes {new_nodes[:10]}, {new_nodes[-10:]}")
+            print(f"total new nodes count {new_nodes.shape}")
             g = dgl.DGLGraph().to(device)
             g.add_nodes(new_node_count_total)
 
