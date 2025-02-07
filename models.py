@@ -184,6 +184,8 @@ def remove_bond_with_other_blocks(src, dst):
     print("before src.shape, dst.shape")
     print(src.shape, dst.shape)
     print(src[:20])
+    print(args.batch_size * 0.5)
+    print(torch.abs(src - dst))
     mask = torch.abs(src - dst) < args.batch_size * 0.5
     filtered_src = src[mask]
     filtered_dst = dst[mask]
