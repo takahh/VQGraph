@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dgl import batch
 from dgl.nn import GraphConv, SAGEConv, APPNPConv, GATConv
+
+from train_teacher import get_args
 from vq import VectorQuantize
 import dgl
 from train_and_eval import transform_node_feats
@@ -178,9 +180,10 @@ def filetr_src_and_dst(src, dst):
 
 
 def remove_bond_with_other_blocks(src, dst):
+    args = get_args()
     print("before src.shape, dst.shape")
     print(src.shape, dst.shape)
-    mask = torch.abs(src - dst) < 5000
+    mask = torch.abs(src - dst) < args.batch_size * 0.5
     filtered_src = src[mask]
     filtered_dst = dst[mask]
     print("after src.shape, dst.shape")
