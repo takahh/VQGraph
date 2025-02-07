@@ -345,6 +345,8 @@ class SAGE(nn.Module):
                 local_src = torch.tensor([global_to_local[i.item()] for i in src], dtype=torch.int64, device=device)
                 local_dst = torch.tensor([global_to_local[i.item()] for i in dst], dtype=torch.int64, device=device)
                 local_src, local_dst, new_node_count = remove_bond_with_other_blocks(local_src, local_dst)
+                print("new_node_count")
+                print(new_node_count)
                 remapped_edge_list.append((local_src, local_dst))
                 remapped_edge_list.append((local_dst, local_src))
                 edge_list.append((local_src, local_dst))
