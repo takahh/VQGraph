@@ -311,8 +311,8 @@ class SAGE(nn.Module):
         for idx, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
             # print(f"IDX {idx}")
 
-            input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
-                                                                                idx, "infer", min_size=6)
+            # input_nodes, output_nodes, blocks = filter_small_graphs_from_blocks(input_nodes, output_nodes, blocks,
+            #                                                                     idx, "infer", min_size=6)
             blocks = [blk.int().to(device) for blk in blocks]  # Convert blocks to device
             batch_feats = feats[input_nodes]
             batch_feats = transform_node_feats(batch_feats)
@@ -322,6 +322,7 @@ class SAGE(nn.Module):
             h = batch_feats.clone()
             print("h.shape +++++++++++++++++++")
             print(h.shape)
+            print(f"input_nodes {input_nodes[:10]}, {input_nodes[-10:]}")
             init_feat = h.clone()
             device = h.device
             # print("----INFER ------")
