@@ -112,7 +112,7 @@ def convert_to_dgl(adj_batch, attr_batch):
         adj_matrix = adj_matrix.view(1000, 100, 100)
         attr_matrix = attr_matrix.view(1000, 100, 7)
         # Ensure adjacency matrix is square
-        if adj_matrix.shape[0] != adj_matrix.shape[1]:
+        if adj_matrix.shape[-1] != adj_matrix.shape[-2]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
             continue
         # Identify non-zero feature vectors
