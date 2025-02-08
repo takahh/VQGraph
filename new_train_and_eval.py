@@ -103,7 +103,9 @@ import torch
 
 
 def convert_to_dgl(adj_batch, attr_batch):
+    # ------------------------------------------------------------------------
     # 細長く concat されてる行列をひとつずつ dgl のグラフにし、dgl object のリストを返す
+    # ------------------------------------------------------------------------
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
     for i in range(len(adj_batch)):  # Loop over each molecule set (1000 molecules)
@@ -111,23 +113,28 @@ def convert_to_dgl(adj_batch, attr_batch):
         attr_matrix = attr_batch[i]  # (100, 100)
         adj_matrix = adj_matrix.view(1000, 100, 100)
         attr_matrix = attr_matrix.view(1000, 100, 7)
-        # Ensure adjacency matrix is square
+        # ただのチェック
         if adj_matrix.shape[-1] != adj_matrix.shape[-2]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
             continue
-        # Identify non-zero feature vectors
+        # ------------------------------------------------------------------------
+        # パディングを除去するためにパディング幅を検出
+        # ------------------------------------------------------------------------
         nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)  # True for nodes with non-zero features
+        print(f"nonzero mask: {nonzero_mask.shape}, attr_matrix: {attr_matrix.shape}")
         num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
-
-        # Extract only the relevant feature vectors
         filtered_attr_matrix = attr_matrix[nonzero_mask]
-
-        # Extract edges as before
+        '''
+          File "/VQGraph/new_train_and_eval.py", line 123, in convert_to_dgl
+            filtered_attr_matrix = attr_matrix[nonzero_mask]
+                           ~~~~~~~~~~~^^^^^^^^^^^^^^
+            IndexError: The shape of the mask [1000, 7] at index 1 does not match 
+            the shape of the indexed tensor [1000, 100, 7] at index 1'''
+        # ------------------------------------------------------------------------
+        # ゼロパディングを抜いて、dgl graph を作成
+        # ------------------------------------------------------------------------
         src, dst = adj_matrix.nonzero(as_tuple=True)
-
-        # Ensure DGLGraph includes only nodes with non-zero features
         g = dgl.graph((src, dst), num_nodes=num_total_nodes)
-        # Assign filtered node features
         g.ndata["feat"] = filtered_attr_matrix
         if g.num_nodes() != num_total_nodes:
             print(f"g.num_nodes() {g.num_nodes()}!= num_total_nodes {num_total_nodes}")
