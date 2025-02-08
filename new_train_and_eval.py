@@ -120,7 +120,7 @@ def convert_to_dgl(adj_batch, attr_batch):
         # ------------------------------------------------------------------------
         # パディングを除去するためにパディング幅を検出
         # ------------------------------------------------------------------------
-        nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)  # True for nodes with non-zero features
+        nonzero_mask = (attr_matrix.abs().sum(dim=2) > 0)  # True for nodes with non-zero features
         print(f"nonzero mask: {nonzero_mask.shape}, attr_matrix: {attr_matrix.shape}")
         num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
         filtered_attr_matrix = attr_matrix[nonzero_mask]
