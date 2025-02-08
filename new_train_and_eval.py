@@ -110,13 +110,14 @@ def convert_to_dgl(adj_batch, attr_batch):
         if adj_matrix.shape[0] != adj_matrix.shape[1]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
             continue
-
+        print(f"attr_matrix: {attr_matrix.shape}")
+        print(f"adj_matrix: {adj_matrix.shape}")
         # Extract edges (DGL expects (src, dst) format)
         src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
 
         # Create a DGLGraph
         g = dgl.graph((src, dst))
-
+        print(g.ndata["feat"].shape)
         # Assign node features
         g.ndata["feat"] = attr_matrix
 
