@@ -131,6 +131,8 @@ def convert_to_dgl(adj_batch, attr_batch):
         # check if the cutoff was correct
         # --------------------------------
         remaining_features = attr_matrix[g.num_nodes():]
+        print("Remaining Features Shape:", remaining_features.shape)
+        print("Remaining Features:\n", remaining_features)
         # Check if all values are zero
         if torch.all(remaining_features == 0):
             pass
