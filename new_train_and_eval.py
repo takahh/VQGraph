@@ -28,8 +28,6 @@ def train_sage(model, dataloader, feats, optimizer, epoch, accumulation_steps=1,
     loss_list_list = []  # Initialize a list for tracking loss_list3 over steps
     scaler = torch.cuda.amp.GradScaler()
     optimizer.zero_grad()
-    print("dataloader")
-    print(dataloader)
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, feats, epoch)
@@ -98,23 +96,10 @@ def collate_fn(batch):
 
 def convert_to_dgl(adj_matrix, attr_matrix):
     """Converts an adjacency matrix (torch tensor) and attributes to a DGLGraph."""
-    try:
-        # Ensure adj_matrix is a square tensor
-        assert adj_matrix.shape[0] == adj_matrix.shape[1], "Adjacency matrix must be square"
-
-        # Convert adjacency matrix to an edge list (DGL format)
-        src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
-
-        # Create a DGLGraph
-        g = dgl.graph((src, dst))
-
-        # Assign node features
-        g.ndata["feat"] = attr_matrix  # Assuming attr_matrix is already a tensor
-
-        return g
-    except Exception as e:
-        print(f"⚠️ Error converting to DGLGraph: {e}")
-        return None  # Skip problematic graphs
+    src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
+    g = dgl.graph((src, dst))
+    g.ndata["feat"] = attr_matrix  # Assuming attr_matrix is already a tensor
+    return g
 
 
 def run_inductive(
