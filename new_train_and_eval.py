@@ -114,7 +114,6 @@ def convert_to_dgl(adj_batch, attr_batch):
         print(f"adj_matrix: {adj_matrix[0:45]}")
         # Extract edges (DGL expects (src, dst) format)
         src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
-
         print(src[:20], dst[:20])
         # Create a DGLGraph
         g = dgl.graph((src, dst))
