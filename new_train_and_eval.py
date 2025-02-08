@@ -172,6 +172,8 @@ def run_inductive(
                 print("Adjacency batch shape:", adj_batch.shape)
                 print("Attribute batch shape:", attr_batch.shape)
                 g = convert_to_dgl(adj_batch, attr_batch)
+                print(f"Graph Edge Types: {g.etypes}")
+                print(f"Graph Node Types: {g.ntypes}")
 
                 loss, loss_list_list, latent_train, latents = train_sage(
                     model, g, attr_batch, optimizer, epoch, accumulation_steps
