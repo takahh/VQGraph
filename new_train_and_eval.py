@@ -121,8 +121,6 @@ def convert_to_dgl(adj_batch, attr_batch):
         nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)  # True for nodes with non-zero features
         num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
 
-        print(f"1.  Total Nodes with Non-Zero Features: {num_total_nodes}")
-
         # Extract only the relevant feature vectors
         filtered_attr_matrix = attr_matrix[nonzero_mask]
 
@@ -131,9 +129,10 @@ def convert_to_dgl(adj_batch, attr_batch):
 
         # Ensure DGLGraph includes only nodes with non-zero features
         g = dgl.graph((src, dst), num_nodes=num_total_nodes)
-        print(f"2.  g.num_nodes() {g.num_nodes()}")
         # Assign filtered node features
         g.ndata["feat"] = filtered_attr_matrix
+        if g.num_nodes() != num_total_nodes:
+            print(f"g.num_nodes() {g.num_nodes()}!= num_total_nodes {num_total_nodes}")
 
         # --------------------------------
         # check if the cutoff was correct
@@ -141,7 +140,7 @@ def convert_to_dgl(adj_batch, attr_batch):
         remaining_features = attr_matrix[g.num_nodes():]
         # Check if all values are zero
         if torch.all(remaining_features == 0):
-            print(f"PASS !")
+            pass
         else:
             print("⚠️ WARNING: Non-zero values found in remaining features!")
         graphs.append(g)
