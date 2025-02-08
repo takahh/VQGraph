@@ -28,7 +28,8 @@ def train_sage(model, dataloader, feats, optimizer, epoch, accumulation_steps=1,
     loss_list_list = []  # Initialize a list for tracking loss_list3 over steps
     scaler = torch.cuda.amp.GradScaler()
     optimizer.zero_grad()
-
+    print("dataloader")
+    print(dataloader)
     for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
         with torch.cuda.amp.autocast():
             _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, feats, epoch)
