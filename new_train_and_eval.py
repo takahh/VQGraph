@@ -123,18 +123,19 @@ def convert_to_dgl(adj_batch, attr_batch):
         num_total_nodes = attr_matrix.shape[0]
         g = dgl.graph((src, dst), num_nodes=num_total_nodes)  # Force correct node count
 
-        # ----------------------
-        # check isolated nodes
-        # ----------------------
-        node_degrees = adj_matrix.sum(dim=1)  # Sum along rows to get node degrees
-        isolated_nodes = (node_degrees == 0).nonzero(as_tuple=True)[0]  # Nodes with degree 0
-        print(f"Isolated Nodes: {isolated_nodes}")
-        # Get feature vectors for isolated nodes
-        isolated_features = attr_matrix[isolated_nodes]
-        print(f"Isolated Feature Vectors:\n{isolated_features}")
+        # # ----------------------
+        # # check isolated nodes
+        # # ----------------------
+        # node_degrees = adj_matrix.sum(dim=1)  # Sum along rows to get node degrees
+        # isolated_nodes = (node_degrees == 0).nonzero(as_tuple=True)[0]  # Nodes with degree 0
+        # print(f"Isolated Nodes: {isolated_nodes}")
+        # # Get feature vectors for isolated nodes
+        # isolated_features = attr_matrix[isolated_nodes]
+        # print(f"Isolated Feature Vectors:\n{isolated_features}")
 
         # Assign node features
         g.ndata["feat"] = attr_matrix[:g.num_nodes()]
+        print(attr_matrix[:g.num_nodes()])
         # --------------------------------
         # check if the cutoff was correct
         # --------------------------------
@@ -144,9 +145,6 @@ def convert_to_dgl(adj_batch, attr_batch):
             print(f"PASS !")
         else:
             print("⚠️ WARNING: Non-zero values found in remaining features!")
-            print(f"g.num_nodes() {g.num_nodes()}, ")
-            print("Remaining Features Shape:", remaining_features.shape)
-            print("Features[g.num_nodes():10]:\n", remaining_features[g.num_nodes():10])
         graphs.append(g)
 
     return graphs  # Return a list of graphs instead of a single one
