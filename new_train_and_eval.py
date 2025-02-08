@@ -68,7 +68,7 @@ class MoleculeGraphDataset(Dataset):
     #     attr.append(attr_matrix)  # Pad rows only
     #     # print(f"padded_attr.shape {padded_attr.shape}")
     #
-        return torch.tensor(adj_matrix, dtype=torch.float32), torch.tensor(attr_matrix, dtype=torch.float32)
+        return (torch.tensor(adj_matrix, dtype=torch.float32), torch.tensor(attr_matrix, dtype=torch.float32))
 
 
 def collate_fn(batch):
@@ -103,11 +103,12 @@ import torch
 
 
 def convert_to_dgl(adj_batch, attr_batch):
+    # 細長く concat されてる行列をひとつずつ dgl のグラフにし、dgl object のリストを返す
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
     adj_batch = adj_batch.view(16000, 100, 100)
     attr_batch = attr_batch.view(16000, 100, 7)
-    for i in range(adj_batch.shape[0]):  # Loop over batch
+    for i in range(adj_batch.shape[0]):  # Loop over each molecule
         adj_matrix = adj_batch[i]  # (100, 100)
         attr_matrix = attr_batch[i]  # (100, 7)
         # Ensure adjacency matrix is square
@@ -166,8 +167,8 @@ def run_inductive(
                 if idx == 8:
                     break
                 print(f"------{idx}-------")
-                print("Adjacency batch shape:", adj_batch)
-                print("Attribute batch shape:", attr_batch)
+                print("Adjacency batch:", adj_batch)
+                print("Attribute batch:", attr_batch)
                 g = convert_to_dgl(adj_batch, attr_batch)
                 print(f"Graph Edge Types: {g.etypes}")
                 print(f"Graph Node Types: {g.ntypes}")
