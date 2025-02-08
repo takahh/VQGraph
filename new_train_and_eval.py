@@ -117,25 +117,24 @@ def convert_to_dgl(adj_batch, attr_batch):
         if adj_matrix.shape[0] != adj_matrix.shape[1]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
             continue
-        # Extract edges (DGL expects (src, dst) format)
-        src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
-        # Ensure all nodes are included, even isolated ones
-        num_total_nodes = attr_matrix.shape[0]
-        g = dgl.graph((src, dst), num_nodes=num_total_nodes)  # Force correct node count
+        # Identify non-zero feature vectors
+        nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)  # True for nodes with non-zero features
+        num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
 
-        # # ----------------------
-        # # check isolated nodes
-        # # ----------------------
-        # node_degrees = adj_matrix.sum(dim=1)  # Sum along rows to get node degrees
-        # isolated_nodes = (node_degrees == 0).nonzero(as_tuple=True)[0]  # Nodes with degree 0
-        # print(f"Isolated Nodes: {isolated_nodes}")
-        # # Get feature vectors for isolated nodes
-        # isolated_features = attr_matrix[isolated_nodes]
-        # print(f"Isolated Feature Vectors:\n{isolated_features}")
+        print(f"1.  Total Nodes with Non-Zero Features: {num_total_nodes}")
 
-        # Assign node features
-        g.ndata["feat"] = attr_matrix[:g.num_nodes()]
-        print(attr_matrix[:g.num_nodes()])
+        # Extract only the relevant feature vectors
+        filtered_attr_matrix = attr_matrix[nonzero_mask]
+
+        # Extract edges as before
+        src, dst = adj_matrix.nonzero(as_tuple=True)
+
+        # Ensure DGLGraph includes only nodes with non-zero features
+        g = dgl.graph((src, dst), num_nodes=num_total_nodes)
+        print(f"2.  g.num_nodes() {g.num_nodes()}")
+        # Assign filtered node features
+        g.ndata["feat"] = filtered_attr_matrix
+
         # --------------------------------
         # check if the cutoff was correct
         # --------------------------------
