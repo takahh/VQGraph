@@ -20,32 +20,33 @@ from scipy.sparse import csr_matrix
 DATAPATH = "data/both_mono"
 
 #                model, g,    attr_batch, optimizer, epoch, accumulation_steps
-def train_sage(model, dataloader, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
+def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     model.train()
     total_loss = 0
     loss_list, latent_list = [], []
     cb_list = []
-    loss_list_list = []  # Initialize a list for tracking loss_list3 over steps
+    loss_list_list = []
     scaler = torch.cuda.amp.GradScaler()
     optimizer.zero_grad()
-    for step, (input_nodes, output_nodes, blocks) in enumerate(dataloader):
-        with torch.cuda.amp.autocast():
-            _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(blocks, feats, epoch)
-            loss = loss * lamb / accumulation_steps
-        for i, loss_value in enumerate(loss_list3):
-            loss_list_list[i].append(loss_value.item())
-        scaler.scale(loss).backward()
-        scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        scaler.step(optimizer)
-        scaler.update()
-        optimizer.zero_grad()
-        total_loss += loss.item() * accumulation_steps
-        latent_list.append(latent_train.detach().cpu())
-        cb_list.append(cb.detach().cpu())
-        loss_list.append(loss.detach().cpu())
-        avg_loss = total_loss / len(dataloader)
-        return avg_loss, loss_list_list, latent_list, latents
+
+    with torch.cuda.amp.autocast():
+        _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch)
+
+    loss = loss * lamb / accumulation_steps
+    for i, loss_value in enumerate(loss_list3):
+        loss_list_list[i].append(loss_value.item())
+    scaler.scale(loss).backward()
+    scaler.unscale_(optimizer)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+    scaler.step(optimizer)
+    scaler.update()
+    optimizer.zero_grad()
+    total_loss += loss.item() * accumulation_steps
+    latent_list.append(latent_train.detach().cpu())
+    cb_list.append(cb.detach().cpu())
+    loss_list.append(loss.detach().cpu())
+    avg_loss = total_loss / len(dataloader)
+    return avg_loss, loss_list_list, latent_list, latents
 
 
 class MoleculeGraphDataset(Dataset):
@@ -165,15 +166,20 @@ def run_inductive(
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
                 if idx == 8:
                     break
-                g = convert_to_dgl(adj_batch, attr_batch)
+                glist = convert_to_dgl(adj_batch, attr_batch)
 
-                for geach in g:
-                    print(f"Graph Edge Types: {geach.etypes}")
-                    print(f"Graph Node Types: {geach.ntypes}")
-                    break
+                # for geach in g:
+                #     print(f"Graph Edge Types: {geach.etypes}")
+                #     print(f"Graph Node Types: {geach.ntypes}")
+                #     break
 
+                # Convert list of graphs into a single batched graph
+                batched_graph = dgl.batch(glist)
+
+                # Ensure node features are correctly extracted
+                batched_feats = batched_graph.ndata["feat"]
                 loss, loss_list_list, latent_train, latents = train_sage(
-                    model, g, attr_batch, optimizer, epoch, accumulation_steps
+                    model, batched_graph, attr_batch, batched_feats, epoch, accumulation_steps
                 )
                 model.encoder.reset_kmeans()
                 # cb_new = model.encoder.vq._codebook.init_embed_(latents)
