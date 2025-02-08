@@ -166,8 +166,8 @@ def run_inductive(
                 if idx == 8:
                     break
                 print(f"------{idx}-------")
-                print("Adjacency batch shape:", adj_batch.shape)
-                print("Attribute batch shape:", attr_batch.shape)
+                print("Adjacency batch shape:", adj_batch)
+                print("Attribute batch shape:", attr_batch)
                 g = convert_to_dgl(adj_batch, attr_batch)
                 print(f"Graph Edge Types: {g.etypes}")
                 print(f"Graph Node Types: {g.ntypes}")
