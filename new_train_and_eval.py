@@ -96,10 +96,24 @@ def collate_fn(batch):
 
 
 def convert_to_dgl(adj_matrix, attr_matrix):
-    print(adj_matrix)
-    g = dgl.from_numpy(adj_matrix)
-    g.ndata["feat"] = torch.tensor(attr_matrix, dtype=torch.float32)
-    return g
+    """Converts an adjacency matrix (torch tensor) and attributes to a DGLGraph."""
+    try:
+        # Ensure adj_matrix is a square tensor
+        assert adj_matrix.shape[0] == adj_matrix.shape[1], "Adjacency matrix must be square"
+
+        # Convert adjacency matrix to an edge list (DGL format)
+        src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
+
+        # Create a DGLGraph
+        g = dgl.graph((src, dst))
+
+        # Assign node features
+        g.ndata["feat"] = attr_matrix  # Assuming attr_matrix is already a tensor
+
+        return g
+    except Exception as e:
+        print(f"⚠️ Error converting to DGLGraph: {e}")
+        return None  # Skip problematic graphs
 
 
 def run_inductive(
