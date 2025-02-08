@@ -120,7 +120,6 @@ def convert_to_dgl(adj_batch, attr_batch):
             # パディングを除去するためにパディング幅を検出 : attr
             # ------------------------------------------------------------------------
             nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)  # True for nodes with non-zero features
-            print(f"nonzero mask: {nonzero_mask.shape}, attr_matrix: {attr_matrix.shape}")
             num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
             filtered_attr_matrix = attr_matrix[nonzero_mask]
             # ------------------------------------------------------------------------
@@ -166,12 +165,10 @@ def run_inductive(
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
                 if idx == 8:
                     break
-                print(f"------{idx}-------")
-                print("Adjacency batch:", adj_batch)
-                print("Attribute batch:", attr_batch)
                 g = convert_to_dgl(adj_batch, attr_batch)
-                print(f"Graph Edge Types: {g.etypes}")
-                print(f"Graph Node Types: {g.ntypes}")
+                for geach in g:
+                    print(f"Graph Edge Types: {g.etypes}")
+                    print(f"Graph Node Types: {g.ntypes}")
 
                 loss, loss_list_list, latent_train, latents = train_sage(
                     model, g, attr_batch, optimizer, epoch, accumulation_steps
