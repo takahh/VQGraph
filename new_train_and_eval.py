@@ -100,7 +100,8 @@ import torch
 def convert_to_dgl(adj_batch, attr_batch):
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
-    print(f"attr_matrix: {attr_batch[0, 0:100, :]}")
+    print(f"attr_matrix: {attr_batch[0, 0:100]}")
+    print(f"adj_batch: {adj_batch[0, 0:100]}")
     adj_batch = adj_batch.view(16000, 100, 100)
     attr_batch = attr_batch.view(16000, 100, 7)
     for i in range(adj_batch.shape[0]):  # Loop over batch
@@ -110,7 +111,7 @@ def convert_to_dgl(adj_batch, attr_batch):
         if adj_matrix.shape[0] != adj_matrix.shape[1]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
             continue
-        print(f"attr_matrix: {attr_matrix[0:40]}")
+        print(f"attr_matrix: {attr_matrix[0:100]}")
         print(f"adj_matrix: {adj_matrix[0:45]}")
         # Extract edges (DGL expects (src, dst) format)
         src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
