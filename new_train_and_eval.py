@@ -131,13 +131,13 @@ def convert_to_dgl(adj_batch, attr_batch):
         # check if the cutoff was correct
         # --------------------------------
         remaining_features = attr_matrix[g.num_nodes():]
-        print("Remaining Features Shape:", remaining_features.shape)
-        print("Remaining Features:\n", remaining_features[0:10])
         # Check if all values are zero
         if torch.all(remaining_features == 0):
             pass
         else:
             print("⚠️ WARNING: Non-zero values found in remaining features!")
+            print("Remaining Features Shape:", remaining_features.shape)
+            print("Remaining Features:\n", remaining_features[0:10])
         graphs.append(g)
 
     return graphs  # Return a list of graphs instead of a single one
