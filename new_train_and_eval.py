@@ -74,7 +74,10 @@ def collate_fn(batch):
         # Pad adjacency matrices to ensure square shape (max_nodes, max_nodes)
         padded_adj = []
         for adj in adj_matrices:
+            print(f"adj.shape {adj.shape}")
+            print(f"adj {adj}")
             pad_size = max_nodes - adj.shape[0]
+            print(f"padded adj {torch.nn.functional.pad(adj, (0, pad_size, 0, pad_size))}")
             padded_adj.append(torch.nn.functional.pad(adj, (0, pad_size, 0, pad_size)))  # Pad both dimensions
 
         padded_adj = torch.stack(padded_adj)  # Now safely stack
