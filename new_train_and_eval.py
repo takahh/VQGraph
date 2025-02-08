@@ -117,7 +117,8 @@ def convert_to_dgl(adj_batch, attr_batch):
 
         # Create a DGLGraph
         g = dgl.graph((src, dst))
-        print(g.ndata["feat"].shape)
+        print(g)
+        print(src, dst)
         # Assign node features
         g.ndata["feat"] = attr_matrix
 
