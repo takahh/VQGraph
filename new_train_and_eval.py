@@ -166,9 +166,11 @@ def run_inductive(
                 if idx == 8:
                     break
                 g = convert_to_dgl(adj_batch, attr_batch)
+
                 for geach in g:
-                    print(f"Graph Edge Types: {g.etypes}")
-                    print(f"Graph Node Types: {g.ntypes}")
+                    print(f"Graph Edge Types: {geach.etypes}")
+                    print(f"Graph Node Types: {geach.ntypes}")
+                    break
 
                 loss, loss_list_list, latent_train, latents = train_sage(
                     model, g, attr_batch, optimizer, epoch, accumulation_steps
