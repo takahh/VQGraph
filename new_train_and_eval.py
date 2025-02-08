@@ -111,7 +111,7 @@ def convert_to_dgl(adj_batch, attr_batch):
     for i in range(len(adj_batch)):  # Loop over each molecule
         adj_matrix = adj_batch[i]  # (100, 100)
         print("adj_batch.shape")
-        print(adj_batch.shape)
+        print(adj_matrix.shape)
         attr_matrix = attr_batch[i]  # (100, 7)
         # Ensure adjacency matrix is square
         if adj_matrix.shape[0] != adj_matrix.shape[1]:
