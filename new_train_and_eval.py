@@ -108,12 +108,8 @@ import torch
 def convert_to_dgl(adj_batch, attr_batch):
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
-    print(f"adj_batch: {adj_batch.shape}")
-    print(f"attr_batch: {attr_batch.shape}")
     adj_batch = adj_batch.view(16000, 100, 100)
     attr_batch = attr_batch.view(16000, 100, 7)
-    print(f"adj_batch: {adj_batch.shape}")
-    print(f"attr_batch: {attr_batch.shape}")
     for i in range(adj_batch.shape[0]):  # Loop over batch
         adj_matrix = adj_batch[i]  # (100, 100)
         attr_matrix = attr_batch[i]  # (100, 7)
@@ -136,8 +132,9 @@ def convert_to_dgl(adj_batch, attr_batch):
             pass
         else:
             print("⚠️ WARNING: Non-zero values found in remaining features!")
+            print(f"g.num_nodes() {g.num_nodes()}, ")
             print("Remaining Features Shape:", remaining_features.shape)
-            print("Remaining Features:\n", remaining_features[0:10])
+            print("Features[g.num_nodes():10]:\n", remaining_features[g.num_nodes():10])
         graphs.append(g)
 
     return graphs  # Return a list of graphs instead of a single one
