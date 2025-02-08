@@ -19,7 +19,7 @@ from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 DATAPATH = "data/both_mono"
 
-#                model, g,    attr_batch, optimizer, epoch, accumulation_steps
+#                model, batched_graph, attr_batch, batched_feats, epoch, accumulation_steps
 def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     model.train()
     total_loss = 0
@@ -179,7 +179,7 @@ def run_inductive(
                 # Ensure node features are correctly extracted
                 batched_feats = batched_graph.ndata["feat"]
                 loss, loss_list_list, latent_train, latents = train_sage(
-                    model, batched_graph, attr_batch, batched_feats, epoch, accumulation_steps
+                    model, batched_graph, optimizer, batched_feats, epoch, accumulation_steps
                 )
                 model.encoder.reset_kmeans()
                 # cb_new = model.encoder.vq._codebook.init_embed_(latents)
