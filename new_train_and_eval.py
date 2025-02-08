@@ -83,7 +83,10 @@ def collate_fn(batch):
         num_features = attr_matrices[0].shape[1]  # Keep number of features same
         padded_attr = []
         for attr in attr_matrices:
+            print(f"attr.shape {attr.shape}")
+            print(f"attr {attr}")
             pad_size = max_nodes - attr.shape[0]
+            print(f"padded attr {torch.nn.functional.pad(attr, (0, 0, 0, pad_size)).shape}")
             padded_attr.append(torch.nn.functional.pad(attr, (0, 0, 0, pad_size)))  # Pad rows only
 
         padded_attr = torch.stack(padded_attr)  # Now safely stack
