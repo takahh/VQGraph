@@ -119,8 +119,10 @@ def convert_to_dgl(adj_batch, attr_batch):
             continue
         # Extract edges (DGL expects (src, dst) format)
         src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
-        # Create a DGLGraph
-        g = dgl.graph((src, dst))
+        # Ensure all nodes are included, even isolated ones
+        num_total_nodes = attr_matrix.shape[0]
+        g = dgl.graph((src, dst), num_nodes=num_total_nodes)  # Force correct node count
+
         # Assign node features
         g.ndata["feat"] = attr_matrix[:g.num_nodes()]
         # --------------------------------
