@@ -129,7 +129,7 @@ def convert_to_dgl(adj_batch, attr_batch):
         remaining_features = attr_matrix[g.num_nodes():]
         # Check if all values are zero
         if torch.all(remaining_features == 0):
-            pass
+            print(f"PASS !")
         else:
             print("⚠️ WARNING: Non-zero values found in remaining features!")
             print(f"g.num_nodes() {g.num_nodes()}, ")
