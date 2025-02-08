@@ -100,7 +100,8 @@ import torch
 def convert_to_dgl(adj_batch, attr_batch):
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
-
+    adj_batch.view(16000, 100, 100)
+    attr_batch.view(16000, 100, 7)
     for i in range(adj_batch.shape[0]):  # Loop over batch
         adj_matrix = adj_batch[i]  # Extract one adjacency matrix
         attr_matrix = attr_batch[i]  # Extract corresponding node features
