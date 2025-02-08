@@ -58,21 +58,17 @@ class MoleculeGraphDataset(Dataset):
         return len(self.adj_files)
 
     def __getitem__(self, idx):
-        padded_attr = []
-        padded_adj = []
+        attr = []
+        adj = []
         adj_matrix = torch.tensor(np.load(self.adj_files[idx]))  # Load adjacency matrix
-        print(f"adj_matrix.shape {adj_matrix.shape}")
-        pad_size = 100 - adj_matrix.shape[0]
-        padded_adj.append(torch.nn.functional.pad(adj_matrix, (0, pad_size, 0, pad_size)))  # Pad both dimensions
-        print(f"padded_adj.shape {padded_adj.shape}")
 
         attr_matrix = torch.tensor(np.load(self.attr_files[idx]))  # Load atom features
-        print(f"attr_matrix.shape {attr_matrix.shape}")
-        pad_size = 100 - attr_matrix.shape[0]
-        padded_attr.append(torch.nn.functional.pad(attr_matrix, (0, 0, 0, pad_size)))  # Pad rows only
-        print(f"padded_attr.shape {padded_attr.shape}")
-
-        return torch.tensor(padded_adj, dtype=torch.float32), torch.tensor(padded_attr, dtype=torch.float32)
+    #     # print(f"attr_matrix.shape {attr_matrix.shape}")
+    #     # pad_size = 100 - attr_matrix.shape[0]
+    #     attr.append(attr_matrix)  # Pad rows only
+    #     # print(f"padded_attr.shape {padded_attr.shape}")
+    #
+        return torch.tensor(adj_matrix, dtype=torch.float32), torch.tensor(attr_matrix, dtype=torch.float32)
 
 
 def collate_fn(batch):
