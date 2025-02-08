@@ -108,27 +108,34 @@ import torch
 def convert_to_dgl(adj_batch, attr_batch):
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
-    print(f"attr_matrix: {attr_batch[0, 0:300]}")
+    print(f"adj_batch: {adj_batch.shape}")
+    print(f"attr_batch: {attr_batch.shape}")
     adj_batch = adj_batch.view(16000, 100, 100)
     attr_batch = attr_batch.view(16000, 100, 7)
+    print(f"adj_batch: {adj_batch.shape}")
+    print(f"attr_batch: {attr_batch.shape}")
     for i in range(adj_batch.shape[0]):  # Loop over batch
-        adj_matrix = adj_batch[i]  # Extract one adjacency matrix
-        attr_matrix = attr_batch[i]  # Extract corresponding node features
+        adj_matrix = adj_batch[i]  # (100, 100)
+        attr_matrix = attr_batch[i]  # (100, 7)
         # Ensure adjacency matrix is square
         if adj_matrix.shape[0] != adj_matrix.shape[1]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
             continue
-        print(f"attr_matrix: {attr_matrix[0:100]}")
-        print(f"adj_matrix: {adj_matrix[0:45]}")
         # Extract edges (DGL expects (src, dst) format)
         src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
-        print(src[:20], dst[:20])
         # Create a DGLGraph
         g = dgl.graph((src, dst))
-        print(g)
         # Assign node features
-        g.ndata["feat"] = attr_matrix
-
+        g.ndata["feat"] = attr_matrix[:g.num_nodes()]
+        # --------------------------------
+        # check if the cutoff was correct
+        # --------------------------------
+        remaining_features = attr_matrix[g.num_nodes():]
+        # Check if all values are zero
+        if torch.all(remaining_features == 0):
+            pass
+        else:
+            print("⚠️ WARNING: Non-zero values found in remaining features!")
         graphs.append(g)
 
     return graphs  # Return a list of graphs instead of a single one
