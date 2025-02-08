@@ -106,7 +106,6 @@ def convert_to_dgl(adj_batch, attr_batch):
     for i in range(adj_batch.shape[0]):  # Loop over batch
         adj_matrix = adj_batch[i]  # Extract one adjacency matrix
         attr_matrix = attr_batch[i]  # Extract corresponding node features
-
         # Ensure adjacency matrix is square
         if adj_matrix.shape[0] != adj_matrix.shape[1]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
