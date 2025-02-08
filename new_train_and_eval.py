@@ -58,9 +58,15 @@ class MoleculeGraphDataset(Dataset):
         return len(self.adj_files)
 
     def __getitem__(self, idx):
+        padded_attr = []
+        padded_adj = []
         adj_matrix = np.load(self.adj_files[idx])  # Load adjacency matrix
+        pad_size = 100 - adj_matrix.shape[0]
+        padded_adj.append(torch.nn.functional.pad(adj_matrix, (0, pad_size, 0, pad_size)))  # Pad both dimensions
         attr_matrix = np.load(self.attr_files[idx])  # Load atom features
-        return torch.tensor(adj_matrix, dtype=torch.float32), torch.tensor(attr_matrix, dtype=torch.float32)
+        pad_size = 100 - attr_matrix.shape[0]
+        padded_attr.append(torch.nn.functional.pad(attr_matrix, (0, 0, 0, pad_size)))  # Pad rows only
+        return torch.tensor(padded_adj, dtype=torch.float32), torch.tensor(padded_attr, dtype=torch.float32)
 
 
 def collate_fn(batch):
@@ -74,10 +80,7 @@ def collate_fn(batch):
         # Pad adjacency matrices to ensure square shape (max_nodes, max_nodes)
         padded_adj = []
         for adj in adj_matrices:
-            print(f"adj.shape {adj.shape}")
-            print(f"adj {adj}")
             pad_size = max_nodes - adj.shape[0]
-            print(f"padded adj {torch.nn.functional.pad(adj, (0, pad_size, 0, pad_size))}")
             padded_adj.append(torch.nn.functional.pad(adj, (0, pad_size, 0, pad_size)))  # Pad both dimensions
 
         padded_adj = torch.stack(padded_adj)  # Now safely stack
@@ -86,10 +89,7 @@ def collate_fn(batch):
         num_features = attr_matrices[0].shape[1]  # Keep number of features same
         padded_attr = []
         for attr in attr_matrices:
-            print(f"attr.shape {attr.shape}")
-            print(f"attr {attr}")
             pad_size = max_nodes - attr.shape[0]
-            print(f"padded attr {torch.nn.functional.pad(attr, (0, 0, 0, pad_size)).shape}")
             padded_attr.append(torch.nn.functional.pad(attr, (0, 0, 0, pad_size)))  # Pad rows only
 
         padded_attr = torch.stack(padded_attr)  # Now safely stack
