@@ -93,13 +93,35 @@ def collate_fn(batch):
     except RuntimeError as e:
         return (None, None)  # Skip batch
 
+import dgl
+import torch
 
-def convert_to_dgl(adj_matrix, attr_matrix):
-    """Converts an adjacency matrix (torch tensor) and attributes to a DGLGraph."""
-    src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
-    g = dgl.graph((src, dst))
-    g.ndata["feat"] = attr_matrix  # Assuming attr_matrix is already a tensor
-    return g
+
+def convert_to_dgl(adj_batch, attr_batch):
+    """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
+    graphs = []
+
+    for i in range(adj_batch.shape[0]):  # Loop over batch
+        adj_matrix = adj_batch[i]  # Extract one adjacency matrix
+        attr_matrix = attr_batch[i]  # Extract corresponding node features
+
+        # Ensure adjacency matrix is square
+        if adj_matrix.shape[0] != adj_matrix.shape[1]:
+            print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
+            continue
+
+        # Extract edges (DGL expects (src, dst) format)
+        src, dst = adj_matrix.nonzero(as_tuple=True)  # Get edge indices
+
+        # Create a DGLGraph
+        g = dgl.graph((src, dst))
+
+        # Assign node features
+        g.ndata["feat"] = attr_matrix
+
+        graphs.append(g)
+
+    return graphs  # Return a list of graphs instead of a single one
 
 
 def run_inductive(
