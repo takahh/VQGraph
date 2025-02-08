@@ -106,13 +106,11 @@ def convert_to_dgl(adj_batch, attr_batch):
     # 細長く concat されてる行列をひとつずつ dgl のグラフにし、dgl object のリストを返す
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
-    # adj_batch = adj_batch.view(16000, 100, 100)
-    # attr_batch = attr_batch.view(16000, 100, 7)
-    for i in range(len(adj_batch)):  # Loop over each molecule
+    for i in range(len(adj_batch)):  # Loop over each molecule set (1000 molecules)
         adj_matrix = adj_batch[i]  # (100, 100)
-        print("adj_batch.shape")
-        print(adj_matrix.shape)
-        attr_matrix = attr_batch[i]  # (100, 7)
+        attr_matrix = attr_batch[i]  # (100, 100)
+        adj_matrix = adj_matrix.view(1000, 100, 100)
+        attr_matrix = attr_matrix.view(1000, 100, 7)
         # Ensure adjacency matrix is square
         if adj_matrix.shape[0] != adj_matrix.shape[1]:
             print(f"⚠️ Skipping non-square adjacency matrix at index {i}")
