@@ -179,6 +179,10 @@ def run_inductive(
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)
 
+                batched_graph = dgl.batch(glist)
+                print("Batched Graph Edge Types:",
+                      batched_graph.etypes if isinstance(batched_graph, dgl.DGLHeteroGraph) else "Homogeneous")
+
                 # Convert list of graphs into a single batched graph
                 batched_graph = dgl.batch(glist)
 
