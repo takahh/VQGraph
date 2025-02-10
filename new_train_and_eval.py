@@ -129,6 +129,8 @@ def convert_to_dgl(adj_batch, attr_batch):
             # ------------------------------------------------------------------------
             src, dst = adj_matrix.nonzero(as_tuple=True)
             edge_weights = adj_matrix[src, dst]
+            print("edge_weights")
+            print(edge_weights)
             g = dgl.graph((src, dst), num_nodes=num_total_nodes)
             g.ndata["feat"] = filtered_attr_matrix
             g.edata["weight"] = torch.tensor(edge_weights, dtype=torch.float32)  # Ensure float32
