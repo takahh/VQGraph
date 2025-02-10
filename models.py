@@ -22,7 +22,7 @@ class WeightedThreeHopGCN(nn.Module):
         self.conv2 = dglnn.GraphConv(hidden_feats, hidden_feats, norm="both", weight=True)
         self.conv3 = dglnn.GraphConv(hidden_feats, out_feats, norm="both", weight=True)  # 3rd hop
 
-    def forward(self, batched_graph, features):
+    def forward(self, batched_graph, features, epoch):
         edge_type = "_E"  # Batched heterogeneous graph edge type
 
         if edge_type not in batched_graph.etypes:
