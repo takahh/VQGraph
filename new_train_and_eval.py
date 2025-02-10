@@ -125,7 +125,8 @@ def convert_to_dgl(adj_batch, attr_batch):
             num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
             filtered_attr_matrix = attr_matrix[nonzero_mask]
             filtered_adj_matrix = adj_matrix[:num_total_nodes, :num_total_nodes]
-            # print(f"adj_matrix[:num_total_nodes, :num_total_nodes] {adj_matrix[num_total_nodes-1 :num_total_nodes+ 3, :]}")
+            print(f"filtered_adj_matrix　{filtered_adj_matrix}")
+            print(f"filtered_attr_matrix　{filtered_attr_matrix}")
             # ------------------------------------------------------------------------
             # ゼロパディングを抜いて、dgl graph を作成
             # ------------------------------------------------------------------------
