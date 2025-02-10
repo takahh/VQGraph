@@ -180,10 +180,16 @@ def run_inductive(
                 glist = convert_to_dgl(adj_batch, attr_batch)
 
                 batched_graph = dgl.batch(glist)
-                print("Batched Graph Edge Types:",
-                      batched_graph.etypes if isinstance(batched_graph, dgl.DGLHeteroGraph) else "Homogeneous")
-                for g_each in batched_graph:
-                    print(g_each)
+
+                # Access edges correctly
+                edges = batched_graph["_E"].edges()
+                print(f"Edges in Batched Graph: {edges}")
+
+                # If you need to access individual graphs, unbatch them
+                graphs = dgl.unbatch(batched_graph)
+                for g in graphs:
+                    print(f"Graph has {g.num_nodes()} nodes and {g.num_edges()} edges.")
+
                 # Convert list of graphs into a single batched graph
                 # batched_graph = dgl.batch(glist)
 
