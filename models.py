@@ -232,11 +232,12 @@ class SAGE(nn.Module):
         init_feat = h.clone()  # Store initial features (for later use)
         torch.save(init_feat, "/h.pt")  # Save for reference
         device = h.device
-        global_node_ids = set()for g in blocks:
-        if isinstance(blocks, dgl.DGLHeteroGraph):
-            print(f"Graph is heterogeneous, edge types: {g.etypes}")
-        else:
-            print("Graph is homogeneous")
+        global_node_ids = set()
+        for g in blocks:
+            if isinstance(blocks, dgl.DGLHeteroGraph):
+                print(f"Graph is heterogeneous, edge types: {g.etypes}")
+            else:
+                print("Graph is homogeneous")
 
         print([g.etypes for g in blocks])  # Check edge types of all graphs
         for block in blocks:
