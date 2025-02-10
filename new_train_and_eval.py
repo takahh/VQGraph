@@ -198,17 +198,22 @@ def run_inductive(
                 # -----------------------------------------------
                 # エッジのないノードがあるか確認
                 # -----------------------------------------------
-                # Get the first graph from the batch
-                first_graph = dgl.unbatch(batched_graph)[0]
-                # Compute in-degrees and out-degrees
-                in_degrees = first_graph.in_degrees()
-                out_degrees = first_graph.out_degrees()
-                # Find nodes with no incoming edges
-                zero_in_degree_nodes = torch.where(in_degrees == 0)[0]
-                print(f"Nodes with zero in-degree: {zero_in_degree_nodes.tolist()}")
-                # Find nodes with no outgoing edges
-                zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
-                print(f"Nodes with zero out-degree: {zero_out_degree_nodes.tolist()}")
+                for i, g in enumerate(dgl.unbatch(batched_graph)):
+                    zero_in_degree_nodes = torch.where(g.in_degrees() == 0)[0]
+                    if len(zero_in_degree_nodes) > 0:
+                        print(f"Graph {i} has zero in-degree nodes: {zero_in_degree_nodes.tolist()}")
+
+                # # Get the first graph from the batch
+                # first_graph = dgl.unbatch(batched_graph)[0]
+                # # Compute in-degrees and out-degrees
+                # in_degrees = first_graph.in_degrees()
+                # out_degrees = first_graph.out_degrees()
+                # # Find nodes with no incoming edges
+                # zero_in_degree_nodes = torch.where(in_degrees == 0)[0]
+                # print(f"Nodes with zero in-degree: {zero_in_degree_nodes.tolist()}")
+                # # Find nodes with no outgoing edges
+                # zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
+                # print(f"Nodes with zero out-degree: {zero_out_degree_nodes.tolist()}")
 
 
                 # Ensure node features are correctly extracted
