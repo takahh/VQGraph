@@ -15,27 +15,31 @@ import torch.nn as nn
 import dgl.nn as dglnn
 
 
-class WeightedFullBatchGCN(nn.Module):
+class WeightedThreeHopGCN(nn.Module):
     def __init__(self, in_feats, hidden_feats, out_feats):
-        super(WeightedFullBatchGCN, self).__init__()
+        super(WeightedThreeHopGCN, self).__init__()
         self.conv1 = dglnn.GraphConv(in_feats, hidden_feats, norm="both", weight=True)
-        self.conv2 = dglnn.GraphConv(hidden_feats, out_feats, norm="both", weight=True)
+        self.conv2 = dglnn.GraphConv(hidden_feats, hidden_feats, norm="both", weight=True)
+        self.conv3 = dglnn.GraphConv(hidden_feats, out_feats, norm="both", weight=True)  # 3rd hop
 
     def forward(self, batched_graph, features):
         edge_type = "_E"  # Batched heterogeneous graph edge type
 
         if edge_type not in batched_graph.etypes:
             raise ValueError(f"Expected edge type '_E', but found: {batched_graph.etypes}")
-        print(batched_graph[edge_type])
-        edge_weight = batched_graph[edge_type].edata["weight"].float()  # Ensure float type
+
+        edge_weight = batched_graph[edge_type].edata["weight"].float()
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
 
-        # GCN message passing
+        # 3-hop message passing
         h = self.conv1(batched_graph[edge_type], features, edge_weight=edge_weight)
         h = torch.relu(h)  # Activation function
         h = self.conv2(batched_graph[edge_type], h, edge_weight=edge_weight)
+        h = torch.relu(h)
+        h = self.conv3(batched_graph[edge_type], h, edge_weight=edge_weight)
 
         return h
+
 
 
 class MLP(nn.Module):
