@@ -15,7 +15,7 @@ import torch.nn as nn
 import dgl.nn as dglnn
 
 
-class WeightedThreeHopGCN(nn.Module):
+class WeightedFullBatchGCN(nn.Module):
     def __init__(self, in_feats, hidden_feats, out_feats):
         super(WeightedThreeHopGCN, self).__init__()
         self.conv1 = dglnn.GraphConv(in_feats, hidden_feats, norm="both", weight=True)
