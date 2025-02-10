@@ -182,9 +182,10 @@ def run_inductive(
                 batched_graph = dgl.batch(glist)
                 print("Batched Graph Edge Types:",
                       batched_graph.etypes if isinstance(batched_graph, dgl.DGLHeteroGraph) else "Homogeneous")
-
+                for g_each in batched_graph:
+                    print(g_each)
                 # Convert list of graphs into a single batched graph
-                batched_graph = dgl.batch(glist)
+                # batched_graph = dgl.batch(glist)
 
                 # Ensure node features are correctly extracted
                 batched_feats = batched_graph.ndata["feat"]
