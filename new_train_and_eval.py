@@ -193,8 +193,6 @@ def run_inductive(
                 output = model(batched_graph, features)
                 print("Output shape:", output.shape)
 
-                model(batched_graph)
-
                 # Convert list of graphs into a single batched graph
                 # batched_graph = dgl.batch(glist)
 
