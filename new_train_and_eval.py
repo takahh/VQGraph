@@ -202,6 +202,11 @@ def run_inductive(
                     zero_in_degree_nodes = torch.where(g.in_degrees() == 0)[0]
                     if len(zero_in_degree_nodes) > 0:
                         print(f"Graph {i} has zero in-degree nodes: {zero_in_degree_nodes.tolist()}")
+                        # Convert to dense adjacency matrix
+                        adj_matrix = g.adjacency_matrix().to_dense()
+                        print(f"Adjacency Matrix of Graph {i}:")
+                        print(adj_matrix)
+                        break
 
                 # # Get the first graph from the batch
                 # first_graph = dgl.unbatch(batched_graph)[0]
