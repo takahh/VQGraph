@@ -128,6 +128,13 @@ def convert_to_dgl(adj_batch, attr_batch):
             # ゼロパディングを抜いて、dgl graph を作成
             # ------------------------------------------------------------------------
             src, dst = adj_matrix.nonzero(as_tuple=True)
+
+            # Sum across each row to get the number of outgoing edges per node
+            out_degrees = adj_matrix.sum(dim=1)  # Sum along columns
+            # Identify nodes with zero outgoing edges
+            zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
+            print(f"Nodes with zero outgoing edges: {zero_out_degree_nodes.tolist()}")
+
             edge_weights = adj_matrix[src, dst]
             print("edge_weights")
             print(edge_weights)
