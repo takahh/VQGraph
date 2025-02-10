@@ -193,24 +193,15 @@ def run_inductive(
                 if idx == 8:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)
-
-                print("Edge Data Keys:", glist[0].edata.keys())  # Check if 'weight' exists
-
                 batched_graph = dgl.batch(glist)
 
-                # Access edges correctly
-                edges = batched_graph["_E"].edges()
-                print(f"Edges in Batched Graph: {edges}")
-
-                # If you need to access individual graphs, unbatch them
-                # graphs = dgl.unbatch(batched_graph)
-
-                features = batched_graph.ndata["feat"]
-                output = model(batched_graph, features)
-                print("Output shape:", output.shape)
-
-                # Convert list of graphs into a single batched graph
-                # batched_graph = dgl.batch(glist)
+                # -----------------------------------------------
+                # エッジのないノードがあるか確認
+                # -----------------------------------------------
+                first_graph = dgl.unbatch(batched_graph)[0]
+                adj_matrix = first_graph.adjacency_matrix().to_dense()
+                print("Adjacency Matrix of First Graph:")
+                print(adj_matrix)
 
                 # Ensure node features are correctly extracted
                 batched_feats = batched_graph.ndata["feat"]
