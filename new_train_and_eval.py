@@ -30,7 +30,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     optimizer.zero_grad()
 
     with torch.cuda.amp.autocast():
-        _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch)
+        _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch) # g is blocks
 
     loss = loss * lamb / accumulation_steps
     for i, loss_value in enumerate(loss_list3):
@@ -146,6 +146,17 @@ def convert_to_dgl(adj_batch, attr_batch):
     return graphs  # Return a list of graphs instead of a single one
 
 
+from torch.utils.data import Dataset
+import dgl
+class GraphDataset(Dataset):
+    def __init__(self, graphs):
+        self.graphs = graphs  # List of DGLGraphs
+    def __len__(self):
+        return len(self.graphs)
+    def __getitem__(self, idx):
+        return self.graphs[idx]
+
+
 def run_inductive(
         conf,
         model,
@@ -167,11 +178,6 @@ def run_inductive(
                 if idx == 8:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)
-
-                # for geach in g:
-                #     print(f"Graph Edge Types: {geach.etypes}")
-                #     print(f"Graph Node Types: {geach.ntypes}")
-                #     break
 
                 # Convert list of graphs into a single batched graph
                 batched_graph = dgl.batch(glist)

@@ -233,6 +233,7 @@ class SAGE(nn.Module):
         torch.save(init_feat, "/h.pt")  # Save for reference
         device = h.device
         global_node_ids = set()
+        print([g.etypes for g in blocks])  # Check edge types of all graphs
         for block in blocks:
             src, dst = block.all_edges()
             global_node_ids.update(src.tolist())
