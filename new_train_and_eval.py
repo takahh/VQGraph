@@ -206,6 +206,9 @@ def run_inductive(
                         adj_matrix = g.adjacency_matrix().to_dense()
                         print(f"Adjacency Matrix of Graph {i}:")
                         print(adj_matrix)
+                        print(f"Feature Matrix of Graph {i}:")
+                        print(g.ndata["feat"])  # Prints the full feature matrix
+
                         break
 
                 # # Get the first graph from the batch
