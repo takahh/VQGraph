@@ -140,9 +140,8 @@ def convert_to_dgl(adj_batch, attr_batch):
             # Identify nodes with zero outgoing edges
             zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
             if len(zero_out_degree_nodes.tolist()) > 0:
-                print(f"Nodes with zero outgoing edges: {zero_out_degree_nodes.tolist()}")
-                print(f"filtered_adj_matrix　{filtered_adj_matrix}")
-                print(f"filtered_attr_matrix　{filtered_attr_matrix}")
+                for index0 in zero_out_degree_nodes.tolist():
+                    print(f"Element {filtered_attr_matrix[index0][0]} has no edge")
             edge_weights = adj_matrix[src, dst]
             g = dgl.graph((src, dst), num_nodes=num_total_nodes)
             g.ndata["feat"] = filtered_attr_matrix
