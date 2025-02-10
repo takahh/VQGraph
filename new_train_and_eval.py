@@ -128,8 +128,10 @@ def convert_to_dgl(adj_batch, attr_batch):
             # ゼロパディングを抜いて、dgl graph を作成
             # ------------------------------------------------------------------------
             src, dst = adj_matrix.nonzero(as_tuple=True)
+            edge_weights = adj_matrix[src, dst]
             g = dgl.graph((src, dst), num_nodes=num_total_nodes)
             g.ndata["feat"] = filtered_attr_matrix
+            g.edata["weight"] = torch.tensor(edge_weights, dtype=torch.float32)  # Ensure float32
             if g.num_nodes() != num_total_nodes:
                 print(f"g.num_nodes() {g.num_nodes()}!= num_total_nodes {num_total_nodes}")
 
@@ -179,6 +181,8 @@ def run_inductive(
                 if idx == 8:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)
+
+                print("Edge Data Keys:", glist[0].edata.keys())  # Check if 'weight' exists
 
                 batched_graph = dgl.batch(glist)
 
