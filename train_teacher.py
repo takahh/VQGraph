@@ -265,7 +265,9 @@ def run(args):
     # logger.info(f"conf: {conf}")
 
     """ Model init """
-    model = Model(conf)
+    from models import WeightedFullBatchGCN
+    model = WeightedFullBatchGCN(in_feats=args.hidden_dim, hidden_feats=args.hidden_dim, out_feats=args.hidden_dim)
+    # model = Model(conf)
 
     if conf["train_or_infer"] == "infer":
         model.load_state_dict(torch.load("./model_epoch_200.pth", weights_only=False))

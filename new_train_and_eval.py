@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import glob
 import numpy as np
+from models import WeightedFullBatchGCN
 import copy
 import torch
 import dgl
@@ -186,9 +187,13 @@ def run_inductive(
                 print(f"Edges in Batched Graph: {edges}")
 
                 # If you need to access individual graphs, unbatch them
-                graphs = dgl.unbatch(batched_graph)
-                for g in graphs:
-                    print(f"Graph has {g.num_nodes()} nodes and {g.num_edges()} edges.")
+                # graphs = dgl.unbatch(batched_graph)
+
+                features = batched_graph.ndata["feat"]
+                output = model(batched_graph, features)
+                print("Output shape:", output.shape)
+
+                model(batched_graph)
 
                 # Convert list of graphs into a single batched graph
                 # batched_graph = dgl.batch(glist)

@@ -10,6 +10,32 @@ import dgl
 from train_and_eval import transform_node_feats
 from train_and_eval import filter_small_graphs_from_blocks
 from scipy.sparse.csgraph import connected_components
+import torch
+import torch.nn as nn
+import dgl.nn as dglnn
+
+
+class WeightedFullBatchGCN(nn.Module):
+    def __init__(self, in_feats, hidden_feats, out_feats):
+        super(WeightedFullBatchGCN, self).__init__()
+        self.conv1 = dglnn.GraphConv(in_feats, hidden_feats, norm="both", weight=True)
+        self.conv2 = dglnn.GraphConv(hidden_feats, out_feats, norm="both", weight=True)
+
+    def forward(self, batched_graph, features):
+        edge_type = "_E"  # Batched heterogeneous graph edge type
+
+        if edge_type not in batched_graph.etypes:
+            raise ValueError(f"Expected edge type '_E', but found: {batched_graph.etypes}")
+
+        edge_weight = batched_graph[edge_type].edata["weight"].float()  # Ensure float type
+        edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
+
+        # GCN message passing
+        h = self.conv1(batched_graph[edge_type], features, edge_weight=edge_weight)
+        h = torch.relu(h)  # Activation function
+        h = self.conv2(batched_graph[edge_type], h, edge_weight=edge_weight)
+
+        return h
 
 
 class MLP(nn.Module):
@@ -233,11 +259,6 @@ class SAGE(nn.Module):
         torch.save(init_feat, "/h.pt")  # Save for reference
         device = h.device
         global_node_ids = set()
-        for g in blocks:
-            if isinstance(blocks, dgl.DGLHeteroGraph):
-                print(f"Graph is heterogeneous, edge types: {g.etypes}")
-            else:
-                print("Graph is homogeneous")
 
         print([g.etypes for g in blocks])  # Check edge types of all graphs
         for block in blocks:
