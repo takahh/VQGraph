@@ -26,7 +26,7 @@ class WeightedFullBatchGCN(nn.Module):
 
         if edge_type not in batched_graph.etypes:
             raise ValueError(f"Expected edge type '_E', but found: {batched_graph.etypes}")
-
+        print(batched_graph[edge_type])
         edge_weight = batched_graph[edge_type].edata["weight"].float()  # Ensure float type
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
 
