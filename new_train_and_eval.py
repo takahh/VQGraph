@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import glob
 import numpy as np
-from models import WeightedFullBatchGCN
+from models import WeightedThreeHopGCN
 import copy
 import torch
 import dgl
