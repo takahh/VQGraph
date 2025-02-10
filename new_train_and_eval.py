@@ -124,13 +124,18 @@ def convert_to_dgl(adj_batch, attr_batch):
             nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)  # True for nodes with non-zero features
             num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
             filtered_attr_matrix = attr_matrix[nonzero_mask]
+            filtered_adj_matrix = adj_matrix[:num_total_nodes, :num_total_nodes]
+            print(f"adj_matrix[:num_total_nodes, :num_total_nodes] {adj_matrix[num_total_nodes-1 :num_total_nodes+ 3, :]}")
             # ------------------------------------------------------------------------
             # ゼロパディングを抜いて、dgl graph を作成
             # ------------------------------------------------------------------------
-            src, dst = adj_matrix.nonzero(as_tuple=True)
+            src, dst = filtered_adj_matrix.nonzero(as_tuple=True)
 
+            # ------------------------------------------------------------------------
+            # 隣接情報の無いノードをチェック
+            # ------------------------------------------------------------------------
             # Sum across each row to get the number of outgoing edges per node
-            out_degrees = adj_matrix.sum(dim=1)  # Sum along columns
+            out_degrees = filtered_adj_matrix.sum(dim=1)  # Sum along columns
             # Identify nodes with zero outgoing edges
             zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
             print(f"Nodes with zero outgoing edges: {zero_out_degree_nodes.tolist()}")
