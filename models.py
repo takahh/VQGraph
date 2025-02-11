@@ -119,6 +119,7 @@ class GCN(nn.Module):
         self.dropout = nn.Dropout(dropout_ratio)
         self.layers = nn.ModuleList()
         self.norms = nn.ModuleList()
+        self.linear_0 = nn.Linear(7, input_dim)
         self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
         self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
         self.decoder_1 = nn.Linear(input_dim, input_dim)
@@ -130,9 +131,9 @@ class GCN(nn.Module):
         self.lamb_node = lamb_node
 
     def forward(self, g, feats):
-        h = feats
         adj = g.adjacency_matrix().to_dense().to(feats.device)
         h_list = []
+        h = self.linear_0(feats)  # Convert to expected shape
         h = self.graph_layer_1(g, h)
         if self.norm_type != "none":
             h = self.norms[0](h)
