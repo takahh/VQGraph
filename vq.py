@@ -992,12 +992,10 @@ class VectorQuantize(nn.Module):
         # print_non_empty_cluster_count(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
         # embed_ind = increase_non_empty_clusters(embed_ind, embeddings, num_clusters, target_non_empty_clusters)
         embed_ind.data.copy_(embed_ind)
-
         # Compute pairwise distances for all points
         pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
-
         inter_cluster_distances = []
-
+        print("loop in sil loss start")
         # Iterate over clusters
         for k in range(num_clusters):
             cluster_mask = (embed_ind == k)
@@ -1014,6 +1012,7 @@ class VectorQuantize(nn.Module):
             else:
                 inter_cluster_distances.append(torch.tensor(float('inf'), device=embeddings.device))
 
+        print("loop in sil loss ends")
         # Stack inter-cluster distances into a tensor
         b = torch.stack(inter_cluster_distances, dim=0) if inter_cluster_distances else torch.tensor([],
                                                                                                      device=embeddings.device)
