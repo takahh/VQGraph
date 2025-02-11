@@ -28,6 +28,7 @@ class WeightedThreeHopGCN(nn.Module):
 
     def forward(self, batched_graph, features, epoch):
         print(f"1. forward started")
+        features = transform_node_feats(features)
         h = features.clone()
         init_feat = h.clone()  # Store initial features (for later use)
         edge_type = "_E"  # Batched heterogeneous graph edge type
