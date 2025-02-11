@@ -415,6 +415,7 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5, num_atom_
     # print(f"🚨 num_atom_types: {num_atom_types}")
 
     try:
+        print(f"Min atom_types: {atom_types.min()}, Max atom_types: {atom_types.max()}")
         atom_types = torch.nn.functional.one_hot(atom_types.long(), num_atom_types).float()
     except Exception as e:
         print("Error in one_hot:", e)
