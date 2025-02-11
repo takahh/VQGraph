@@ -353,7 +353,6 @@ def kmeans(
 
     for k in range(1, num_clusters):
 
-        print(f"k : {k}")
         if use_cosine_sim:
             dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
         else:
@@ -366,7 +365,6 @@ def kmeans(
 
     # Iterative optimization
     for _ in range(num_iters):
-        print(f"{_}")
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
         else:
@@ -417,7 +415,7 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5, num_atom_
     atom_types = atom_types.to("cuda")
 
     try:
-        print(f"Min atom_types: {atom_types.min()}, Max atom_types: {atom_types.max()}")
+        # print(f"Min atom_types: {atom_types.min()}, Max atom_types: {atom_types.max()}")
         atom_types = torch.nn.functional.one_hot(atom_types.long(), num_atom_types).float()
     except Exception as e:
         print("Error in one_hot:", e)
@@ -1147,9 +1145,7 @@ class VectorQuantize(nn.Module):
         # print(f"x.requires_grad: {x.requires_grad}")
         # print(f"x.grad_fn: {x.grad_fn}")
         # quantize, embed_ind, dist, self.embed, flatten, init_cb
-        print(f" codebook start")
         quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
-        print(f" codebook done")
         # この時点の embed_ind を渡して書き込むべき！！！
         # quantize　: 各データに対応する codebook vector
         # embed_ind : 各データに対応する codebook vector のインデックス
@@ -1234,8 +1230,6 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # Calculate Codebook Losses
         # ---------------------------------
-
-        print(f" ortho loss calc start")
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
           h_num_div_loss, silh_loss, embed_ind, charge_div_loss, elec_state_div_loss) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
