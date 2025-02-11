@@ -81,8 +81,8 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
         _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch) # g is blocks
 
     # loss = loss * lamb / accumulation_steps
-    for i, loss_value in enumerate(loss_list3):
-        loss_list_list[i].append(loss_value.item())
+    # for i, loss_value in enumerate(loss_list3):
+    #     loss_list_list[i].append(loss_value.item())
     scaler.scale(loss).backward()
     scaler.unscale_(optimizer)
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
