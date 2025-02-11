@@ -256,7 +256,6 @@ def run_inductive(
         # run only in train mode
         # --------------------------------
         if conf["train_or_infer"] == "train":
-
             # Iterate through batches
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
                 print(f"--- {idx} ---")
