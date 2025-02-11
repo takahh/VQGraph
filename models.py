@@ -18,6 +18,8 @@ import dgl.nn as dglnn
 class WeightedThreeHopGCN(nn.Module):
     def __init__(self, in_feats, hidden_feats, out_feats):
         super(WeightedThreeHopGCN, self).__init__()
+        args = get_args()
+        self.linear_0 = nn.Linear(7, args.hidden_dim)
         self.conv1 = dglnn.GraphConv(in_feats, hidden_feats, norm="both", weight=True)
         self.conv2 = dglnn.GraphConv(hidden_feats, hidden_feats, norm="both", weight=True)
         self.conv3 = dglnn.GraphConv(hidden_feats, out_feats, norm="both", weight=True)  # 3rd hop
@@ -31,8 +33,9 @@ class WeightedThreeHopGCN(nn.Module):
         edge_weight = batched_graph[edge_type].edata["weight"].float()
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
 
+        h = self.linear_0(features)  # Convert to expected shape
         # 3-hop message passing
-        h = self.conv1(batched_graph[edge_type], features, edge_weight=edge_weight)
+        h = self.conv1(batched_graph[edge_type], h, edge_weight=edge_weight)
         h = torch.relu(h)  # Activation function
         h = self.conv2(batched_graph[edge_type], h, edge_weight=edge_weight)
         h = torch.relu(h)
@@ -119,7 +122,6 @@ class GCN(nn.Module):
         self.dropout = nn.Dropout(dropout_ratio)
         self.layers = nn.ModuleList()
         self.norms = nn.ModuleList()
-        self.linear_0 = nn.Linear(7, input_dim)
         self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
         self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
         self.decoder_1 = nn.Linear(input_dim, input_dim)
@@ -133,8 +135,7 @@ class GCN(nn.Module):
     def forward(self, g, feats):
         adj = g.adjacency_matrix().to_dense().to(feats.device)
         h_list = []
-        h = self.linear_0(feats)  # Convert to expected shape
-        h = self.graph_layer_1(g, h)
+        h = self.graph_layer_1(g, feats)
         if self.norm_type != "none":
             h = self.norms[0](h)
         h = self.dropout(h)
