@@ -23,6 +23,8 @@ class WeightedThreeHopGCN(nn.Module):
         self.conv1 = dglnn.GraphConv(in_feats, hidden_feats, norm="both", weight=True)
         self.conv2 = dglnn.GraphConv(hidden_feats, hidden_feats, norm="both", weight=True)
         self.conv3 = dglnn.GraphConv(hidden_feats, out_feats, norm="both", weight=True)  # 3rd hop
+        self.vq = VectorQuantize(dim=args.hidden_dim, codebook_size=, decay=0.8, use_cosine_sim=False)
+        self.codebook_size = args.codebook_size
 
     def forward(self, batched_graph, features, epoch):
         h = features.clone()
