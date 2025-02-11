@@ -295,7 +295,7 @@ def run_inductive(
                     )
                     print(f"train sage done -------------")
                     final_loss_list.append(loss)
-                    model.encoder.reset_kmeans()
+                    model.reset_kmeans()
                     print(f"{idx}: loss {loss}")
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
