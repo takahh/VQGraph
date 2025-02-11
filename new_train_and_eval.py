@@ -239,6 +239,7 @@ def run_inductive(
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
     final_loss_list = []
     for epoch in range(1, conf["max_epoch"] + 1):
+        print(f"epoch {epoch} ------------------------------")
         # --------------------------------
         # run only in train mode
         # --------------------------------
@@ -290,6 +291,7 @@ def run_inductive(
                     loss, loss_list_list, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                     )
+                    print(f"train sage done -------------")
                     final_loss_list.append(loss)
                     model.encoder.reset_kmeans()
                     print(f"{idx}: loss {loss}")
