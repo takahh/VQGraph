@@ -144,6 +144,7 @@ def convert_to_dgl(adj_batch, attr_batch):
                     print(f"Element {filtered_attr_matrix[index0][0]} has no edge")
             edge_weights = adj_matrix[src, dst]
             g = dgl.graph((src, dst), num_nodes=num_total_nodes)
+            g = dgl.add_self_loop(g)
             g.ndata["feat"] = filtered_attr_matrix
             g.edata["weight"] = torch.tensor(edge_weights, dtype=torch.float32)  # Ensure float32
             if g.num_nodes() != num_total_nodes:
@@ -200,18 +201,16 @@ def run_inductive(
                 # -----------------------------------------------
                 # エッジのないノードがあるか確認
                 # -----------------------------------------------
-                for i, g in enumerate(dgl.unbatch(batched_graph)):
-                    zero_in_degree_nodes = torch.where(g.in_degrees() == 0)[0]
-                    if len(zero_in_degree_nodes) > 0:
-                        print(f"Graph {i} has zero in-degree nodes: {zero_in_degree_nodes.tolist()}")
-                        # Convert to dense adjacency matrix
-                        adj_matrix = g.adjacency_matrix().to_dense()
-                        print(f"Adjacency Matrix of Graph {i}:")
-                        print(adj_matrix)
-                        print(f"Feature Matrix of Graph {i}:")
-                        print(g.ndata["feat"])  # Prints the full feature matrix
-
-                        break
+                # for i, g in enumerate(dgl.unbatch(batched_graph)):
+                #     zero_in_degree_nodes = torch.where(g.in_degrees() == 0)[0]
+                #     if len(zero_in_degree_nodes) > 0:
+                #         print(f"Graph {i} has zero in-degree nodes: {zero_in_degree_nodes.tolist()}")
+                #         # Convert to dense adjacency matrix
+                #         adj_matrix = g.adjacency_matrix().to_dense()
+                #         print(f"Adjacency Matrix of Graph {i}:")
+                #         print(adj_matrix)
+                #         print(f"Feature Matrix of Graph {i}:")
+                #         print(g.ndata["feat"])  # Prints the full feature matrix
 
                 # # Get the first graph from the batch
                 # first_graph = dgl.unbatch(batched_graph)[0]
