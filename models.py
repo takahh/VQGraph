@@ -30,7 +30,6 @@ class WeightedThreeHopGCN(nn.Module):
         self.vq._codebook.reset_kmeans()
 
     def forward(self, batched_graph, features, epoch):
-        print(f"1. forward started")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         batched_graph = batched_graph.to(device)
         features = transform_node_feats(features)
@@ -45,16 +44,13 @@ class WeightedThreeHopGCN(nn.Module):
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
 
         h = self.linear_0(features)  # Convert to expected shape
-        print(f"2. conv 1 starts")
         # 3-hop message passing
         h = self.conv1(batched_graph[edge_type], h, edge_weight=edge_weight)
         h = torch.relu(h)  # Activation function
-        print(f"3. conv 2 starts")
         h = self.conv2(batched_graph[edge_type], h, edge_weight=edge_weight)
         h = torch.relu(h)
         h = self.conv3(batched_graph[edge_type], h, edge_weight=edge_weight)
         h_list = []
-        print(f"4. vq starts")
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss,
          spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss,
          aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = \
@@ -287,7 +283,7 @@ class SAGE(nn.Module):
         device = h.device
         global_node_ids = set()
 
-        print([g.etypes for g in blocks])  # Check edge types of all graphs
+        # print([g.etypes for g in blocks])  # Check edge types of all graphs
         for block in blocks:
             src, dst = block.all_edges()
             global_node_ids.update(src.tolist())
