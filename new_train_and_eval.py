@@ -31,9 +31,12 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     optimizer.zero_grad()
 
     with torch.cuda.amp.autocast():
+        # (h_list, h, loss, dist, codebook, [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
+        #                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],
+        #                 x, detached_quantize, latents)
         _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch) # g is blocks
 
-    loss = loss * lamb / accumulation_steps
+    # loss = loss * lamb / accumulation_steps
     for i, loss_value in enumerate(loss_list3):
         loss_list_list[i].append(loss_value.item())
     scaler.scale(loss).backward()
@@ -42,12 +45,13 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     scaler.step(optimizer)
     scaler.update()
     optimizer.zero_grad()
-    total_loss += loss.item() * accumulation_steps
+    # total_loss += loss.item() * accumulation_steps
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
-    loss_list.append(loss.detach().cpu())
-    avg_loss = total_loss / len(dataloader)
-    return avg_loss, loss_list_list, latent_list, latents
+    # loss_list.append(loss.detach().cpu())
+    # avg_loss = total_loss / len(dataloader)
+
+    return loss, loss_list_list, latent_list, latents
 
 
 class MoleculeGraphDataset(Dataset):
@@ -189,7 +193,7 @@ def run_inductive(
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
-
+    final_loss_list = []
     for epoch in range(1, conf["max_epoch"] + 1):
         # --------------------------------
         # run only in train mode
@@ -235,7 +239,9 @@ def run_inductive(
                 loss, loss_list_list, latent_train, latents = train_sage(
                     model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                 )
+                final_loss_list.append(loss)
                 model.encoder.reset_kmeans()
+                print(f"{idx}: loss {loss}")
                 # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                 # save codebook and vectors every epoch
                 # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
@@ -243,4 +249,5 @@ def run_inductive(
                 # latents = torch.squeeze(latents)
                 # # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
                 # np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
+        print(f"loss {sum(final_loss_list)/len(final_loss_list)}")
 

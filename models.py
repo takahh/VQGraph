@@ -55,9 +55,6 @@ class WeightedThreeHopGCN(nn.Module):
                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],
                 x, detached_quantize, latents)
 
-        return h
-
-
 
 class MLP(nn.Module):
     def __init__(
