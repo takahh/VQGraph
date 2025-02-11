@@ -348,8 +348,9 @@ def kmeans(
 
     # Randomly select the first centroid
     means[:, 0] = samples[:, torch.randint(0, samples.shape[1], (1,))]
-
     for k in range(1, num_clusters):
+
+        print(f"k : {k}")
         if use_cosine_sim:
             dists = 1 - (samples @ rearrange(means[:, :k], 'h n d -> h d n'))
         else:
