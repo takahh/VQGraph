@@ -362,6 +362,7 @@ def kmeans(
 
     # Iterative optimization
     for _ in range(num_iters):
+        print(f"{_}")
         if use_cosine_sim:
             dists = samples @ rearrange(means, 'h n d -> h d n')
         else:
