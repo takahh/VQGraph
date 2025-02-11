@@ -145,8 +145,13 @@ def convert_to_dgl(adj_batch, attr_batch):
             edge_weights = adj_matrix[src, dst]
             g = dgl.graph((src, dst), num_nodes=num_total_nodes)
             g = dgl.add_self_loop(g)
+
+            # 🔵 Recompute edge weights after adding self-loops
+            new_src, new_dst = g.edges()
+            new_edge_weights = torch.ones(len(new_src), dtype=torch.float32)  # Assign weight 1 to self-loops
+
             g.ndata["feat"] = filtered_attr_matrix
-            g.edata["weight"] = torch.tensor(edge_weights, dtype=torch.float32)  # Ensure float32
+            g.edata["weight"] = torch.tensor(new_edge_weights, dtype=torch.float32)  # Ensure float32
             if g.num_nodes() != num_total_nodes:
                 print(f"g.num_nodes() {g.num_nodes()}!= num_total_nodes {num_total_nodes}")
 
