@@ -202,6 +202,7 @@ def run_inductive(
 
             # Iterate through batches
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
+                print(idx)
                 if idx == 8:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)
