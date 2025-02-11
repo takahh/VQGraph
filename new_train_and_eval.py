@@ -243,7 +243,7 @@ def run_inductive(
 ):
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
-    dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn, pin_memory=False)
     final_loss_list = []
     for epoch in range(1, conf["max_epoch"] + 1):
         print(f"epoch {epoch} ------------------------------")
