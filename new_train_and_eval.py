@@ -69,7 +69,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     from torch.cuda.amp import autocast, GradScaler
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    feats = feats.to(device)  # Ensure loss is also on GPU
+    feats = feats.to(device)
 
     model.train()
     total_loss = 0
@@ -87,11 +87,12 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
         #                 x, detached_quantize, latents)
         _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch) # g is blocks
 
+    loss = loss.to(device)  # Ensure loss is also on GPU
+
     # loss = loss * lamb / accumulation_steps
     # for i, loss_value in enumerate(loss_list3):
     #     loss_list_list[i].append(loss_value.item())
     print("backward")
-    loss = loss.to(device)
     scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
     print("unscale_")
     scaler.unscale_(optimizer)
