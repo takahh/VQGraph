@@ -84,7 +84,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     # for i, loss_value in enumerate(loss_list3):
     #     loss_list_list[i].append(loss_value.item())
     print("backward")
-    scaler.scale(loss).backward()
+    scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
     scaler.unscale_(optimizer)
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
     print("scaler.step(optimizer)")
