@@ -73,12 +73,12 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     loss_list, latent_list = [], []
     cb_list = []
     loss_list_list = []
-    # scaler = torch.cuda.amp.GradScaler()
-    scaler = GradScaler()
+    scaler = torch.cuda.amp.GradScaler()
+    # scaler = GradScaler()
     optimizer.zero_grad()
 
-    # with torch.cuda.amp.autocast():
-    with autocast():
+    with torch.cuda.amp.autocast():
+    # with autocast():
         # (h_list, h, loss, dist, codebook, [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
         #                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],
         #                 x, detached_quantize, latents)
