@@ -214,7 +214,6 @@ def convert_to_dgl(adj_batch, attr_batch):
             g.edata["weight"] = torch.tensor(new_edge_weights, dtype=torch.float32)  # Ensure float32
             if g.num_nodes() != num_total_nodes:
                 print(f"g.num_nodes() {g.num_nodes()}!= num_total_nodes {num_total_nodes}")
-
             # --------------------------------
             # check if the cutoff was correct
             # --------------------------------
