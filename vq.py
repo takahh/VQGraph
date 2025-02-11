@@ -532,7 +532,7 @@ class EuclideanCodebook(nn.Module):
             codebook_size,
             num_codebooks=1,
             kmeans_init=True,
-            kmeans_iters=300,
+            kmeans_iters=100,
             sync_kmeans=True,
             decay=0.1,
             eps=1e-5,
@@ -645,7 +645,9 @@ class EuclideanCodebook(nn.Module):
         # ----------------------------------------------------
         # set the initial codebook vectors by kmeans
         # ----------------------------------------------------
+        print(f"run kmeans init")
         self.init_embed_(flatten)
+        print(f" kmean init done")
         embed = self.embed
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
@@ -1142,6 +1144,7 @@ class VectorQuantize(nn.Module):
         # quantize, embed_ind, dist, self.embed, flatten, init_cb
         print(f" codebook start")
         quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
+        print(f" codebook done")
         # この時点の embed_ind を渡して書き込むべき！！！
         # quantize　: 各データに対応する codebook vector
         # embed_ind : 各データに対応する codebook vector のインデックス
