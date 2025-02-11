@@ -26,6 +26,9 @@ class WeightedThreeHopGCN(nn.Module):
         self.vq = VectorQuantize(dim=args.hidden_dim, codebook_size=args.codebook_size, decay=0.8, use_cosine_sim=False)
         # self.codebook_size = args.codebook_size
 
+    def reset_kmeans(self):
+        self.vq._codebook.reset_kmeans()
+
     def forward(self, batched_graph, features, epoch):
         print(f"1. forward started")
         features = transform_node_feats(features)
