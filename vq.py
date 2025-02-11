@@ -413,6 +413,8 @@ def compute_contrastive_loss(z, atom_types, margin=1.0, threshold=0.5, num_atom_
     # atom_types = torch.nn.functional.one_hot(atom_types.long(), num_atom_types).float()
     # print(f"🚨 atom_types: {atom_types}")
     # print(f"🚨 num_atom_types: {num_atom_types}")
+    z = z.to("cuda")
+    atom_types = atom_types.to("cuda")
 
     try:
         print(f"Min atom_types: {atom_types.min()}, Max atom_types: {atom_types.max()}")
@@ -995,7 +997,6 @@ class VectorQuantize(nn.Module):
         # Compute pairwise distances for all points
         pairwise_distances = torch.cdist(embeddings, embeddings)  # Shape: (N, N)
         inter_cluster_distances = []
-        print("loop in sil loss start")
         # Iterate over clusters
         for k in range(num_clusters):
             cluster_mask = (embed_ind == k)
@@ -1012,7 +1013,6 @@ class VectorQuantize(nn.Module):
             else:
                 inter_cluster_distances.append(torch.tensor(float('inf'), device=embeddings.device))
 
-        print("loop in sil loss ends")
         # Stack inter-cluster distances into a tensor
         b = torch.stack(inter_cluster_distances, dim=0) if inter_cluster_distances else torch.tensor([],
                                                                                                      device=embeddings.device)
