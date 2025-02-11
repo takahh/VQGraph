@@ -1140,6 +1140,7 @@ class VectorQuantize(nn.Module):
         # print(f"x.requires_grad: {x.requires_grad}")
         # print(f"x.grad_fn: {x.grad_fn}")
         # quantize, embed_ind, dist, self.embed, flatten, init_cb
+        print(f" codebook start")
         quantize, embed_ind, dist, embed, latents, init_cb = self._codebook(x)
         # この時点の embed_ind を渡して書き込むべき！！！
         # quantize　: 各データに対応する codebook vector
@@ -1225,6 +1226,8 @@ class VectorQuantize(nn.Module):
         # ---------------------------------
         # Calculate Codebook Losses
         # ---------------------------------
+
+        print(f" ortho loss calc start")
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
           h_num_div_loss, silh_loss, embed_ind, charge_div_loss, elec_state_div_loss) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
