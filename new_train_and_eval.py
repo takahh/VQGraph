@@ -205,50 +205,56 @@ def run_inductive(
                 print(f"--- {idx} ---")
                 if idx == 8:
                     break
-                glist = convert_to_dgl(adj_batch, attr_batch)
-                batched_graph = dgl.batch(glist)
+                glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
 
-                # -----------------------------------------------
-                # エッジのないノードがあるか確認
-                # -----------------------------------------------
-                # for i, g in enumerate(dgl.unbatch(batched_graph)):
-                #     zero_in_degree_nodes = torch.where(g.in_degrees() == 0)[0]
-                #     if len(zero_in_degree_nodes) > 0:
-                #         print(f"Graph {i} has zero in-degree nodes: {zero_in_degree_nodes.tolist()}")
-                #         # Convert to dense adjacency matrix
-                #         adj_matrix = g.adjacency_matrix().to_dense()
-                #         print(f"Adjacency Matrix of Graph {i}:")
-                #         print(adj_matrix)
-                #         print(f"Feature Matrix of Graph {i}:")
-                #         print(g.ndata["feat"])  # Prints the full feature matrix
+                chunk_size = 1000  # in 10,000 molecules
 
-                # # Get the first graph from the batch
-                # first_graph = dgl.unbatch(batched_graph)[0]
-                # # Compute in-degrees and out-degrees
-                # in_degrees = first_graph.in_degrees()
-                # out_degrees = first_graph.out_degrees()
-                # # Find nodes with no incoming edges
-                # zero_in_degree_nodes = torch.where(in_degrees == 0)[0]
-                # print(f"Nodes with zero in-degree: {zero_in_degree_nodes.tolist()}")
-                # # Find nodes with no outgoing edges
-                # zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
-                # print(f"Nodes with zero out-degree: {zero_out_degree_nodes.tolist()}")
+                for i in range(0, len(glist), chunk_size):
+                    chunk = glist[i:i + chunk_size]
+
+                    batched_graph = dgl.batch(chunk)
+
+                    # -----------------------------------------------
+                    # エッジのないノードがあるか確認
+                    # -----------------------------------------------
+                    # for i, g in enumerate(dgl.unbatch(batched_graph)):
+                    #     zero_in_degree_nodes = torch.where(g.in_degrees() == 0)[0]
+                    #     if len(zero_in_degree_nodes) > 0:
+                    #         print(f"Graph {i} has zero in-degree nodes: {zero_in_degree_nodes.tolist()}")
+                    #         # Convert to dense adjacency matrix
+                    #         adj_matrix = g.adjacency_matrix().to_dense()
+                    #         print(f"Adjacency Matrix of Graph {i}:")
+                    #         print(adj_matrix)
+                    #         print(f"Feature Matrix of Graph {i}:")
+                    #         print(g.ndata["feat"])  # Prints the full feature matrix
+
+                    # # Get the first graph from the batch
+                    # first_graph = dgl.unbatch(batched_graph)[0]
+                    # # Compute in-degrees and out-degrees
+                    # in_degrees = first_graph.in_degrees()
+                    # out_degrees = first_graph.out_degrees()
+                    # # Find nodes with no incoming edges
+                    # zero_in_degree_nodes = torch.where(in_degrees == 0)[0]
+                    # print(f"Nodes with zero in-degree: {zero_in_degree_nodes.tolist()}")
+                    # # Find nodes with no outgoing edges
+                    # zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
+                    # print(f"Nodes with zero out-degree: {zero_out_degree_nodes.tolist()}")
 
 
-                # Ensure node features are correctly extracted
-                batched_feats = batched_graph.ndata["feat"]
-                loss, loss_list_list, latent_train, latents = train_sage(
-                    model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
-                )
-                final_loss_list.append(loss)
-                model.encoder.reset_kmeans()
-                print(f"{idx}: loss {loss}")
-                # cb_new = model.encoder.vq._codebook.init_embed_(latents)
-                # save codebook and vectors every epoch
-                # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
-                # np.savez(f"./init_codebook_{epoch}", cb_new.cpu().detach().numpy())
-                # latents = torch.squeeze(latents)
-                # # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-                # np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
+                    # Ensure node features are correctly extracted
+                    batched_feats = batched_graph.ndata["feat"]
+                    loss, loss_list_list, latent_train, latents = train_sage(
+                        model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
+                    )
+                    final_loss_list.append(loss)
+                    model.encoder.reset_kmeans()
+                    print(f"{idx}: loss {loss}")
+                    # cb_new = model.encoder.vq._codebook.init_embed_(latents)
+                    # save codebook and vectors every epoch
+                    # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
+                    # np.savez(f"./init_codebook_{epoch}", cb_new.cpu().detach().numpy())
+                    # latents = torch.squeeze(latents)
+                    # # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
+                    # np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
         print(f"loss {sum(final_loss_list)/len(final_loss_list)}")
 
