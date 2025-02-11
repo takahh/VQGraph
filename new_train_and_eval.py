@@ -67,6 +67,7 @@ def transform_node_feats(a):
 #            model, batched_graph, optimizer, batched_feats, epoch, accumulation_steps
 def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     from torch.cuda.amp import autocast, GradScaler
+    torch.autograd.set_detect_anomaly(False)  # Ensure it's not slowing backward()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     feats = feats.to(device)  # Ensure loss is also on GPU
