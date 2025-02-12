@@ -301,6 +301,10 @@ def run_inductive(
                     final_loss_list.append(loss)
                     model.reset_kmeans()
                     loss_list.append(loss)
+                    import torch
+
+                    print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
+
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
                     # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
