@@ -1028,6 +1028,11 @@ class VectorQuantize(nn.Module):
 
     def orthogonal_loss_fn(self, embed_ind, t, init_feat, latents, quantized, min_distance=0.5):
         # Normalize embeddings (optional: remove if not necessary)
+        embed_ind.to("cuda")
+        t.to("cuda")
+        init_feat.to("cuda")
+        latents.to("cuda")
+        quantized.to("cuda")
         t_norm = torch.norm(t, dim=1, keepdim=True) + 1e-6
         t = t / t_norm
 
