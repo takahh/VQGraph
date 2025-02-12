@@ -303,7 +303,6 @@ def run_inductive(
                     loss, loss_list_list, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                     )
-                    final_loss_list.append(loss)
                     model.reset_kmeans()
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
                     import torch
