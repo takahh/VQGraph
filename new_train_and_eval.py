@@ -294,16 +294,21 @@ def run_inductive(
 
 
                     # Ensure node features are correctly extracted
-                    batched_feats = batched_graph.ndata["feat"]
+                    with torch.no_grad():
+                        batched_feats = batched_graph.ndata["feat"]
+
+                    # batched_feats = batched_graph.ndata["feat"]
                     loss, loss_list_list, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                     )
                     final_loss_list.append(loss)
                     model.reset_kmeans()
-                    loss_list.append(loss)
+                    loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
                     import torch
 
                     print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
+                    del batched_graph, batched_feats
+                    torch.cuda.empty_cache()
 
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
