@@ -96,7 +96,8 @@ def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     feats = feats.to(device)  # Ensure feats are on GPU
     model.eval()
     loss_list, latent_list, cb_list, loss_list_list = [], [], [], []
-    with torch.no_grad(), autocast():
+    # with torch.no_grad(), autocast():
+    with torch.no_grad():
         _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents = model(g, feats, epoch)  # g is blocks
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
