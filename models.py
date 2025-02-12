@@ -30,7 +30,6 @@ class WeightedThreeHopGCN(nn.Module):
         self.vq._codebook.reset_kmeans()
 
     def forward(self, batched_graph, features, epoch):
-        print(f"1. forward started")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         batched_graph = batched_graph.to(device)
         features = transform_node_feats(features)

@@ -90,13 +90,10 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     # loss = loss * lamb / accumulation_steps
     # for i, loss_value in enumerate(loss_list3):
     #     loss_list_list[i].append(loss_value.item())
-    print("backward")
     loss = loss.to(device)
     scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
-    print("unscale_")
     scaler.unscale_(optimizer)
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-    print("scaler.step(optimizer)")
     scaler.step(optimizer)
     scaler.update()
     optimizer.zero_grad()
@@ -301,7 +298,6 @@ def run_inductive(
                     loss, loss_list_list, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                     )
-                    print(f"train sage done -------------")
                     final_loss_list.append(loss)
                     model.reset_kmeans()
                     print(f"{idx}: loss {loss}")
