@@ -362,6 +362,8 @@ def kmeans(
         min_dists = dists.min(dim=-1).values  # Minimum distance to existing centroids
         eps = 1e-8
         probs = min_dists / (min_dists.sum(dim=-1, keepdim=True) + eps)
+        probs = torch.nan_to_num(probs, nan=0.0, posinf=1.0, neginf=0.0)
+
         # probs = min_dists / min_dists.sum(dim=-1, keepdim=True)  # Probabilities proportional to distance
         print(f"Min probs: {probs.min()}, Max probs: {probs.max()}")
         print(f"NaN in probs: {torch.isnan(probs).any()}, Inf in probs: {torch.isinf(probs).any()}")
