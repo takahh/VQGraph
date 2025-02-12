@@ -309,8 +309,7 @@ def run_inductive(
                     import torch
 
                     print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
-                    del batched_graph, batched_feats
-                    torch.cuda.empty_cache()
+                    del batched_graph, batched_feats, chunk
                     gc.collect()
                     torch.cuda.empty_cache()
 
