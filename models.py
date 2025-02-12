@@ -32,7 +32,9 @@ class WeightedThreeHopGCN(nn.Module):
     def forward(self, batched_graph, features, epoch):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         batched_graph = batched_graph.to(device)
+        print("transform data starts")
         features = transform_node_feats(features)
+        print("transform data ends")
         h = features.clone()
         init_feat = h.clone()  # Store initial features (for later use)
         edge_type = "_E"  # Batched heterogeneous graph edge type

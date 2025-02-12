@@ -266,8 +266,10 @@ def run_inductive(
                 for i in range(0, len(glist), chunk_size):
                     print(f"data chunk {i}/{len(glist)}")
                     chunk = glist[i:i + chunk_size]
+                    print("A")
                     batched_graph = dgl.batch(chunk)
 
+                    print("B")
                     # -----------------------------------------------
                     # エッジのないノードがあるか確認
                     # -----------------------------------------------
@@ -298,11 +300,13 @@ def run_inductive(
                     # Ensure node features are correctly extracted
                     with torch.no_grad():
                         batched_feats = batched_graph.ndata["feat"]
-
                     # batched_feats = batched_graph.ndata["feat"]
+                    print("C")
                     loss, loss_list_list, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                     )
+
+                    print("D")
                     model.reset_kmeans()
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
                     torch.cuda.synchronize()
