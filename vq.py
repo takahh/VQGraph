@@ -348,8 +348,8 @@ def kmeans(
 
     # Randomly select the first centroid
     means[:, 0] = samples[:, torch.randint(0, samples.shape[1], (1,))]
-    # samples = samples.to("cuda")
-    # means = means.to("cuda")
+    samples = samples.to("cuda")
+    means = means.to("cuda")
 
     for k in range(1, num_clusters):
 
