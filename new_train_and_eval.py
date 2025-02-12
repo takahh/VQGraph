@@ -64,47 +64,26 @@ def transform_node_feats(a):
     return transformed
 
 
-#            model, batched_graph, optimizer, batched_feats, epoch, accumulation_steps
 def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
-    from torch.cuda.amp import autocast, GradScaler
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     feats = feats.to(device)  # Ensure loss is also on GPU
-
     model.train()
-    total_loss = 0
-    loss_list, latent_list = [], []
-    cb_list = []
-    loss_list_list = []
+    loss_list, latent_list, cb_list, loss_list_list = [], [], [], [], []
     scaler = torch.cuda.amp.GradScaler()
-    # scaler = GradScaler()
     optimizer.zero_grad()
-    # with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
     with torch.cuda.amp.autocast():
-        # with autocast():
-        # (h_list, h, loss, dist, codebook, [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
-        #                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],
-        #                 x, detached_quantize, latents)
         _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch) # g is blocks
-    # loss = loss * lamb / accumulation_steps
-    # for i, loss_value in enumerate(loss_list3):
-    #     loss_list_list[i].append(loss_value.item())
     loss = loss.to(device)
     del logits, quantized
     torch.cuda.empty_cache()
-    # scaler.scale(loss).backward(retain_graph=True)  # Ensure this is False unless needed
     scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
     scaler.unscale_(optimizer)
-    # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
     scaler.step(optimizer)
     scaler.update()
     optimizer.zero_grad()
-    # total_loss += loss.item() * accumulation_steps
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
-    # loss_list.append(loss.detach().cpu())
-    # avg_loss = total_loss / len(dataloader)
-
     return loss, loss_list_list, latent_list, latents
 
 
@@ -119,7 +98,7 @@ def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     loss_list, latent_list, cb_list, loss_list_list = [], [], [], []
     with torch.no_grad(), autocast():
         _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents = model(g, feats, epoch)  # g is blocks
-    # Detach tensors to avoid unnecessary memory usage
+    test_loss = test_loss.to(device)
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
     test_latents = test_latents.detach().cpu()
