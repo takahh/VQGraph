@@ -334,8 +334,10 @@ def run_inductive(
                 with torch.no_grad():
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
+                print(f"batched_feats {batched_feats}")
                 test_loss, loss_list_list, latent_train, latents = evaluate(
                     model, batched_graph, batched_feats, epoch)
+                print(f"test_loss {test_loss}")
                 model.reset_kmeans()
                 test_loss_list.append(test_loss.cpu().item())  # Ensures loss does not retain computation graph
                 torch.cuda.synchronize()
