@@ -242,6 +242,7 @@ def run_inductive(
         optimizer,
         accumulation_steps=1
 ):
+    import gc
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
@@ -308,6 +309,8 @@ def run_inductive(
 
                     print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
                     del batched_graph, batched_feats
+                    torch.cuda.empty_cache()
+                    gc.collect()
                     torch.cuda.empty_cache()
 
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
