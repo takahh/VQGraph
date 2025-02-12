@@ -261,7 +261,7 @@ def run_inductive(
                 if idx == 8:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
-                chunk_size = 500  # in 10,000 molecules
+                chunk_size = 1000  # in 10,000 molecules
 
                 for i in range(0, len(glist), chunk_size):
                     print(f"data chunk {i}/{len(glist)}")
@@ -305,9 +305,7 @@ def run_inductive(
                     )
                     model.reset_kmeans()
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
-                    import torch
                     torch.cuda.synchronize()
-                    print(f"Allocated Memory: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
                     del batched_graph, batched_feats, chunk
                     gc.collect()
                     torch.cuda.empty_cache()
