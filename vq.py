@@ -648,6 +648,7 @@ class EuclideanCodebook(nn.Module):
 
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
+        flatten = flatten.half()  # Convert to float16 before KMeans
         # ----------------------------------------------------
         # set the initial codebook vectors by kmeans
         # ----------------------------------------------------
