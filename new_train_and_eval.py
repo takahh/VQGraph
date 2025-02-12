@@ -82,8 +82,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     optimizer.zero_grad()
     g = g.formats("coo")  # Use COO format for efficiency
 
-    # with torch.cuda.amp.autocast():
-    with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+    with torch.cuda.amp.autocast():
         # with autocast():
         # (h_list, h, loss, dist, codebook, [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
         #                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],
