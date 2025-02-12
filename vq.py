@@ -360,6 +360,9 @@ def kmeans(
             dists = torch.cdist(samples, means[:, :k], p=2)
 
         min_dists = dists.min(dim=-1).values  # Minimum distance to existing centroids
+        probs = min_dists / min_dists.sum(dim=-1, keepdim=True)
+        print("probs")
+        print(probs)
         eps = 1e-8
         probs = min_dists / (min_dists.sum(dim=-1, keepdim=True) + eps)
         probs = torch.nan_to_num(probs, nan=0.0, posinf=1.0, neginf=0.0)
