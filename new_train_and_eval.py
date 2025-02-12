@@ -263,7 +263,7 @@ def run_inductive(
             # Iterate through batches
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
                 print(f"--- data {idx} ---")
-                if idx == 8:
+                if idx == 2:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
                 chunk_size = 500  # in 10,000 molecules
