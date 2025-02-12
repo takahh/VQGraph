@@ -302,15 +302,13 @@ def run_inductive(
                         batched_feats = batched_graph.ndata["feat"]
                     # batched_feats = batched_graph.ndata["feat"]
                     loss, loss_list_list, latent_train, latents = train_sage(
-                        model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
-                    )
+                        model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps)
                     model.reset_kmeans()
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
                     torch.cuda.synchronize()
                     del batched_graph, batched_feats, chunk
                     gc.collect()
                     torch.cuda.empty_cache()
-
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
                     # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
@@ -327,7 +325,6 @@ def run_inductive(
             print(f"--- data {idx} ---")
             if idx == 12:
                 break
-
             glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
             chunk_size = 500  # in 10,000 molecules
             for i in range(0, len(glist), chunk_size):
@@ -338,10 +335,9 @@ def run_inductive(
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
                 test_loss, loss_list_list, latent_train, latents = evaluate(
-                    model, batched_graph, batched_feats, epoch
-                )
+                    model, batched_graph, batched_feats, epoch)
                 model.reset_kmeans()
-                test_loss_list.append(test_loss)  # Ensures loss does not retain computation graph
+                test_loss_list.append(test_loss.cpu().item())  # Ensures loss does not retain computation graph
                 torch.cuda.synchronize()
                 del batched_graph, batched_feats, chunk
                 gc.collect()
