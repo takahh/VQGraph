@@ -651,7 +651,9 @@ class EuclideanCodebook(nn.Module):
         # ----------------------------------------------------
         # set the initial codebook vectors by kmeans
         # ----------------------------------------------------
+        print(f"run kmeans init")
         self.init_embed_(flatten)
+        print(f" kmean init done")
         embed = self.embed
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
