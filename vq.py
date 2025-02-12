@@ -648,15 +648,15 @@ class EuclideanCodebook(nn.Module):
 
         shape, dtype = x.shape, x.dtype
         flatten = rearrange(x, 'h ... d -> h (...) d')
-        flatten = flatten.half()  # Convert to float16 before KMeans
+        # flatten = flatten.half()  # Convert to float16 before KMeans
         # ----------------------------------------------------
         # set the initial codebook vectors by kmeans
         # ----------------------------------------------------
         # print(f"run kmeans init")
         self.init_embed_(flatten)
         print(f" kmean init done")
-        torch.cuda.synchronize()
-        torch.cuda.empty_cache()  # Clears unused memory
+        # torch.cuda.synchronize()
+        # torch.cuda.empty_cache()  # Clears unused memory
         embed = self.embed
         init_cb = self.embed.detach().clone().contiguous()
         dist = -torch.cdist(flatten, embed, p=2)
