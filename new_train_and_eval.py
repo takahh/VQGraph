@@ -67,6 +67,9 @@ def transform_node_feats(a):
 #            model, batched_graph, optimizer, batched_feats, epoch, accumulation_steps
 def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     from torch.cuda.amp import autocast, GradScaler
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    feats = feats.to(device)  # Ensure loss is also on GPU
 
     model.train()
     total_loss = 0
@@ -88,6 +91,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     # for i, loss_value in enumerate(loss_list3):
     #     loss_list_list[i].append(loss_value.item())
     print("backward")
+    loss = loss.to(device)
     scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
     print("unscale_")
     scaler.unscale_(optimizer)
@@ -243,7 +247,7 @@ def run_inductive(
 ):
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=collate_fn, pin_memory=False)
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
     final_loss_list = []
     for epoch in range(1, conf["max_epoch"] + 1):
         print(f"epoch {epoch} ------------------------------")
@@ -259,7 +263,7 @@ def run_inductive(
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
 
-                chunk_size = 1  # in 10,000 molecules
+                chunk_size = 500  # in 10,000 molecules
 
                 for i in range(0, len(glist), chunk_size):
                     chunk = glist[i:i + chunk_size]
