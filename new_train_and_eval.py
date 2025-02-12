@@ -93,7 +93,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     # for i, loss_value in enumerate(loss_list3):
     #     loss_list_list[i].append(loss_value.item())
     loss = loss.to(device)
-    del logits, quantized, latents
+    # del logits, quantized, latents
     torch.cuda.empty_cache()
     print(f"backward start, Loss: {loss.detach().cpu().item():.6f}")
     scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
