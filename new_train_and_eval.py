@@ -91,7 +91,9 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     # for i, loss_value in enumerate(loss_list3):
     #     loss_list_list[i].append(loss_value.item())
     loss = loss.to(device)
+    print(f"backward start")
     scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
+    print(f"backward ends")
     scaler.unscale_(optimizer)
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
     scaler.step(optimizer)
@@ -304,12 +306,16 @@ def run_inductive(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                     )
                     print("D")
+                    print("d0")
                     model.reset_kmeans()
+                    print("d1")
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
                     torch.cuda.synchronize()
+                    print("d2")
                     del batched_graph, batched_feats, chunk
                     gc.collect()
                     torch.cuda.empty_cache()
+                    print("d3")
 
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
