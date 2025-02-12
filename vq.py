@@ -1124,7 +1124,7 @@ class VectorQuantize(nn.Module):
             mask=None
     ):
         only_one = x.ndim == 2
-
+        x = x.to("cuda")
         if only_one:
             x = rearrange(x, 'b d -> b 1 d')
         shape, device, heads, is_multiheaded, codebook_size = x.shape, x.device, self.heads, self.heads > 1, self.codebook_size
