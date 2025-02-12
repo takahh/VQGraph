@@ -243,6 +243,7 @@ def run_inductive(
         accumulation_steps=1
 ):
     import gc
+    import torch
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
