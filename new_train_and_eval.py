@@ -94,7 +94,8 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     # del logits, quantized, latents
     torch.cuda.empty_cache()
     print(f"backward start, Loss: {loss.detach().cpu().item():.6f}")
-    scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
+    scaler.scale(loss).backward(retain_graph=True)  # Ensure this is False unless needed
+    # scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
     print(f"backward ends")
     scaler.unscale_(optimizer)
     # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
