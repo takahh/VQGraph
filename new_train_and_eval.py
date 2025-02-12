@@ -123,7 +123,7 @@ def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
     test_latents = test_latents.detach().cpu()
-    return test_loss.item(), loss_list_list, latent_list, test_latents
+    return test_loss, loss_list_list, latent_list, test_latents
 
 
 class MoleculeGraphDataset(Dataset):
@@ -358,11 +358,11 @@ def run_inductive(
                 with torch.no_grad():
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
-                loss, loss_list_list, latent_train, latents = evaluate(
+                test_loss, loss_list_list, latent_train, latents = evaluate(
                     model, batched_graph, batched_feats, epoch
                 )
                 model.reset_kmeans()
-                test_loss_list.append(loss)  # Ensures loss does not retain computation graph
+                test_loss_list.append(test_loss)  # Ensures loss does not retain computation graph
                 torch.cuda.synchronize()
                 del batched_graph, batched_feats, chunk
                 gc.collect()
