@@ -32,9 +32,7 @@ class WeightedThreeHopGCN(nn.Module):
     def forward(self, batched_graph, features, epoch):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         batched_graph = batched_graph.to(device)
-        print("transform data starts")
         features = transform_node_feats(features)
-        print("transform data ends")
         h = features.clone()
         init_feat = h.clone()  # Store initial features (for later use)
         edge_type = "_E"  # Batched heterogeneous graph edge type
@@ -44,24 +42,18 @@ class WeightedThreeHopGCN(nn.Module):
 
         edge_weight = batched_graph[edge_type].edata["weight"].float()
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
-        print("0")
         h = self.linear_0(features)  # Convert to expected shape
-        print("1")
         # 3-hop message passing
         h = self.conv1(batched_graph[edge_type], h, edge_weight=edge_weight)
-        print("2")
         h = torch.relu(h)  # Activation function
         h = self.conv2(batched_graph[edge_type], h, edge_weight=edge_weight)
-        print("3")
         h = torch.relu(h)
         h = self.conv3(batched_graph[edge_type], h, edge_weight=edge_weight)
         h_list = []
-        print("vq start")
         (quantized, emb_ind, loss, dist, codebook, raw_commit_loss, latents, margin_loss,
          spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss,
          aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = \
             self.vq(h, init_feat, epoch)
-        print("vq ends")
         return (h_list, h, loss, dist, codebook,
                 [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],

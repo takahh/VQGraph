@@ -92,10 +92,8 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     loss = loss.to(device)
     del logits, quantized
     torch.cuda.empty_cache()
-    print(f"backward start, Loss: {loss.detach().cpu().item():.6f}")
     # scaler.scale(loss).backward(retain_graph=True)  # Ensure this is False unless needed
     scaler.scale(loss).backward(retain_graph=False)  # Ensure this is False unless needed
-    print(f"backward ends")
     scaler.unscale_(optimizer)
     # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
     scaler.step(optimizer)
@@ -267,11 +265,8 @@ def run_inductive(
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
                 chunk_size = 500  # in 10,000 molecules
                 for i in range(0, len(glist), chunk_size):
-                    print(f"data chunk {i}/{len(glist)}")
                     chunk = glist[i:i + chunk_size]
-                    print("A")
                     batched_graph = dgl.batch(chunk)
-                    print("B")
                     # -----------------------------------------------
                     # エッジのないノードがあるか確認
                     # -----------------------------------------------
@@ -303,21 +298,15 @@ def run_inductive(
                     with torch.no_grad():
                         batched_feats = batched_graph.ndata["feat"]
                     # batched_feats = batched_graph.ndata["feat"]
-                    print("C")
                     loss, loss_list_list, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
                     )
-                    print("D")
-                    print("d0")
                     model.reset_kmeans()
-                    print("d1")
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
                     torch.cuda.synchronize()
-                    print("d2")
                     del batched_graph, batched_feats, chunk
                     gc.collect()
                     torch.cuda.empty_cache()
-                    print("d3")
 
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
