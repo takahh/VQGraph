@@ -98,7 +98,6 @@ def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     loss_list, latent_list, cb_list, loss_list_list = [], [], [], []
     with torch.no_grad(), autocast():
         _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents = model(g, feats, epoch)  # g is blocks
-    test_loss = test_loss.to(device)
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
     test_latents = test_latents.detach().cpu()
@@ -334,7 +333,7 @@ def run_inductive(
                 with torch.no_grad():
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
-                print(f"batched_feats {batched_feats}")
+                print(f"batched_graph {batched_graph}")
                 test_loss, loss_list_list, latent_train, latents = evaluate(
                     model, batched_graph, batched_feats, epoch)
                 print(f"test_loss {test_loss}")
