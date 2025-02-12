@@ -86,7 +86,6 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
         #                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],
         #                 x, detached_quantize, latents)
         _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch) # g is blocks
-
     # loss = loss * lamb / accumulation_steps
     # for i, loss_value in enumerate(loss_list3):
     #     loss_list_list[i].append(loss_value.item())
