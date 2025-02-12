@@ -111,7 +111,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
 from torch.cuda.amp import autocast
 
 
-def evaluate(model, g, feats, epoch):
+def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     feats = feats.to(device)  # Ensure feats are on GPU
@@ -267,7 +267,7 @@ def run_inductive(
     # ----------------------------
     # define train and test list
     # ----------------------------
-    train_list = list(range(10))
+    train_list = list(range(1))
     test_list = [10, 11]
 
     # Initialize dataset and dataloader
@@ -358,7 +358,7 @@ def run_inductive(
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
                 loss, loss_list_list, latent_train, latents = evaluate(
-                    model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps
+                    model, batched_graph, batched_feats, epoch
                 )
                 model.reset_kmeans()
                 test_loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
