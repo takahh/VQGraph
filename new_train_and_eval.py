@@ -264,10 +264,11 @@ def run_inductive(
 ):
     import gc
     import torch
+    import itertools
     # ----------------------------
     # define train and test list
     # ----------------------------
-    train_list = list(range(1))
+    train_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     test_list = [10, 11]
 
     # Initialize dataset and dataloader
@@ -283,8 +284,8 @@ def run_inductive(
             # Iterate through batches
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
                 print(f"--- data {idx} ---")
-                if idx not in train_list:
-                    continue
+                if idx == 8:
+                    break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
                 chunk_size = 500  # in 10,000 molecules
                 for i in range(0, len(glist), chunk_size):
@@ -343,10 +344,10 @@ def run_inductive(
         # Test
         # --------------------------------
         test_loss_list = []
-        for idx, (adj_batch, attr_batch) in enumerate(dataloader):
+        for idx, (adj_batch, attr_batch) in enumerate(itertools.islice(dataloader, 10, None), start=10):
             print(f"--- data {idx} ---")
-            if idx not in test_list:
-                continue
+            if idx == 12:
+                break
 
             glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
             chunk_size = 500  # in 10,000 molecules
@@ -361,7 +362,7 @@ def run_inductive(
                     model, batched_graph, batched_feats, epoch
                 )
                 model.reset_kmeans()
-                test_loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
+                test_loss_list.append(loss)  # Ensures loss does not retain computation graph
                 torch.cuda.synchronize()
                 del batched_graph, batched_feats, chunk
                 gc.collect()
