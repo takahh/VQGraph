@@ -252,17 +252,17 @@ def run_inductive(
         # run only in train mode
         # --------------------------------
         if conf["train_or_infer"] == "train":
-
+            loss_list = []
             # Iterate through batches
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
-                print(f"--- {idx} ---")
+                print(f"--- data {idx} ---")
                 if idx == 8:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
-
                 chunk_size = 500  # in 10,000 molecules
 
                 for i in range(0, len(glist), chunk_size):
+                    print(f"data chunk {i}/{len(glist)}")
                     chunk = glist[i:i + chunk_size]
                     batched_graph = dgl.batch(chunk)
 
@@ -300,7 +300,7 @@ def run_inductive(
                     )
                     final_loss_list.append(loss)
                     model.reset_kmeans()
-                    print(f"{idx}: loss {loss}")
+                    loss_list.append(loss)
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
                     # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
@@ -308,5 +308,6 @@ def run_inductive(
                     # latents = torch.squeeze(latents)
                     # # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
                     # np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
-        print(f"loss {sum(final_loss_list)/len(final_loss_list)}")
+
+        print(f"epoch {epoch}: loss {sum(loss_list)/len(loss_list)}")
 
