@@ -68,7 +68,7 @@ def transform_node_feats(a):
 def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     from torch.cuda.amp import autocast, GradScaler
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = torch.compile(model)
+    # model = torch.compile(model)
     model.to(device)
     feats = feats.to(device)  # Ensure loss is also on GPU
 
