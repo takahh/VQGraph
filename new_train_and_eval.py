@@ -265,7 +265,7 @@ def run_inductive(
                 if idx == 8:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
-                chunk_size = 500  # in 10,000 molecules
+                chunk_size = 1000  # in 10,000 molecules
                 for i in range(0, len(glist), chunk_size):
                     print(f"data chunk {i}/{len(glist)}")
                     chunk = glist[i:i + chunk_size]
