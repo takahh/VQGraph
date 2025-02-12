@@ -42,12 +42,15 @@ class WeightedThreeHopGCN(nn.Module):
 
         edge_weight = batched_graph[edge_type].edata["weight"].float()
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
-
+        print("0")
         h = self.linear_0(features)  # Convert to expected shape
+        print("1")
         # 3-hop message passing
         h = self.conv1(batched_graph[edge_type], h, edge_weight=edge_weight)
+        print("2")
         h = torch.relu(h)  # Activation function
         h = self.conv2(batched_graph[edge_type], h, edge_weight=edge_weight)
+        print("3")
         h = torch.relu(h)
         h = self.conv3(batched_graph[edge_type], h, edge_weight=edge_weight)
         h_list = []
