@@ -249,18 +249,17 @@ def run_inductive(
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
-    final_loss_list = []
     for epoch in range(1, conf["max_epoch"] + 1):
+        loss_list = []
         print(f"epoch {epoch} ------------------------------")
         # --------------------------------
         # run only in train mode
         # --------------------------------
         if conf["train_or_infer"] == "train":
-            loss_list = []
             # Iterate through batches
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
                 print(f"--- data {idx} ---")
-                if idx == 8:
+                if idx == 3:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
                 chunk_size = 500  # in 10,000 molecules

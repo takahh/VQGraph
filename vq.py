@@ -654,7 +654,6 @@ class EuclideanCodebook(nn.Module):
         # ----------------------------------------------------
         # print(f"run kmeans init")
         self.init_embed_(flatten)
-        print(f" kmean init done")
         # torch.cuda.synchronize()
         # torch.cuda.empty_cache()  # Clears unused memory
         embed = self.embed
