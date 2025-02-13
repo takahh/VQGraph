@@ -6,13 +6,20 @@ from rdkit import Chem
 from scipy.sparse.csgraph import connected_components
 import numpy as np
 from icecream import ic
+from rdkit.Chem import Draw
+from rdkit.Chem.Draw import rdMolDraw2D
+from io import BytesIO
+from PIL import Image
 import matplotlib.pyplot as plt
 from rdkit.Geometry import Point2D
+# import cairosvg
+from io import BytesIO
+from PIL import Image
 
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 10
+EPOCH = 6
 PATH = "/Users/taka/Documents/vqgraph_0213/"
 
 def getdata(filename):
@@ -60,48 +67,47 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
     Args:
         adj_matrix (scipy.sparse.csr_matrix): Combined adjacency matrix for all molecules.
         feature_matrix (numpy.ndarray): Node feature matrix. First column is atomic numbers.
-        indices_file (str): Path to file containing node indices for all atoms.
-        class_file (str): Path to file containing classes for the nodes.
+        classes (numpy.ndarray): Class labels for each node.
+        arr_src (numpy.ndarray): Source indices of bonds.
+        arr_dst (numpy.ndarray): Destination indices of bonds.
+        arr_bond_order (numpy.ndarray): Bond order array.
 
     Returns:
         None: Displays molecule images with annotated classes near atoms.
     """
-    # Step 1: Load indices and classes
-    node_indices = list(range(8000))
-    # Map node indices to classes
+    node_indices = np.arange(feature_matrix.shape[0])  # Ensures indices match feature matrix
     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
 
     # Step 2: Identify connected components (molecules)
     n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
 
-    # Step 3: Extract and annotate molecules
     images = []
     for i in range(n_components - 2):
         if i == 0:
             continue
         print(f"$$$$$$$$$$$$$$$$$$$. {i}")
+
         # Get node indices for this molecule
         component_indices = np.where(labels == i)[0]
         print(f"component_indices {component_indices}")
 
         # Extract subgraph
         mol_adj = adj_matrix[component_indices, :][:, component_indices]
-
         mol_features = feature_matrix[component_indices]
 
-        mol_src = arr_src[component_indices]
-        mol_dst = arr_dst[component_indices]
-        mol_bond = arr_bond_order[component_indices]
+        # Filter edges to only those within the component
+        mask = np.isin(arr_src, component_indices) & np.isin(arr_dst, component_indices)
+        mol_src = arr_src[mask]
+        mol_dst = arr_dst[mask]
+        mol_bond = arr_bond_order[mask]
 
-        print("mol_src")
-        print(mol_src)
-        print("mol_dst")
-        print(mol_dst)
-        print("mol_bond")
-        print(mol_bond)
+        print("mol_src", mol_src)
+        print("mol_dst", mol_dst)
+        print("mol_bond", mol_bond)
 
         # Create RDKit molecule
         mol = Chem.RWMol()
+        atom_mapping = {}  # Maps original indices to RDKit indices
 
         # Add atoms and annotate classes
         atom_labels = {}
@@ -109,104 +115,84 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
             atomic_num = int(features[0])  # First element is the atomic number
             atom = Chem.Atom(atomic_num)
             atom_idx = mol.AddAtom(atom)
-            # Annotate with superscript class label
+            atom_mapping[idx] = atom_idx  # Map original index to new RDKit index
+
+            # Annotate with class label
             class_label = node_to_class.get(idx, "Unknown")
-            if class_label != "Unknown":
-                class_label_sup = to_superscript(class_label)
-                atom_labels[atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}"
-            else:
-                atom_labels[atom_idx] = Chem.GetPeriodicTable().GetElementSymbol(atomic_num)
-            # print(atom_labels[atom_idx])
-                # Annotate with inline format
+            atom_labels[
+                atom_idx] = f"{Chem.GetPeriodicTable().GetElementSymbol(atomic_num)}{class_label}" if class_label != "Unknown" else Chem.GetPeriodicTable().GetElementSymbol(
+                atomic_num)
 
-        # # Add bonds
-        # for x, y in zip(*np.where(mol_adj > 0)):
-        #     if x < y:  # Avoid duplicate bonds
-        #         # mol.AddBond(int(x), int(y), Chem.BondType.SINGLE)
-
-        # Add bonds with correct bond order
+        # Map bond order
         bond_type_map = {1: Chem.BondType.SINGLE,
                          2: Chem.BondType.DOUBLE,
                          3: Chem.BondType.TRIPLE,
-                         4: Chem.BondType.AROMATIC}  # Assuming 4 means aromatic
+                         4: Chem.BondType.AROMATIC}
 
-        for x, y in zip(*np.where(mol_adj > 0)):
-            if x < y:  # Avoid duplicate bonds
-                bond_order = int(mol_adj[x, y])  # Extract bond order
+        for src, dst, bond_order in zip(mol_src, mol_dst, mol_bond):
+            src, dst, bond_order = int(src), int(dst), int(bond_order)
+
+            # Check if atom indices are valid
+            if src not in atom_mapping or dst not in atom_mapping:
+                print(f"Skipping bond ({src}, {dst}) - Atoms not found in mapping")
+                continue
+
+            src_mol, dst_mol = atom_mapping[src], atom_mapping[dst]
+
+            # Avoid self-bonds
+            if src_mol == dst_mol:
+                print(f"Skipping self-bond ({src_mol}, {dst_mol})")
+                continue
+
+                # Avoid duplicate bonds
+            if mol.GetBondBetweenAtoms(src_mol, dst_mol) is None:
                 bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
-                mol.AddBond(int(x), int(y), bond_type)
 
-        # Compute 2D coordinates for proper display
+                print(f"Adding bond: {src_mol} - {dst_mol} (Bond type: {bond_type})")
+
+                mol.AddBond(src_mol, dst_mol, bond_type)
+
+                # **Mark atoms and bonds as aromatic if needed**
+                if bond_order == 4:  # Aromatic bond
+                    mol.GetAtomWithIdx(src_mol).SetIsAromatic(True)
+                    mol.GetAtomWithIdx(dst_mol).SetIsAromatic(True)
+                    mol.GetBondBetweenAtoms(src_mol, dst_mol).SetIsAromatic(True)
+            else:
+                print(f"Skipping duplicate bond: ({src_mol}, {dst_mol})")
+
+        # Compute 2D coordinates
         AllChem.Compute2DCoords(mol)
 
-        # Ensure bonds are explicitly drawn
-        Chem.Kekulize(mol, clearAromaticFlags=True)
-
         # Sanitize molecule
-        Chem.SanitizeMol(mol)
-        drawer = Draw.MolDraw2DCairo(CANVAS_WIDTH, CANVAS_HEIGHT)  # Increase the size (width, height)
-        options = drawer.drawOptions()
-        options.bondLineWidth = 2  # Make bonds thicker if needed
-        options.scaleBondWidth = True  # Scale bond width relative to image size
-        options.atomLabelFontSize = FONTSIZE
-        options.atomLabelPadding = 0.4  # Default is 0.2; increase for more space between labels
+        try:
+            Chem.SanitizeMol(mol, Chem.SanitizeFlags.SANITIZE_SETAROMATICITY)
+        except Exception as e:
+            print(f"Sanitization warning: {e}")
 
-        for idx, label in atom_labels.items():
-            options.atomLabels[idx] = label  # Assign custom labels to atoms
-
-        # Calculate and set the scale
-        minv, maxv = compute_molecule_bounds(mol)
-
-        # Set canvas dimensions
-        canvas_width = CANVAS_WIDTH
-        canvas_height = CANVAS_HEIGHT
-
-        # Calculate molecule dimensions
-        mol_width = maxv.x - minv.x
-        mol_height = maxv.y - minv.y
-
-        # Add padding
-        padding = 0.1
-        mol_width_with_padding = mol_width * (1 + padding)
-        mol_height_with_padding = mol_height * (1 + padding)
-
-        # Calculate scale
-        scale_x = canvas_width / mol_width_with_padding
-        scale_y = canvas_height / mol_height_with_padding
-        scale = min(scale_x, scale_y)
-
-        # Center the molecule
-        center_x = (canvas_width / scale - mol_width) / 2 - minv.x
-        center_y = (canvas_height / scale - mol_height) / 2 - minv.y
-
-        # Center the molecule (convert to integers for SetOffset)
-        center_x = int((canvas_width / scale - mol_width) / 2 - minv.x)
-        center_y = int((canvas_height / scale - mol_height) / 2 - minv.y)
-
-        drawer.SetOffset(center_x, center_y)
-
-        # Draw the molecule
+        # Generate the SVG drawing
+        drawer = rdMolDraw2D.MolDraw2DSVG(1000, 700)
         drawer.DrawMolecule(mol)
         drawer.FinishDrawing()
 
-        # Get the binary image data
-        img_data = drawer.GetDrawingText()
+        # Convert SVG to PNG using CairoSVG
+        svg = drawer.GetDrawingText().encode("utf-8")  # Convert to bytes
+        with open("molecule.svg", "w") as f:
+            f.write(drawer.GetDrawingText())
 
-        # Convert binary image data to an image
-        from PIL import Image
-        from io import BytesIO
+        print("Saved molecule as SVG. Open 'molecule.svg' in a browser to view it.")
 
-        img = Image.open(BytesIO(img_data))
-        images.append(img)
+        # png_data = cairosvg.svg2png(bytestring=svg)  # Convert SVG to PNG
 
-    # Step 4: Display images
-    for i, img in enumerate(images):
-        plt.figure(dpi=150)
-        plt.title(f"Molecule {i+1}")
+        # Open the PNG image with PIL
+        img = Image.open(BytesIO(svg))
+
+        # Display the image
+        plt.figure(dpi=250)
+        plt.title("Molecule")
         plt.imshow(img)
         plt.axis("off")
-    plt.tight_layout()  # Automatically adjust spacing
-    plt.show()
+        plt.show()
+
 
 import torch
 import torch
