@@ -73,7 +73,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     scaler = torch.cuda.amp.GradScaler()
     optimizer.zero_grad()
     with torch.cuda.amp.autocast():
-        _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents = model(g, feats, epoch) # g is blocks
+        _, logits, loss, _, cb, loss_list3, latent_train, quantized, latents, sample_list_train = model(g, feats, epoch) # g is blocks
     loss = loss.to(device)
     del logits, quantized
     torch.cuda.empty_cache()
@@ -98,11 +98,11 @@ def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     loss_list, latent_list, cb_list, loss_list_list = [], [], [], []
     # with torch.no_grad(), autocast():
     with torch.no_grad():
-        _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents = model(g, feats, epoch)  # g is blocks
+        _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents, sample_list_test = model(g, feats, epoch)  # g is blocks
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
     test_latents = test_latents.detach().cpu()
-    return test_loss, loss_list_list, latent_list, test_latents
+    return test_loss, loss_list_list, latent_list, test_latents, sample_list_test
 
 
 class MoleculeGraphDataset(Dataset):
@@ -340,7 +340,7 @@ def run_inductive(
                 with torch.no_grad():
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
-                test_loss, loss_list_list, latent_train, latents = evaluate(
+                test_loss, loss_list_list, latent_train, latents, sample_list_test = evaluate(
                     model, batched_graph, batched_feats, epoch)
                 model.reset_kmeans()
                 test_loss_list.append(test_loss.cpu().item())  # Ensures loss does not retain computation graph
@@ -350,3 +350,10 @@ def run_inductive(
                 torch.cuda.empty_cache()
 
         print(f"epoch {epoch}: loss {sum(loss_list)/len(loss_list)}, test_loss {sum(test_loss_list)/len(test_loss_list)}")
+
+        np.savez(f"./sample_emb_ind_{epoch}", sample_list_test[0].cpu())
+        np.savez(f"./sample_node_feat_{epoch}", sample_list_test[1].cpu())
+        np.savez(f"./sample_adj_{epoch}", sample_list_test[2].cpu()[:1000, :1000])
+        np.savez(f"./sample_bond_order_{epoch}", sample_list_test[3].cpu())
+        np.savez(f"./sample_bond_to_edge_0_{epoch}", sample_list_test[4][0].cpu())
+        np.savez(f"./sample_bond_to_edge_1_{epoch}", sample_list_test[4][1].cpu())
