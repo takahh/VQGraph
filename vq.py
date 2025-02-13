@@ -1275,16 +1275,16 @@ class VectorQuantize(nn.Module):
         # print(f"value: {loss}")
         # loss = (loss + margin_loss * self.margin_weight + pair_distance_loss * self.pair_weight +
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
-        if self.training:
-            if div_ele_loss < 0.04:
-                loss = loss + self.lamb_sil * silh_loss
-            else:
-                print("else pattern")
-                print(f"self.lamb_sil {self.lamb_sil}, self.lamb_div_el {self.lamb_div_ele}")
-                loss = (loss + self.lamb_sil * silh_loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
-                        + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
-                        + self.lamb_div_charge * charge_div_loss + self.lamb_div_elec_state * elec_state_div_loss
-                        + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
+        # if self.training:
+        if div_ele_loss < 0.04:
+            loss = loss + self.lamb_sil * silh_loss
+        else:
+            print("else pattern")
+            print(f"self.lamb_sil {self.lamb_sil}, self.lamb_div_el {self.lamb_div_ele}")
+            loss = (loss + self.lamb_sil * silh_loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
+                    + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
+                    + self.lamb_div_charge * charge_div_loss + self.lamb_div_elec_state * elec_state_div_loss
+                    + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
         print(f"final loss in vq {loss}")
         # print(f"loss 2 {loss}")
         if is_multiheaded:
