@@ -173,8 +173,6 @@ def convert_to_dgl(adj_batch, attr_batch):
         for j in range(len(attr_matrices)):
             adj_matrix = adj_matrices[j]
             attr_matrix = attr_matrices[j]
-            print("&&&&&&&&&& adj_matrix")
-            print(adj_matrix)
             # ------------------------------------------------------------------------
             # パディングを除去するためにパディング幅を検出 : attr
             # ------------------------------------------------------------------------
