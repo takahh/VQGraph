@@ -54,7 +54,6 @@ class WeightedThreeHopGCN(nn.Module):
          spread_loss, pair_loss, detached_quantize, x, init_cb, div_ele_loss, bond_num_div_loss,
          aroma_div_loss, ringy_div_loss, h_num_div_loss, sil_loss, charge_div_loss, elec_state_div_loss) = \
             self.vq(h, init_feat, epoch)
-        print(f"in forward loss {loss}")
         return (h_list, h, loss, dist, codebook,
                 [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
                  h_num_div_loss, charge_div_loss, elec_state_div_loss, spread_loss, pair_loss, sil_loss],

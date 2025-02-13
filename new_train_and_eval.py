@@ -304,11 +304,17 @@ def run_inductive(
                     loss, loss_list_list, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps)
                     model.reset_kmeans()
+                    cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
                     torch.cuda.synchronize()
                     del batched_graph, batched_feats, chunk
                     gc.collect()
                     torch.cuda.empty_cache()
+                    np.savez(f"./init_codebook_{epoch}", cb_new.cpu().detach().numpy())
+                    latents = torch.squeeze(latents)
+                    # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
+                    np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
+
                     # cb_new = model.encoder.vq._codebook.init_embed_(latents)
                     # save codebook and vectors every epoch
                     # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
@@ -334,10 +340,8 @@ def run_inductive(
                 with torch.no_grad():
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
-                print(f"batched_graph {batched_graph}")
                 test_loss, loss_list_list, latent_train, latents = evaluate(
                     model, batched_graph, batched_feats, epoch)
-                print(f"test_loss {test_loss}")
                 model.reset_kmeans()
                 test_loss_list.append(test_loss.cpu().item())  # Ensures loss does not retain computation graph
                 torch.cuda.synchronize()

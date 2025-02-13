@@ -1240,12 +1240,6 @@ class VectorQuantize(nn.Module):
         (margin_loss, spread_loss, pair_distance_loss, div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
           h_num_div_loss, silh_loss, embed_ind, charge_div_loss, elec_state_div_loss) = self.orthogonal_loss_fn(embed_ind, codebook, init_feat, latents, quantize)
         # margin_loss, spread_loss = orthogonal_loss_fn(codebook)
-        print(f"in vq div_ele_loss {div_ele_loss}")
-        print(f"in vq bond_num_div_loss {bond_num_div_loss}")
-        print(f"in vq aroma_div_loss {aroma_div_loss}")
-        print(f"in vq ringy_div_loss {ringy_div_loss}")
-        print(f"in vq h_num_div_loss {h_num_div_loss}")
-        print(f"in vq silh_loss {silh_loss}")
         embed_ind = embed_ind.reshape(embed_ind.shape[-1], 1)
         if embed_ind.ndim == 2:
             # print("embed_ind.ndim == 2")
@@ -1279,20 +1273,15 @@ class VectorQuantize(nn.Module):
         # if div_ele_loss < 0.04:
         #     loss = loss + self.lamb_sil * silh_loss
         # else:
-        print("else pattern")
-        print(f"self.lamb_sil {self.lamb_sil}, self.lamb_div_el {self.lamb_div_ele}")
         loss = (loss + self.lamb_sil * silh_loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
                 + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
                 + self.lamb_div_charge * charge_div_loss + self.lamb_div_elec_state * elec_state_div_loss
                 + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
-        print(f"final loss in vq {loss}")
-        # print(f"loss 2 {loss}")
         if is_multiheaded:
             if self.separate_codebook_per_head:
                 quantize = rearrange(quantize, 'h b n d -> b n (h d)', h=heads)
                 embed_ind = rearrange(embed_ind, 'h b n -> b n h', h=heads)
             else:
-                print("separate_codebook_per_head NO !!!!!!!")
                 quantize = rearrange(quantize, '1 (b h) n d -> b n (h d)', h=heads)
                 embed_ind = rearrange(embed_ind, '1 (b h) n -> b n h', h=heads)
 
