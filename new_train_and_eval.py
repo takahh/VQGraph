@@ -354,6 +354,3 @@ def run_inductive(
         np.savez(f"./sample_emb_ind_{epoch}", sample_list_test[0].cpu())
         np.savez(f"./sample_node_feat_{epoch}", sample_list_test[1].cpu())
         np.savez(f"./sample_adj_{epoch}", sample_list_test[2].cpu()[:1000, :1000])
-        np.savez(f"./sample_bond_order_{epoch}", sample_list_test[3].cpu())
-        np.savez(f"./sample_bond_to_edge_0_{epoch}", sample_list_test[4][0].cpu())
-        np.savez(f"./sample_bond_to_edge_1_{epoch}", sample_list_test[4][1].cpu())
