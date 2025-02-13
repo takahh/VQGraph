@@ -63,7 +63,8 @@ class WeightedThreeHopGCN(nn.Module):
         sample_adj = adj_matrix.to_dense()
         src, dst = batched_graph.all_edges()
         src, dst = src.to(torch.int64), dst.to(torch.int64)
-        sample_list = [emb_ind, features, sample_adj]
+        sample_bond_info = batched_graph.edata["weight"]
+        sample_list = [emb_ind, features, sample_adj, sample_bond_info, src, dst]
 
         return (h_list, h, loss, dist, codebook,
                 [div_ele_loss, bond_num_div_loss, aroma_div_loss, ringy_div_loss,
