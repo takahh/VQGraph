@@ -212,7 +212,7 @@ def convert_to_dgl(adj_batch, attr_batch):
                     new_edge_weights[idx] = filtered_adj_matrix[s, d]  # Preserve the original bond order
 
             g.edata["weight"] = new_edge_weights
-
+            g.ndata["feat"] = filtered_attr_matrix
             if g.num_nodes() != num_total_nodes:
                 print(f"g.num_nodes() {g.num_nodes()}!= num_total_nodes {num_total_nodes}")
 
