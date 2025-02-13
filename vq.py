@@ -1277,13 +1277,15 @@ class VectorQuantize(nn.Module):
         #         self.spread_weight * spread_loss + self.lamb_sil * silh_loss)
         if self.training:
             if div_ele_loss < 0.04:
+                print("< 0.04")
+                print(f"self.lamb_sil {self.lamb_sil}")
                 loss = loss + self.lamb_sil * silh_loss
             else:
                 loss = (loss + self.lamb_sil * silh_loss + self.lamb_div_ele * div_ele_loss + self.lamb_div_aroma * aroma_div_loss
                         + self.lamb_div_bonds * bond_num_div_loss + self.lamb_div_aroma * aroma_div_loss
                         + self.lamb_div_charge * charge_div_loss + self.lamb_div_elec_state * elec_state_div_loss
                         + self.lamb_div_ringy * ringy_div_loss + self.lamb_div_h_num * h_num_div_loss)
-
+        print(f"final loss in vq {loss}")
         # print(f"loss 2 {loss}")
         if is_multiheaded:
             if self.separate_codebook_per_head:
