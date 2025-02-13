@@ -1,7 +1,7 @@
 import numpy as np
 from rdkit.Chem import Draw
 from scipy.sparse import csr_matrix
-np.set_printoptions(threshold=np.inf)
+# np.set_printoptions(threshold=np.inf)
 from rdkit import Chem
 from scipy.sparse.csgraph import connected_components
 import numpy as np
@@ -12,7 +12,7 @@ from rdkit.Geometry import Point2D
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 2
+EPOCH = 10
 PATH = "/Users/taka/Documents/vqgraph_0213/"
 
 def getdata(filename):
@@ -53,7 +53,7 @@ def to_superscript(number):
     return "".join(superscript_map.get(char, char) for char in str(number))
 
 
-def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indices_file, classes):
+def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classes, arr_src, arr_dst, arr_bond_order):
     """
     Visualizes molecules with node classes shown near the atoms.
 
@@ -82,11 +82,23 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, indice
         print(f"$$$$$$$$$$$$$$$$$$$. {i}")
         # Get node indices for this molecule
         component_indices = np.where(labels == i)[0]
+        print(f"component_indices {component_indices}")
 
         # Extract subgraph
         mol_adj = adj_matrix[component_indices, :][:, component_indices]
 
         mol_features = feature_matrix[component_indices]
+
+        mol_src = arr_src[component_indices]
+        mol_dst = arr_dst[component_indices]
+        mol_bond = arr_bond_order[component_indices]
+
+        print("mol_src")
+        print(mol_src)
+        print("mol_dst")
+        print(mol_dst)
+        print("mol_bond")
+        print(mol_bond)
 
         # Create RDKit molecule
         mol = Chem.RWMol()
@@ -269,13 +281,26 @@ def main():
     adj_file = f"{path}/sample_adj_{EPOCH}.npz"                     # input data
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
+    bond_order_file = f"{path}sample_bond_num_{EPOCH}.npz"
+    src_file = f"{path}sample_src_{EPOCH}.npz"
+    dst_file = f"{path}sample_dst_{EPOCH}.npz"
 
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
-    print(arr_adj)
+    print("arr_adj.shape")
+    print(arr_adj.shape)
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
     arr_feat = restore_node_feats(arr_feat)
     node_indices = [int(x) for x in arr_indices.tolist()]
+    arr_src = getdata(src_file)
+    arr_dst = getdata(dst_file)
+    arr_bond_order = getdata(bond_order_file)
+    print("arr_bond_order")
+    print(arr_bond_order.shape)
+    print("arr_src")
+    print(arr_src.shape)
+    print("arr_dst")
+    print(arr_dst.shape)
 
     # -------------------------------------
     # rebuild attr matrix
@@ -304,7 +329,7 @@ def main():
     # -------------------------------------
     # split the matrix into molecules
     # -------------------------------------
-    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_attr_matrix, None, node_indices)
+    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_attr_matrix, node_indices, arr_src, arr_dst, arr_bond_order)
 
 
 if __name__ == '__main__':
