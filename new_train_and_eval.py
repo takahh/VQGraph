@@ -253,14 +253,12 @@ def run_inductive(
     # ----------------------------
     # define train and test list
     # ----------------------------
-    train_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    test_list = [10, 11]
-    loss_list_list_train = [0] * 10
-    loss_list_list_test = [0] * 10
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
     for epoch in range(1, conf["max_epoch"] + 1):
+        loss_list_list_train = [0] * 10
+        loss_list_list_test = [0] * 10
         loss_list = []
         print(f"epoch {epoch} ------------------------------")
         # --------------------------------
