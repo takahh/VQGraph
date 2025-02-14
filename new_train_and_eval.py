@@ -84,7 +84,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     optimizer.zero_grad()
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
-    return loss, loss_list_list, latent_list, latents
+    return loss, loss_list3, latent_list, latents
 
 
 from torch.cuda.amp import autocast
