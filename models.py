@@ -67,7 +67,7 @@ class WeightedThreeHopGCN(nn.Module):
 
         return (h_list, h, loss, dist, codebook,
                 [div_ele_loss.item(), bond_num_div_loss.item(), aroma_div_loss.item(), ringy_div_loss.item(),
-                 h_num_div_loss.item(), charge_div_loss.item(), elec_state_div_loss.item(), spread_loss.item(), pair_loss, sil_loss.item()],
+                 h_num_div_loss.item(), charge_div_loss.item(), elec_state_div_loss.item(), spread_loss.item(), pair_loss.item(), sil_loss.item()],
                 x, detached_quantize, latents, sample_list)
 
 
