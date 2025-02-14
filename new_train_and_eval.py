@@ -87,9 +87,6 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     return loss, loss_list3, latent_list, latents
 
 
-from torch.cuda.amp import autocast
-
-
 def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
