@@ -12,8 +12,8 @@ from rdkit.Geometry import Point2D
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 6
-PATH = "/Users/taka/Documents/vqgraph_0213/"
+EPOCH = 27
+PATH = "/Users/taka/Documents/vqgraph_0215/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
