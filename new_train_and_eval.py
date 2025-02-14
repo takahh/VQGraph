@@ -254,8 +254,8 @@ def run_inductive(
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
     for epoch in range(1, conf["max_epoch"] + 1):
-        loss_list_list_train = [0] * 10
-        loss_list_list_test = [0] * 10
+        loss_list_list_train = [[]] * 10
+        loss_list_list_test = [[]] * 10
         loss_list = []
         print(f"epoch {epoch} ------------------------------")
         # --------------------------------
@@ -317,7 +317,7 @@ def run_inductive(
                     # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
                     np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
 
-                    loss_list_list_train = [[sublist] + [y] for sublist, y in zip(loss_list_list_train, loss_list_train)]
+                    loss_list_list_train = [x.append(y) for x, y in zip(loss_list_list_train, loss_list_train)]
                     print(loss_list_list_train)
 
 
