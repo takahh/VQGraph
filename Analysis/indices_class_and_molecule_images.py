@@ -6,15 +6,8 @@ from rdkit import Chem
 from scipy.sparse.csgraph import connected_components
 import numpy as np
 from icecream import ic
-from rdkit.Chem import Draw
-from rdkit.Chem.Draw import rdMolDraw2D
-from io import BytesIO
-from PIL import Image
 import matplotlib.pyplot as plt
 from rdkit.Geometry import Point2D
-# import cairosvg
-from io import BytesIO
-from PIL import Image
 
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
@@ -169,29 +162,33 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
         except Exception as e:
             print(f"Sanitization warning: {e}")
 
-        # Generate the SVG drawing
-        drawer = rdMolDraw2D.MolDraw2DSVG(1000, 700)
+        # Draw the molecule
+        drawer = Draw.MolDraw2DCairo(1500, 1000)  # Adjusted canvas size
+        options = drawer.drawOptions()
+        options.atomLabelFontSize = 4  # Increase font size for better readability
+
+        for idx, label in atom_labels.items():
+            options.atomLabels[idx] = label  # Assign custom labels to atoms
+
         drawer.DrawMolecule(mol)
         drawer.FinishDrawing()
 
-        # Convert SVG to PNG using CairoSVG
-        svg = drawer.GetDrawingText().encode("utf-8")  # Convert to bytes
-        with open("molecule.svg", "w") as f:
-            f.write(drawer.GetDrawingText())
+        # Convert binary image data to an image
+        from PIL import Image
+        from io import BytesIO
 
-        print("Saved molecule as SVG. Open 'molecule.svg' in a browser to view it.")
-
-        # png_data = cairosvg.svg2png(bytestring=svg)  # Convert SVG to PNG
-
-        # Open the PNG image with PIL
-        img = Image.open(BytesIO(svg))
-
-        # Display the image
+        img = Image.open(BytesIO(drawer.GetDrawingText()))
+        images.append(img)
+    print(images)
+    # Step 4: Display images
+    for i, img in enumerate(images):
         plt.figure(dpi=250)
-        plt.title("Molecule")
+        plt.title(f"Molecule {i + 1}")
         plt.imshow(img)
         plt.axis("off")
-        plt.show()
+
+    plt.tight_layout()
+    plt.show()
 
 
 import torch

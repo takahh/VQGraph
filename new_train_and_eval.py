@@ -102,7 +102,7 @@ def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
     test_latents = test_latents.detach().cpu()
-    return test_loss, loss_list_list, latent_list, test_latents, sample_list_test
+    return test_loss, test_loss_list3, latent_list, test_latents, sample_list_test
 
 
 class MoleculeGraphDataset(Dataset):
@@ -255,7 +255,8 @@ def run_inductive(
     # ----------------------------
     train_list = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     test_list = [10, 11]
-
+    loss_list_list_train = [0] * 10
+    loss_list_list_test = [0] * 10
     # Initialize dataset and dataloader
     dataset = MoleculeGraphDataset(adj_dir=DATAPATH, attr_dir=DATAPATH)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=False, collate_fn=collate_fn)
@@ -307,7 +308,7 @@ def run_inductive(
                     with torch.no_grad():
                         batched_feats = batched_graph.ndata["feat"]
                     # batched_feats = batched_graph.ndata["feat"]
-                    loss, loss_list_list, latent_train, latents = train_sage(
+                    loss, loss_list_train, latent_train, latents = train_sage(
                         model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps)
                     model.reset_kmeans()
                     cb_new = model.vq._codebook.init_embed_(latents)
@@ -320,14 +321,8 @@ def run_inductive(
                     latents = torch.squeeze(latents)
                     # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
                     np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
+                    loss_list_list_train = [x+y for x, y in zip(loss_list_list_train, loss_list_train)]
 
-                    # cb_new = model.encoder.vq._codebook.init_embed_(latents)
-                    # save codebook and vectors every epoch
-                    # cb_just_trained = np.concatenate([a.cpu().detach().numpy() for a in cb_just_trained[-1]])
-                    # np.savez(f"./init_codebook_{epoch}", cb_new.cpu().detach().numpy())
-                    # latents = torch.squeeze(latents)
-                    # # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
-                    # np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
 
         # --------------------------------
         # Test
@@ -346,7 +341,7 @@ def run_inductive(
                 with torch.no_grad():
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
-                test_loss, loss_list_list, latent_train, latents, sample_list_test = evaluate(
+                test_loss, loss_list_test, latent_train, latents, sample_list_test = evaluate(
                     model, batched_graph, batched_feats, epoch)
                 model.reset_kmeans()
                 test_loss_list.append(test_loss.cpu().item())  # Ensures loss does not retain computation graph
@@ -354,8 +349,27 @@ def run_inductive(
                 del batched_graph, batched_feats, chunk
                 gc.collect()
                 torch.cuda.empty_cache()
+                loss_list_list_test = [x+y for x, y in zip(loss_list_list_train, loss_list_test)]
 
-        print(f"epoch {epoch}: loss {sum(loss_list)/len(loss_list)}, test_loss {sum(test_loss_list)/len(test_loss_list)}")
+        print(f"epoch {epoch}: loss {sum(loss_list)/len(loss_list):.7f}, test_loss {sum(test_loss_list)/len(test_loss_list):.7f}")
+
+        print(f"train - div_element_loss: {sum(loss_list_list_train[0]) / len(loss_list_list_train[0]): 7f}, "
+              f"train - bond_num_div_loss: {sum(loss_list_list_train[1]) / len(loss_list_list_train[1]): 7f}, "
+              f"train - aroma_div_loss: {sum(loss_list_list_train[2]) / len(loss_list_list_train[2]): 7f}, "
+              f"train - ringy_div_loss: {sum(loss_list_list_train[3]) / len(loss_list_list_train[3]): 7f}, "
+              f"train - h_num_div_loss: {sum(loss_list_list_train[4]) / len(loss_list_list_train[4]): 7f}, "
+              f"train - elec_state_div_loss: {sum(loss_list_list_train[6]) / len(loss_list_list_train[6]): 7f}, "
+              f"train - charge_div_loss: {sum(loss_list_list_train[5]) / len(loss_list_list_train[5]): 7f}, "
+              f"train - sil_loss: {sum(loss_list_list_train[9]) / len(loss_list_list_train[9]): 7f}")
+
+        print(f"test - div_element_loss: {sum(loss_list_list_test[0]) / len(loss_list_list_test[0]): 7f}, "
+              f"test - bond_num_div_loss: {sum(loss_list_list_test[1]) / len(loss_list_list_test[1]): 7f}, "
+              f"test - aroma_div_loss: {sum(loss_list_list_test[2]) / len(loss_list_list_test[2]): 7f}, "
+              f"test - ringy_div_loss: {sum(loss_list_list_test[3]) / len(loss_list_list_test[3]): 7f}, "
+              f"test - h_num_div_loss: {sum(loss_list_list_test[4]) / len(loss_list_list_test[4]): 7f}, "
+              f"test - elec_state_div_loss: {sum(loss_list_list_test[6]) / len(loss_list_list_test[6]): 7f}, "
+              f"test - charge_div_loss: {sum(loss_list_list_test[5]) / len(loss_list_list_test[5]): 7f}, "
+              f"test - sil_loss: {sum(loss_list_list_test[9]) / len(loss_list_list_test[9]): 7f}")
 
         np.savez(f"./sample_emb_ind_{epoch}", sample_list_test[0].cpu())
         np.savez(f"./sample_node_feat_{epoch}", sample_list_test[1].cpu())
