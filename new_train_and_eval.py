@@ -349,7 +349,7 @@ def run_inductive(
                 del batched_graph, batched_feats, chunk
                 gc.collect()
                 torch.cuda.empty_cache()
-                loss_list_list_test = [x+y for x, y in zip(loss_list_list_train, loss_list_test)]
+                loss_list_list_test = [x+y for x, y in zip(loss_list_list_test, loss_list_test)]
 
         print(f"epoch {epoch}: loss {sum(loss_list)/len(loss_list):.7f}, test_loss {sum(test_loss_list)/len(test_loss_list):.7f}")
 
