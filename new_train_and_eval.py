@@ -264,7 +264,6 @@ def run_inductive(
         if conf["train_or_infer"] == "train":
             # Iterate through batches
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
-                print(f"--- data {idx} ---")
                 if idx == 1:
                     break
                 glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
@@ -323,7 +322,6 @@ def run_inductive(
         # --------------------------------
         test_loss_list = []
         for idx, (adj_batch, attr_batch) in enumerate(itertools.islice(dataloader, 10, None), start=10):
-            print(f"--- data {idx} ---")
             if idx == 11:
                 break
             glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
