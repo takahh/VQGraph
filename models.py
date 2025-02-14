@@ -40,7 +40,6 @@ class WeightedThreeHopGCN(nn.Module):
         if edge_type not in batched_graph.etypes:
             raise ValueError(f"Expected edge type '_E', but found: {batched_graph.etypes}")
 
-
         edge_weight = batched_graph[edge_type].edata["weight"].float()
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
         h = self.linear_0(features)  # Convert to expected shape
