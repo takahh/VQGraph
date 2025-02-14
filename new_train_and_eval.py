@@ -316,12 +316,7 @@ def run_inductive(
                     latents = torch.squeeze(latents)
                     # random_indices = np.random.choice(latent_train.shape[0], 20000, replace=False)
                     np.savez(f"./latents_{epoch}", latents.cpu().detach().numpy())
-
-                    # loss_list_list_train = [x.append(y) for x, y in zip(loss_list_list_train, loss_list_train)]
                     loss_list_list_train = [x + [y] for x, y in zip(loss_list_list_train, loss_list_train)]
-
-                    print(loss_list_list_train)
-
 
         # --------------------------------
         # Test
@@ -348,7 +343,7 @@ def run_inductive(
                 del batched_graph, batched_feats, chunk
                 gc.collect()
                 torch.cuda.empty_cache()
-                loss_list_list_test = [x+y for x, y in zip(loss_list_list_test, loss_list_test)]
+                loss_list_list_test = [x + [y] for x, y in zip(loss_list_list_test, loss_list_test)]
 
         print(f"epoch {epoch}: loss {sum(loss_list)/len(loss_list):.7f}, test_loss {sum(test_loss_list)/len(test_loss_list):.7f}")
 
