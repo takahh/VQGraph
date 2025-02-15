@@ -155,16 +155,14 @@ def collate_fn(batch):
 import dgl
 import torch
 
-import dgl
-import torch
 
 def convert_to_dgl(adj_batch, attr_batch):
     """Converts a batch of adjacency matrices and attributes to a list of DGLGraphs, retaining bond multiplicity."""
     graphs = []
 
     for i in range(len(adj_batch)):  # Loop over each molecule set
-        adj_matrices = adj_batch[i].view(1000, 100, 100)  # Reshape adjacency
-        attr_matrices = attr_batch[i].view(1000, 100, 7)   # Reshape features
+        adj_matrices = adj_batch[i].view(1000, 100, 100)
+        attr_matrices = attr_batch[i].view(1000, 100, 7)
 
         for j in range(len(attr_matrices)):
             adj_matrix = adj_matrices[j]
@@ -210,11 +208,20 @@ def convert_to_dgl(adj_batch, attr_batch):
             src, dst = full_adj_matrix.nonzero(as_tuple=True)
             g = dgl.graph((src, dst), num_nodes=num_total_nodes)
 
-            # Assign edge weights from the combined adjacency matrix
-            edge_weights = full_adj_matrix[src, dst]
-
-            # Add self-loops to ensure consistency
+            # Add self-loops
             g = dgl.add_self_loop(g)
+
+            # ------------------------------------------
+            # Assign edge weights correctly
+            # ------------------------------------------
+            new_src, new_dst = g.edges()
+
+            # Recompute edge weights from adjacency matrix
+            edge_weights = full_adj_matrix[new_src, new_dst]
+
+            # Ensure lengths match
+            if len(edge_weights) != g.num_edges():
+                raise ValueError(f"Edge count mismatch: {g.num_edges()} edges vs {len(edge_weights)} weights")
 
             # Assign weights and node features
             g.edata["weight"] = edge_weights.float()
