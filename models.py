@@ -39,9 +39,6 @@ class WeightedThreeHopGCN(nn.Module):
 
         if edge_type not in batched_graph.etypes:
             raise ValueError(f"Expected edge type '_E', but found: {batched_graph.etypes}")
-        print("======================")
-        print(batched_graph.number_of_edges('_E'))
-        print(dgl.khop_adj(batched_graph, 3))  # Check if 3-hop connections exist
 
         edge_weight = batched_graph[edge_type].edata["weight"].float()
         edge_weight = edge_weight / edge_weight.max()  # Normalize weights (optional)
