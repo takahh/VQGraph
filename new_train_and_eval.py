@@ -155,14 +155,16 @@ def collate_fn(batch):
 import dgl
 import torch
 
+import dgl
+import torch
 
 def convert_to_dgl(adj_batch, attr_batch):
-    """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
+    """Converts a batch of adjacency matrices and attributes to a list of DGLGraphs, retaining bond multiplicity."""
     graphs = []
 
     for i in range(len(adj_batch)):  # Loop over each molecule set
-        adj_matrices = adj_batch[i].view(1000, 100, 100)  # Reshape to (1000, 100, 100)
-        attr_matrices = attr_batch[i].view(1000, 100, 7)   # Reshape to (1000, 100, 7)
+        adj_matrices = adj_batch[i].view(1000, 100, 100)  # Reshape adjacency
+        attr_matrices = attr_batch[i].view(1000, 100, 7)   # Reshape features
 
         for j in range(len(attr_matrices)):
             adj_matrix = adj_matrices[j]
@@ -177,60 +179,55 @@ def convert_to_dgl(adj_batch, attr_batch):
             filtered_adj_matrix = adj_matrix[:num_total_nodes, :num_total_nodes]
 
             # ------------------------------------------
-            # Create initial 1-hop graph
+            # Create the initial graph with 1-hop edges
             # ------------------------------------------
             src, dst = filtered_adj_matrix.nonzero(as_tuple=True)
             g = dgl.graph((src, dst), num_nodes=num_total_nodes)
 
             # ------------------------------------------
-            # Generate 2-hop and 3-hop graphs
+            # Generate adjacency for 2-hop and 3-hop edges
             # ------------------------------------------
-            g_2hop = dgl.khop_graph(g, 2)  # Includes all 1-hop and 2-hop connections
-            g_3hop = dgl.khop_graph(g, 3)  # Includes all 1-hop, 2-hop, and 3-hop connections
+            adj_2hop = dgl.khop_adj(g, 2)
+            adj_3hop = dgl.khop_adj(g, 3)
 
             # ------------------------------------------
-            # Combine all edges into one graph
+            # Combine adjacency matrices into one
             # ------------------------------------------
-            combined_g = dgl.batch([g, g_2hop, g_3hop])
+            full_adj_matrix = filtered_adj_matrix.clone()
 
-            # Remove redundant edges by converting to a simple graph
-            combined_g = dgl.to_simple(combined_g)
+            # Add 2-hop connections with a distinct weight (0.5)
+            full_adj_matrix += (adj_2hop * 0.5)
+
+            # Add 3-hop connections with a distinct weight (0.3)
+            full_adj_matrix += (adj_3hop * 0.3)
+
+            # Ensure no self-edges unless explicitly added later
+            torch.diagonal(full_adj_matrix).fill_(1.0)
 
             # ------------------------------------------
-            # Add self-loops
+            # Create a graph from the combined adjacency matrix
             # ------------------------------------------
-            combined_g = dgl.add_self_loop(combined_g)
+            src, dst = full_adj_matrix.nonzero(as_tuple=True)
+            g = dgl.graph((src, dst), num_nodes=num_total_nodes)
 
-            # ------------------------------------------
-            # Assign edge weights
-            # ------------------------------------------
-            new_src, new_dst = combined_g.edges()
-            new_edge_weights = torch.zeros(len(new_src), dtype=torch.float32)
+            # Assign edge weights from the combined adjacency matrix
+            edge_weights = full_adj_matrix[src, dst]
 
-            for idx, (s, d) in enumerate(zip(new_src, new_dst)):
-                # 1-hop edges
-                if filtered_adj_matrix[s, d] > 0:
-                    new_edge_weights[idx] = filtered_adj_matrix[s, d]  # Original weight for direct bonds
-                else:
-                    # Check if it's a 2-hop or 3-hop edge
-                    if dgl.khop_adj(g, 2)[s, d]:
-                        new_edge_weights[idx] = 0.7  # Assign weight for 2-hop edges
-                    elif dgl.khop_adj(g, 3)[s, d]:
-                        new_edge_weights[idx] = 0.5  # Assign weight for 3-hop edges
-                    else:
-                        new_edge_weights[idx] = 0.1  # Default fallback weight
+            # Add self-loops to ensure consistency
+            g = dgl.add_self_loop(g)
 
-            combined_g.edata["weight"] = new_edge_weights
-            combined_g.ndata["feat"] = filtered_attr_matrix
+            # Assign weights and node features
+            g.edata["weight"] = edge_weights.float()
+            g.ndata["feat"] = filtered_attr_matrix
 
             # ------------------------------------------
             # Validate the feature cutoff
             # ------------------------------------------
-            remaining_features = attr_matrix[combined_g.num_nodes():]
+            remaining_features = attr_matrix[g.num_nodes():]
             if not torch.all(remaining_features == 0):
                 print("⚠️ WARNING: Non-zero values found in remaining features!")
 
-            graphs.append(combined_g)
+            graphs.append(g)
 
     return graphs  # Return a list of graphs
 
