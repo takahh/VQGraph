@@ -157,74 +157,82 @@ import torch
 
 
 def convert_to_dgl(adj_batch, attr_batch):
-    # ------------------------------------------------------------------------
-    # 細長く concat されてる行列をひとつずつ dgl のグラフにし、dgl object のリストを返す
-    # ------------------------------------------------------------------------
     """Converts a batch of adjacency matrices (torch tensors) and attributes to a list of DGLGraphs."""
     graphs = []
-    for i in range(len(adj_batch)):  # Loop over each molecule set (1000 molecules)
-        adj_matrices = adj_batch[i]  # (100, 100)
-        attr_matrices = attr_batch[i]  # (100, 100)
-        adj_matrices = adj_matrices.view(1000, 100, 100)
-        attr_matrices = attr_matrices.view(1000, 100, 7)
+
+    for i in range(len(adj_batch)):  # Loop over each molecule set
+        adj_matrices = adj_batch[i].view(1000, 100, 100)  # Reshape to (1000, 100, 100)
+        attr_matrices = attr_batch[i].view(1000, 100, 7)   # Reshape to (1000, 100, 7)
+
         for j in range(len(attr_matrices)):
             adj_matrix = adj_matrices[j]
             attr_matrix = attr_matrices[j]
-            # ------------------------------------------------------------------------
-            # パディングを除去するためにパディング幅を検出 : attr
-            # ------------------------------------------------------------------------
-            nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)  # True for nodes with non-zero features
-            num_total_nodes = nonzero_mask.sum().item()  # Count non-zero feature vectors
+
+            # ------------------------------------------
+            # Remove padding
+            # ------------------------------------------
+            nonzero_mask = (attr_matrix.abs().sum(dim=1) > 0)
+            num_total_nodes = nonzero_mask.sum().item()
             filtered_attr_matrix = attr_matrix[nonzero_mask]
             filtered_adj_matrix = adj_matrix[:num_total_nodes, :num_total_nodes]
-            # print(f"filtered_adj_matrix　{filtered_adj_matrix}")
-            # print(f"filtered_attr_matrix　{filtered_attr_matrix}")
-            # ------------------------------------------------------------------------
-            # ゼロパディングを抜いて、dgl graph を作成
-            # ------------------------------------------------------------------------
-            src, dst = filtered_adj_matrix.nonzero(as_tuple=True)
-            #
-            # # ------------------------------------------------------------------------
-            # # 隣接情報の無いノードをチェック
-            # # ------------------------------------------------------------------------
-            # # Sum across each row to get the number of outgoing edges per node
-            # out_degrees = filtered_adj_matrix.sum(dim=1)  # Sum along columns
-            # # Identify nodes with zero outgoing edges
-            # zero_out_degree_nodes = torch.where(out_degrees == 0)[0]
-            # if len(zero_out_degree_nodes.tolist()) > 0:
-            #     for index0 in zero_out_degree_nodes.tolist():
-            #         print(f"Element {filtered_attr_matrix[index0][0]} has no edge")
-            edge_weights = adj_matrix[src, dst]
-            g = dgl.graph((src, dst), num_nodes=num_total_nodes)
-            g = dgl.add_self_loop(g)
 
-            # 🔵 Preserve original bond order values in edge weights
-            new_src, new_dst = g.edges()
+            # ------------------------------------------
+            # Create initial 1-hop graph
+            # ------------------------------------------
+            src, dst = filtered_adj_matrix.nonzero(as_tuple=True)
+            g = dgl.graph((src, dst), num_nodes=num_total_nodes)
+
+            # ------------------------------------------
+            # Generate 2-hop and 3-hop graphs
+            # ------------------------------------------
+            g_2hop = dgl.khop_graph(g, 2)  # Includes all 1-hop and 2-hop connections
+            g_3hop = dgl.khop_graph(g, 3)  # Includes all 1-hop, 2-hop, and 3-hop connections
+
+            # ------------------------------------------
+            # Combine all edges into one graph
+            # ------------------------------------------
+            combined_g = dgl.batch([g, g_2hop, g_3hop])
+
+            # Remove redundant edges by converting to a simple graph
+            combined_g = dgl.to_simple(combined_g)
+
+            # ------------------------------------------
+            # Add self-loops
+            # ------------------------------------------
+            combined_g = dgl.add_self_loop(combined_g)
+
+            # ------------------------------------------
+            # Assign edge weights
+            # ------------------------------------------
+            new_src, new_dst = combined_g.edges()
             new_edge_weights = torch.zeros(len(new_src), dtype=torch.float32)
 
             for idx, (s, d) in enumerate(zip(new_src, new_dst)):
-                if s == d:
-                    new_edge_weights[idx] = 1.0  # Assign weight 1 to self-loops
+                # 1-hop edges
+                if filtered_adj_matrix[s, d] > 0:
+                    new_edge_weights[idx] = filtered_adj_matrix[s, d]  # Original weight for direct bonds
                 else:
-                    new_edge_weights[idx] = filtered_adj_matrix[s, d]  # Preserve the original bond order
+                    # Check if it's a 2-hop or 3-hop edge
+                    if dgl.khop_adj(g, 2)[s, d]:
+                        new_edge_weights[idx] = 0.7  # Assign weight for 2-hop edges
+                    elif dgl.khop_adj(g, 3)[s, d]:
+                        new_edge_weights[idx] = 0.5  # Assign weight for 3-hop edges
+                    else:
+                        new_edge_weights[idx] = 0.1  # Default fallback weight
 
-            g.edata["weight"] = new_edge_weights
-            g.ndata["feat"] = filtered_attr_matrix
-            if g.num_nodes() != num_total_nodes:
-                print(f"g.num_nodes() {g.num_nodes()}!= num_total_nodes {num_total_nodes}")
+            combined_g.edata["weight"] = new_edge_weights
+            combined_g.ndata["feat"] = filtered_attr_matrix
 
-            # --------------------------------
-            # check if the cutoff was correct
-            # --------------------------------
-            remaining_features = attr_matrix[g.num_nodes():]
-            # Check if all values are zero
-            if torch.all(remaining_features == 0):
-                pass
-            else:
+            # ------------------------------------------
+            # Validate the feature cutoff
+            # ------------------------------------------
+            remaining_features = attr_matrix[combined_g.num_nodes():]
+            if not torch.all(remaining_features == 0):
                 print("⚠️ WARNING: Non-zero values found in remaining features!")
-            graphs.append(g)
 
-    return graphs  # Return a list of graphs instead of a single one
+            graphs.append(combined_g)
+
+    return graphs  # Return a list of graphs
 
 
 from torch.utils.data import Dataset
