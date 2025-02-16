@@ -64,7 +64,7 @@ def transform_node_feats(a):
     return transformed
 
 
-def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
+def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     feats = feats.to(device)  # Ensure loss is also on GPU
@@ -87,7 +87,7 @@ def train_sage(model, g, feats, optimizer, epoch, accumulation_steps=1, lamb=1):
     return loss, loss_list3, latent_list, latents
 
 
-def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
+def evaluate(model, g, feats, epoch, g_base):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     feats = feats.to(device)  # Ensure feats are on GPU
@@ -95,7 +95,7 @@ def evaluate(model, g, feats, epoch, accumulation_steps=1, lamb=1):
     loss_list, latent_list, cb_list, loss_list_list = [], [], [], []
     # with torch.no_grad(), autocast():
     with torch.no_grad():
-        _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents, sample_list_test = model(g, feats, epoch)  # g is blocks
+        _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents, sample_list_test = model(g, feats, epoch, gbase)  # g is blocks
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
     test_latents = test_latents.detach().cpu()
@@ -155,9 +155,11 @@ def collate_fn(batch):
 import dgl
 import torch
 
+
 def convert_to_dgl(adj_batch, attr_batch):
-    """Converts a batch of adjacency matrices and attributes to a list of DGLGraphs, retaining bond multiplicity."""
-    graphs = []
+    """Converts a batch of adjacency matrices and attributes to two lists of DGLGraphs."""
+    base_graphs = []
+    extended_graphs = []
 
     for i in range(len(adj_batch)):  # Loop over each molecule set
         adj_matrices = adj_batch[i].view(1000, 100, 100)
@@ -176,16 +178,31 @@ def convert_to_dgl(adj_batch, attr_batch):
             filtered_adj_matrix = adj_matrix[:num_total_nodes, :num_total_nodes]
 
             # ------------------------------------------
-            # Create the initial graph with 1-hop edges
+            # Create the base graph (only 1-hop edges)
             # ------------------------------------------
             src, dst = filtered_adj_matrix.nonzero(as_tuple=True)
-            g = dgl.graph((src, dst), num_nodes=num_total_nodes)
+            base_g = dgl.graph((src, dst), num_nodes=num_total_nodes)
+
+            # Add self-loops
+            base_g = dgl.add_self_loop(base_g)
+
+            # Assign node features
+            base_g.ndata["feat"] = filtered_attr_matrix
+
+            # Assign edge weights (all ones for 1-hop)
+            base_edge_weights = torch.ones(base_g.num_edges(), dtype=torch.float)
+            base_g.edata["weight"] = base_edge_weights
+
+            # Assign edge types (1 for 1-hop)
+            base_g.edata["edge_type"] = torch.ones(base_g.num_edges(), dtype=torch.int)
+
+            base_graphs.append(base_g)
 
             # ------------------------------------------
             # Generate adjacency for 2-hop and 3-hop edges
             # ------------------------------------------
-            adj_2hop = dgl.khop_adj(g, 2)
-            adj_3hop = dgl.khop_adj(g, 3)
+            adj_2hop = dgl.khop_adj(base_g, 2)
+            adj_3hop = dgl.khop_adj(base_g, 3)
 
             # ------------------------------------------
             # Combine adjacency matrices into one
@@ -205,23 +222,19 @@ def convert_to_dgl(adj_batch, attr_batch):
             # Create a graph from the combined adjacency matrix
             # ------------------------------------------
             src, dst = full_adj_matrix.nonzero(as_tuple=True)
-            g = dgl.graph((src, dst), num_nodes=num_total_nodes)
+            extended_g = dgl.graph((src, dst), num_nodes=num_total_nodes)
 
             # Add self-loops
-            g = dgl.add_self_loop(g)
+            extended_g = dgl.add_self_loop(extended_g)
 
             # ------------------------------------------
             # Assign edge weights correctly
             # ------------------------------------------
-            new_src, new_dst = g.edges()
+            new_src, new_dst = extended_g.edges()
             edge_weights = full_adj_matrix[new_src, new_dst]
 
-            # Ensure lengths match
-            if len(edge_weights) != g.num_edges():
-                raise ValueError(f"Edge count mismatch: {g.num_edges()} edges vs {len(edge_weights)} weights")
-
             # Assign weights
-            g.edata["weight"] = edge_weights.float()
+            extended_g.edata["weight"] = edge_weights.float()
 
             # ------------------------------------------
             # Assign edge types to distinguish connections
@@ -238,12 +251,12 @@ def convert_to_dgl(adj_batch, attr_batch):
                 else:
                     edge_types[idx] = 0  # Unknown
 
-            g.edata["edge_type"] = edge_types
+            extended_g.edata["edge_type"] = edge_types
 
             # ------------------------------------------
             # Assign node features
             # ------------------------------------------
-            g.ndata["feat"] = filtered_attr_matrix
+            extended_g.ndata["feat"] = filtered_attr_matrix
 
             # ------------------------------------------
             # Validate the feature cutoff
@@ -252,9 +265,9 @@ def convert_to_dgl(adj_batch, attr_batch):
             if not torch.all(remaining_features == 0):
                 print("⚠️ WARNING: Non-zero values found in remaining features!")
 
-            graphs.append(g)
+            extended_graphs.append(extended_g)
 
-    return graphs  # Return a list of graphs
+    return base_graphs, extended_graphs
 
 
 from torch.utils.data import Dataset
@@ -296,10 +309,10 @@ def run_inductive(
             for idx, (adj_batch, attr_batch) in enumerate(dataloader):
                 if idx == 5:
                     break
-                glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
+                glist_base, glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
                 chunk_size = 400  # in 10,000 molecules
                 for i in range(0, len(glist), chunk_size):
-                    chunk = glist[i:i + chunk_size]
+                    chunk = glist[i:i + chunk_size]    # including 2-hop and 3-hop
                     batched_graph = dgl.batch(chunk)
                     # -----------------------------------------------
                     # エッジのないノードがあるか確認
@@ -333,7 +346,7 @@ def run_inductive(
                         batched_feats = batched_graph.ndata["feat"]
                     # batched_feats = batched_graph.ndata["feat"]
                     loss, loss_list_train, latent_train, latents = train_sage(
-                        model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps)
+                        model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps, batched_graph_base)
                     model.reset_kmeans()
                     cb_new = model.vq._codebook.init_embed_(latents)
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
@@ -354,17 +367,19 @@ def run_inductive(
         for idx, (adj_batch, attr_batch) in enumerate(itertools.islice(dataloader, 10, None), start=10):
             if idx == 11:
                 break
-            glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
+            glist_base, glist = convert_to_dgl(adj_batch, attr_batch)  # 10000 molecules per glist
             chunk_size = 400  # in 10,000 molecules
             for i in range(0, len(glist), chunk_size):
                 chunk = glist[i:i + chunk_size]
+                chunk_base = glist_base[i:i + chunk_size]   # only 1-hop
                 batched_graph = dgl.batch(chunk)
+                batched_graph_base = dgl.batch(chunk_base)
                 # Ensure node features are correctly extracted
                 with torch.no_grad():
                     batched_feats = batched_graph.ndata["feat"]
                 # batched_feats = batched_graph.ndata["feat"]
                 test_loss, loss_list_test, latent_train, latents, sample_list_test = evaluate(
-                    model, batched_graph, batched_feats, epoch)
+                    model, batched_graph, batched_feats, epoch, batched_graph_base)
                 model.reset_kmeans()
                 test_loss_list.append(test_loss.cpu().item())  # Ensures loss does not retain computation graph
                 torch.cuda.synchronize()
@@ -429,4 +444,5 @@ def run_inductive(
         np.savez(f"./sample_src_{epoch}", sample_list_test[4].cpu()[:1000])
         np.savez(f"./sample_dst_{epoch}", sample_list_test[5].cpu()[:1000])
         np.savez(f"./sample_hop_type_{epoch}", sample_list_test[6].cpu()[:1000])
+        np.savez(f"./sample_adj_base_{epoch}", sample_list_test[7].cpu()[:1000])
 

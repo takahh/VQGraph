@@ -29,7 +29,7 @@ class WeightedThreeHopGCN(nn.Module):
     def reset_kmeans(self):
         self.vq._codebook.reset_kmeans()
 
-    def forward(self, batched_graph, features, epoch):
+    def forward(self, batched_graph, features, epoch, batched_graph_base=None):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         batched_graph = batched_graph.to(device)
         features = transform_node_feats(features)
@@ -60,11 +60,13 @@ class WeightedThreeHopGCN(nn.Module):
         # --------------------------------
         adj_matrix = batched_graph.adjacency_matrix().to_dense()
         sample_adj = adj_matrix.to_dense()
+        adj_matrix_base = batched_graph_base.adjacency_matrix().to_dense()  # 1-hop
+        sample_adj_base = adj_matrix_base.to_dense()  # 1-hop
         src, dst = batched_graph.all_edges()
         src, dst = src.to(torch.int64), dst.to(torch.int64)
         sample_bond_info = batched_graph.edata["weight"]
         sample_hop_info = batched_graph.edata["edge_type"]
-        sample_list = [emb_ind, features, sample_adj, sample_bond_info, src, dst, sample_hop_info]
+        sample_list = [emb_ind, features, sample_adj, sample_bond_info, src, dst, sample_hop_info, sample_adj_base]
 
         return (h_list, h, loss, dist, codebook,
                 [div_ele_loss.item(), bond_num_div_loss.item(), aroma_div_loss.item(), ringy_div_loss.item(),

@@ -12,8 +12,8 @@ from rdkit.Geometry import Point2D
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 1
-PATH = "/Users/taka/Documents/vqgraph_0217_cb700_3hop_impled/"
+EPOCH = 11
+PATH = "/Users/taka/Documents/vqgraph_0217_cb700_hoptype/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -27,6 +27,20 @@ def getdata(filename):
 from rdkit import Chem
 from rdkit.Chem import Draw
 from rdkit.Chem import AllChem
+
+
+def create_adjacency_matrix(src, dst, num_nodes, directed=True):
+    # Initialize an empty adjacency matrix
+    adj_matrix = np.zeros((num_nodes, num_nodes), dtype=int)
+
+    # Fill the matrix based on src and dst
+    for s, d in zip(src, dst):
+        adj_matrix[s, d] = 1
+        if not directed:
+            adj_matrix[d, s] = 1
+
+    return adj_matrix
+
 
 def compute_molecule_bounds(mol):
     """Calculate the bounding box for a molecule."""
@@ -72,12 +86,33 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
 
     # Step 2: Identify connected components (molecules)
-    n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
+    # n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
+
+    import networkx as nx
+    from scipy.sparse import csr_matrix
+
+    # Ensure adj_matrix is a sparse matrix
+    if not isinstance(adj_matrix, csr_matrix):
+        adj_matrix = csr_matrix(adj_matrix)
+    # Convert sparse matrix to NetworkX graph
+    G = nx.from_scipy_sparse_array(adj_matrix)
+
+    # Print connected components
+    components = list(nx.connected_components(G))
+    n_components = len(components)
+    print(f"Number of components: {len(components)}")
+    print(f"components: {components}")
+
+    # Create a label array similar to scipy's connected_components
+    labels = np.empty(adj_matrix.shape[0], dtype=int)
+    for comp_id, nodes in enumerate(components):
+        for node in nodes:
+            labels[node] = comp_id
 
     images = []
     for i in range(n_components - 2):
-        if i == 0:
-            continue
+        # if i == 0:
+        #     continue
         print(f"$$$$$$$$$$$$$$$$$$$. {i}")
 
         # Get node indices for this molecule
@@ -263,6 +298,7 @@ def main():
     bond_order_file = f"{path}sample_bond_num_{EPOCH}.npz"
     src_file = f"{path}sample_src_{EPOCH}.npz"
     dst_file = f"{path}sample_dst_{EPOCH}.npz"
+    hoptype_file = f"{path}sample_hop_type_{EPOCH}.npz"
 
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
@@ -271,7 +307,14 @@ def main():
     node_indices = [int(x) for x in arr_indices.tolist()]
     arr_src = getdata(src_file)
     arr_dst = getdata(dst_file)
+    arr_hoptype = getdata(hoptype_file)
     arr_bond_order = getdata(bond_order_file)
+
+    # choose data only hop=1
+    mask = np.isin(arr_hoptype, 1)
+    arr_src = arr_src[mask]
+    arr_dst = arr_dst[mask]
+    arr_bond_order = arr_bond_order[mask]
 
     # -------------------------------------
     # rebuild attr matrix
