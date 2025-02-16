@@ -155,7 +155,6 @@ def collate_fn(batch):
 import dgl
 import torch
 
-
 def convert_to_dgl(adj_batch, attr_batch):
     """Converts a batch of adjacency matrices and attributes to a list of DGLGraphs, retaining bond multiplicity."""
     graphs = []
@@ -215,16 +214,35 @@ def convert_to_dgl(adj_batch, attr_batch):
             # Assign edge weights correctly
             # ------------------------------------------
             new_src, new_dst = g.edges()
-
-            # Recompute edge weights from adjacency matrix
             edge_weights = full_adj_matrix[new_src, new_dst]
 
             # Ensure lengths match
             if len(edge_weights) != g.num_edges():
                 raise ValueError(f"Edge count mismatch: {g.num_edges()} edges vs {len(edge_weights)} weights")
 
-            # Assign weights and node features
+            # Assign weights
             g.edata["weight"] = edge_weights.float()
+
+            # ------------------------------------------
+            # Assign edge types to distinguish connections
+            # ------------------------------------------
+            edge_types = torch.zeros(len(new_src), dtype=torch.int)
+
+            for idx, (s, d) in enumerate(zip(new_src, new_dst)):
+                if filtered_adj_matrix[s, d] > 0:
+                    edge_types[idx] = 1  # 1-hop edge
+                elif adj_2hop[s, d] > 0:
+                    edge_types[idx] = 2  # 2-hop edge
+                elif adj_3hop[s, d] > 0:
+                    edge_types[idx] = 3  # 3-hop edge
+                else:
+                    edge_types[idx] = 0  # Unknown
+
+            g.edata["edge_type"] = edge_types
+
+            # ------------------------------------------
+            # Assign node features
+            # ------------------------------------------
             g.ndata["feat"] = filtered_attr_matrix
 
             # ------------------------------------------
@@ -410,4 +428,5 @@ def run_inductive(
         np.savez(f"./sample_bond_num_{epoch}", sample_list_test[3].cpu()[:1000])
         np.savez(f"./sample_src_{epoch}", sample_list_test[4].cpu()[:1000])
         np.savez(f"./sample_dst_{epoch}", sample_list_test[5].cpu()[:1000])
+        np.savez(f"./sample_hop_type_{epoch}", sample_list_test[6].cpu()[:1000])
 

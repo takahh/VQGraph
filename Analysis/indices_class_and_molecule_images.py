@@ -13,7 +13,7 @@ CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
 EPOCH = 1
-PATH = "/Users/taka/Documents/vqgraph_0216/"
+PATH = "/Users/taka/Documents/vqgraph_0217_cb700_3hop_impled/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -93,10 +93,6 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
         mol_src = arr_src[mask]
         mol_dst = arr_dst[mask]
         mol_bond = arr_bond_order[mask]
-
-        print("mol_src", mol_src)
-        print("mol_dst", mol_dst)
-        print("mol_bond", mol_bond)
 
         # Create RDKit molecule
         mol = Chem.RWMol()
@@ -270,20 +266,12 @@ def main():
 
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
-    print("arr_adj.shape")
-    print(arr_adj.shape)
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
     arr_feat = restore_node_feats(arr_feat)
     node_indices = [int(x) for x in arr_indices.tolist()]
     arr_src = getdata(src_file)
     arr_dst = getdata(dst_file)
     arr_bond_order = getdata(bond_order_file)
-    print("arr_bond_order")
-    print(arr_bond_order.shape)
-    print("arr_src")
-    print(arr_src.shape)
-    print("arr_dst")
-    print(arr_dst.shape)
 
     # -------------------------------------
     # rebuild attr matrix
