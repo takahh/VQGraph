@@ -346,7 +346,7 @@ def run_inductive(
                         batched_feats = batched_graph.ndata["feat"]
                     # batched_feats = batched_graph.ndata["feat"]
                     loss, loss_list_train, latent_train, latents = train_sage(
-                        model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps, batched_graph_base)
+                        model, batched_graph, batched_feats, optimizer, epoch, accumulation_steps)
                     model.reset_kmeans()
                     cb_new = model.vq._codebook.init_embed_(latents)
                     loss_list.append(loss.detach().cpu().item())  # Ensures loss does not retain computation graph
