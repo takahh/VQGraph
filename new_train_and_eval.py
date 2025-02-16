@@ -261,7 +261,7 @@ def convert_to_dgl(adj_batch, attr_batch):
             # ------------------------------------------
             # Validate the feature cutoff
             # ------------------------------------------
-            remaining_features = attr_matrix[g.num_nodes():]
+            remaining_features = attr_matrix[base_g.num_nodes():]
             if not torch.all(remaining_features == 0):
                 print("⚠️ WARNING: Non-zero values found in remaining features!")
 
