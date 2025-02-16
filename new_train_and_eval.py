@@ -95,7 +95,7 @@ def evaluate(model, g, feats, epoch, g_base):
     loss_list, latent_list, cb_list, loss_list_list = [], [], [], []
     # with torch.no_grad(), autocast():
     with torch.no_grad():
-        _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents, sample_list_test = model(g, feats, epoch, gbase)  # g is blocks
+        _, logits, test_loss, _, cb, test_loss_list3, latent_train, quantized, test_latents, sample_list_test = model(g, feats, epoch, g_base)  # g is blocks
     latent_list.append(latent_train.detach().cpu())
     cb_list.append(cb.detach().cpu())
     test_latents = test_latents.detach().cpu()
