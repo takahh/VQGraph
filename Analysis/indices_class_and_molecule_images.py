@@ -12,8 +12,8 @@ from rdkit.Geometry import Point2D
 CANVAS_WIDTH = 2000
 CANVAS_HEIGHT = 1300
 FONTSIZE = 40
-EPOCH = 11
-PATH = "/Users/taka/Documents/vqgraph_0217_cb700_hoptype/"
+EPOCH = 20
+PATH = "/Users/taka/Documents/vqgraph_0217/"
 
 def getdata(filename):
     # filename = "out_emb_list.npz"
@@ -67,60 +67,19 @@ def to_superscript(number):
     return "".join(superscript_map.get(char, char) for char in str(number))
 
 
-def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classes, arr_src, arr_dst, arr_bond_order):
-    """
-    Visualizes molecules with node classes shown near the atoms.
-
-    Args:
-        adj_matrix (scipy.sparse.csr_matrix): Combined adjacency matrix for all molecules.
-        feature_matrix (numpy.ndarray): Node feature matrix. First column is atomic numbers.
-        classes (numpy.ndarray): Class labels for each node.
-        arr_src (numpy.ndarray): Source indices of bonds.
-        arr_dst (numpy.ndarray): Destination indices of bonds.
-        arr_bond_order (numpy.ndarray): Bond order array.
-
-    Returns:
-        None: Displays molecule images with annotated classes near atoms.
-    """
+def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classes, arr_src, arr_dst, arr_bond_order, adj_matrix_base):
     node_indices = np.arange(feature_matrix.shape[0])  # Ensures indices match feature matrix
     node_to_class = {node: cls for node, cls in zip(node_indices, classes)}
 
     # Step 2: Identify connected components (molecules)
-    # n_components, labels = connected_components(csgraph=adj_matrix, directed=False)
-
-    import networkx as nx
-    from scipy.sparse import csr_matrix
-
-    # Ensure adj_matrix is a sparse matrix
-    if not isinstance(adj_matrix, csr_matrix):
-        adj_matrix = csr_matrix(adj_matrix)
-    # Convert sparse matrix to NetworkX graph
-    G = nx.from_scipy_sparse_array(adj_matrix)
-
-    # Print connected components
-    components = list(nx.connected_components(G))
-    n_components = len(components)
-    print(f"Number of components: {len(components)}")
-    print(f"components: {components}")
-
-    # Create a label array similar to scipy's connected_components
-    labels = np.empty(adj_matrix.shape[0], dtype=int)
-    for comp_id, nodes in enumerate(components):
-        for node in nodes:
-            labels[node] = comp_id
+    n_components, labels = connected_components(csgraph=adj_matrix_base, directed=False)
 
     images = []
     for i in range(n_components - 2):
-        # if i == 0:
-        #     continue
         print(f"$$$$$$$$$$$$$$$$$$$. {i}")
-
         # Get node indices for this molecule
         component_indices = np.where(labels == i)[0]
-        print(f"component_indices {component_indices}")
-
         # Extract subgraph
-        mol_adj = adj_matrix[component_indices, :][:, component_indices]
         mol_features = feature_matrix[component_indices]
 
         # Filter edges to only those within the component
@@ -128,6 +87,10 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
         mol_src = arr_src[mask]
         mol_dst = arr_dst[mask]
         mol_bond = arr_bond_order[mask]
+        print("mol_bond")
+        print(mol_bond)
+        print("mol_src")
+        print(mol_src)
 
         # Create RDKit molecule
         mol = Chem.RWMol()
@@ -158,22 +121,20 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
 
             # Check if atom indices are valid
             if src not in atom_mapping or dst not in atom_mapping:
-                print(f"Skipping bond ({src}, {dst}) - Atoms not found in mapping")
+                # print(f"Skipping bond ({src}, {dst}) - Atoms not found in mapping")
                 continue
 
             src_mol, dst_mol = atom_mapping[src], atom_mapping[dst]
 
             # Avoid self-bonds
             if src_mol == dst_mol:
-                print(f"Skipping self-bond ({src_mol}, {dst_mol})")
+                # print(f"Skipping self-bond ({src_mol}, {dst_mol})")
                 continue
 
                 # Avoid duplicate bonds
             if mol.GetBondBetweenAtoms(src_mol, dst_mol) is None:
                 bond_type = bond_type_map.get(bond_order, Chem.BondType.SINGLE)
-
-                print(f"Adding bond: {src_mol} - {dst_mol} (Bond type: {bond_type})")
-
+                # print(f"Adding bond: {src_mol} - {dst_mol} (Bond type: {bond_type})")
                 mol.AddBond(src_mol, dst_mol, bond_type)
 
                 # **Mark atoms and bonds as aromatic if needed**
@@ -182,7 +143,8 @@ def visualize_molecules_with_classes_on_atoms(adj_matrix, feature_matrix, classe
                     mol.GetAtomWithIdx(dst_mol).SetIsAromatic(True)
                     mol.GetBondBetweenAtoms(src_mol, dst_mol).SetIsAromatic(True)
             else:
-                print(f"Skipping duplicate bond: ({src_mol}, {dst_mol})")
+                pass
+                # print(f"Skipping duplicate bond: ({src_mol}, {dst_mol})")
 
         # Compute 2D coordinates
         AllChem.Compute2DCoords(mol)
@@ -292,7 +254,8 @@ def restore_node_feats(transformed):
 
 def main():
     path = PATH
-    adj_file = f"{path}/sample_adj_{EPOCH}.npz"                     # input data
+    adj_file = f"{path}/sample_adj_{EPOCH}.npz"
+    adj_base_file = f"{path}/sample_adj_base_{EPOCH}.npz"                     # input data
     feat_file = f"{path}sample_node_feat_{EPOCH}.npz"      # assigned code vector id
     indices_file = f"{path}sample_emb_ind_{EPOCH}.npz"
     bond_order_file = f"{path}sample_bond_num_{EPOCH}.npz"
@@ -302,6 +265,7 @@ def main():
 
     arr_indices = getdata(indices_file)   # indices of the input
     arr_adj = getdata(adj_file)       # assigned quantized code vec indices
+    arr_adj_base = getdata(adj_base_file)       # assigned quantized code vec indices
     arr_feat = getdata(feat_file)       # assigned quantized code vec indices
     arr_feat = restore_node_feats(arr_feat)
     node_indices = [int(x) for x in arr_indices.tolist()]
@@ -339,11 +303,12 @@ def main():
     # Reconstruct the sparse adjacency matrix
     # adj_matrix = csr_matrix((adj_data, adj_indices, adj_indptr), shape=adj_shape)
     subset_adj_matrix = arr_adj[0:200, 0:200]
+    subset_adj_base_matrix = arr_adj_base[0:200, 0:200]
     subset_attr_matrix = arr_feat[:200]
     # -------------------------------------
     # split the matrix into molecules
     # -------------------------------------
-    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_attr_matrix, node_indices, arr_src, arr_dst, arr_bond_order)
+    visualize_molecules_with_classes_on_atoms(subset_adj_matrix, subset_attr_matrix, node_indices, arr_src, arr_dst, arr_bond_order, subset_adj_base_matrix)
 
 
 if __name__ == '__main__':
