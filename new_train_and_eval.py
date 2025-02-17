@@ -183,9 +183,9 @@ def convert_to_dgl(adj_batch, attr_batch):
             edge_weights = filtered_adj_matrix[src, dst]  # Extract weights from the adjacency matrix
 
             base_g = dgl.graph((src, dst), num_nodes=num_total_nodes)
-
-            # Add self-loops if needed
-            base_g = dgl.add_self_loop(base_g)
+            #
+            # # Add self-loops if needed
+            # base_g = dgl.add_self_loop(base_g)
 
             # Assign node features
             base_g.ndata["feat"] = filtered_attr_matrix
