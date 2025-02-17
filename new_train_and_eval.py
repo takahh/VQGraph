@@ -168,7 +168,6 @@ def convert_to_dgl(adj_batch, attr_batch):
         for j in range(len(attr_matrices)):
             adj_matrix = adj_matrices[j]
             attr_matrix = attr_matrices[j]
-
             # ------------------------------------------
             # Remove padding
             # ------------------------------------------
@@ -178,22 +177,23 @@ def convert_to_dgl(adj_batch, attr_batch):
             filtered_adj_matrix = adj_matrix[:num_total_nodes, :num_total_nodes]
 
             # ------------------------------------------
-            # Create the base graph (only 1-hop edges)
+            # Create the base graph (only 1-hop edges) with filtered_adj_matrix edge info
             # ------------------------------------------
             src, dst = filtered_adj_matrix.nonzero(as_tuple=True)
+            edge_weights = filtered_adj_matrix[src, dst]  # Extract weights from the adjacency matrix
+
             base_g = dgl.graph((src, dst), num_nodes=num_total_nodes)
 
-            # Add self-loops
+            # Add self-loops if needed
             base_g = dgl.add_self_loop(base_g)
 
             # Assign node features
             base_g.ndata["feat"] = filtered_attr_matrix
 
-            # Assign edge weights (all ones for 1-hop)
-            base_edge_weights = torch.ones(base_g.num_edges(), dtype=torch.float)
-            base_g.edata["weight"] = base_edge_weights
+            # Assign edge weights from filtered_adj_matrix
+            base_g.edata["weight"] = edge_weights.float()
 
-            # Assign edge types (1 for 1-hop)
+            # Assign edge types (you might want to customize this based on adjacency)
             base_g.edata["edge_type"] = torch.ones(base_g.num_edges(), dtype=torch.int)
 
             base_graphs.append(base_g)
