@@ -208,7 +208,7 @@ def convert_to_dgl(adj_batch, attr_batch):
             # Combine adjacency matrices into one
             # ------------------------------------------
             full_adj_matrix = filtered_adj_matrix.clone()
-            print(f"full_adj {full_adj_matrix[:30, :30]}")
+            # print(f"full_adj {full_adj_matrix[:30, :30]}")
 
             # Add 2-hop connections with a distinct weight (0.5)
             full_adj_matrix += (adj_2hop * 0.5)
